@@ -59,7 +59,7 @@ class DrugGrowingAutomationTest {
             when(item.getItemMeta()).thenReturn(mock(ItemMeta.class));
             when(item.asQuantity(anyInt())).thenReturn(item);
         }); var metadata = mockStatic(DrugItemMetadata.class)) {
-            for (String crop : new String[]{"poppy", "mushroom", "ephedra", "coca", "sassafras", "ergot", "salvia", "resin"}) {
+            for (String crop : new String[]{"poppy", "mushroom", "ephedra", "coca", "sassafras", "ergot", "salvia", "resin", "tobacco"}) {
                 crops.put(crop, new DrugGrowing.Crop(crop, crop, Material.POPPY, Material.POPPY, 10));
                 plants.put(id + ":0:0:0", constructor.newInstance(crop, 9));
                 assertTrue(growing.harvestMature(block).isEmpty());
@@ -99,7 +99,7 @@ class DrugGrowingAutomationTest {
             crops.clear();
             crops.putAll(previous);
         }
-        verify(block, times(8)).setType(Material.AIR, false);
-        verify(farmerChange, times(8)).setCancelled(true);
+        verify(block, times(9)).setType(Material.AIR, false);
+        verify(farmerChange, times(9)).setCancelled(true);
     }
 }

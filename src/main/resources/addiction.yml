@@ -174,3 +174,75 @@ drugs:
     withdrawal_effects:
       - type: HUNGER
         amplifier: 1
+
+  tobacco:
+    addictive: true
+    points_per_use: 1
+    addicted_at_points: 4
+    withdrawal_after_seconds: 180
+    decay:
+      enabled: true
+      points_decay_per_minute: 0.5
+    withdrawal_effects:
+      - type: SLOW_DIGGING
+        amplifier: 0
+
+  nicotine:
+    addictive: true
+    points_per_use: 1
+    addicted_at_points: 4
+    withdrawal_after_seconds: 180
+    decay:
+      enabled: true
+      points_decay_per_minute: 0.5
+    withdrawal_effects:
+      - type: SLOW_DIGGING
+        amplifier: 0
+
+  cigarette:
+    addictive: true
+    points_per_use: 1
+    addicted_at_points: 4
+    withdrawal_after_seconds: 180
+    decay:
+      enabled: true
+      points_decay_per_minute: 0.5
+    withdrawal_effects:
+      - type: SLOW_DIGGING
+        amplifier: 0
+
+  cigar:
+    addictive: true
+    points_per_use: 1
+    addicted_at_points: 4
+    withdrawal_after_seconds: 180
+    decay:
+      enabled: true
+      points_decay_per_minute: 0.5
+    withdrawal_effects:
+      - type: SLOW_DIGGING
+        amplifier: 0
+
+  chewing_tobacco:
+    addictive: true
+    points_per_use: 1
+    addicted_at_points: 4
+    withdrawal_after_seconds: 180
+    decay:
+      enabled: true
+      points_decay_per_minute: 0.5
+    withdrawal_effects:
+      - type: SLOW_DIGGING
+        amplifier: 0
+
+  vape:
+    addictive: true
+    points_per_use: 1
+    addicted_at_points: 4
+    withdrawal_after_seconds: 180
+    decay:
+      enabled: true
+      points_decay_per_minute: 0.5
+    withdrawal_effects:
+      - type: SLOW_DIGGING
+        amplifier: 0

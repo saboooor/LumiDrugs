@@ -208,3 +208,99 @@ salvia:
   delay: 3
   duration: 45
   effects: {}
+
+tobacco:
+  material: DRIED_KELP
+  display-name: "&6Tobacco"
+  lore:
+    - "&7Loose tobacco leaves."
+    - "&a&oHaste I"
+    - "&c&oHunger I"
+    - "&7Abuse Potential: &cHigh"
+  effects:
+    HASTE:
+      duration: 200
+      amplifier: 0
+    HUNGER:
+      duration: 200
+      amplifier: 0
+
+nicotine:
+  material: SUGAR
+  display-name: "&eNicotine"
+  lore:
+    - "&7A concentrated nicotine dose."
+    - "&a&oHaste I"
+    - "&c&oHunger I"
+    - "&7Abuse Potential: &cHigh"
+  effects:
+    HASTE:
+      duration: 400
+      amplifier: 0
+    HUNGER:
+      duration: 160
+      amplifier: 0
+
+cigarette:
+  material: PAPER
+  display-name: "&fCigarette"
+  lore:
+    - "&7A paper-wrapped tobacco smoke."
+    - "&a&oHaste I"
+    - "&c&oHunger I"
+    - "&7Abuse Potential: &cHigh"
+  effects:
+    HASTE:
+      duration: 300
+      amplifier: 0
+    HUNGER:
+      duration: 120
+      amplifier: 0
+
+cigar:
+  material: STICK
+  display-name: "&6Cigar"
+  lore:
+    - "&7A slow-burning tobacco roll."
+    - "&a&oHaste I"
+    - "&c&oHunger I"
+    - "&7Abuse Potential: &cHigh"
+  effects:
+    HASTE:
+      duration: 600
+      amplifier: 0
+    HUNGER:
+      duration: 240
+      amplifier: 0
+
+chewing_tobacco:
+  material: BROWN_DYE
+  display-name: "&6Chewing Tobacco"
+  lore:
+    - "&7A pinch of chewing tobacco."
+    - "&a&oHaste I"
+    - "&c&oHunger I"
+    - "&7Abuse Potential: &cHigh"
+  effects:
+    HASTE:
+      duration: 400
+      amplifier: 0
+    HUNGER:
+      duration: 200
+      amplifier: 0
+
+vape:
+  material: BLAZE_ROD
+  display-name: "&bNicotine Vape"
+  lore:
+    - "&7A disposable nicotine vape with limited puffs."
+    - "&a&oHaste I"
+    - "&c&oHunger I"
+    - "&7Abuse Potential: &cHigh"
+  effects:
+    HASTE:
+      duration: 240
+      amplifier: 0
+    HUNGER:
+      duration: 100
+      amplifier: 0

@@ -34,7 +34,10 @@ public final class DrugGrowing implements Listener {
         Map.entry("lsd", "ergot"), Map.entry("salvia", "salvia"),
         Map.entry("glue", "resin"), Map.entry("joint", "cannabis"),
         Map.entry("blunt", "cannabis"), Map.entry("cart", "cannabis"),
-        Map.entry("edible", "cannabis"), Map.entry("cbd", "cannabis"));
+        Map.entry("edible", "cannabis"), Map.entry("cbd", "cannabis"),
+        Map.entry("tobacco", "tobacco"), Map.entry("nicotine", "tobacco"),
+        Map.entry("cigarette", "tobacco"), Map.entry("cigar", "tobacco"),
+        Map.entry("chewing_tobacco", "tobacco"), Map.entry("vape", "tobacco"));
     private record Plant(String crop, int elapsed) {}
     private final Map<String, Plant> plants = new HashMap<>();
     private final DrugsV2 plugin;
@@ -66,11 +69,13 @@ public final class DrugGrowing implements Listener {
         add("ergot", "Ergot Culture", Material.SPORE_BLOSSOM, 1200, config);
         add("salvia", "Salvia Leaves", Material.LILAC, 600, config);
         add("resin", "Harvested Resin", Material.BONE_MEAL, 600, config);
+        add("tobacco", "Tobacco Leaves", Material.DRIED_KELP, 600, config);
         Map<String, Material> defaults = Map.of(
                 "poppy", Material.POPPY, "mushroom", Material.RED_MUSHROOM,
                 "ephedra", Material.DEAD_BUSH, "coca", Material.AZALEA,
                 "sassafras", Material.OAK_SAPLING, "ergot", Material.WHEAT,
-                "salvia", Material.LILAC, "resin", Material.SPRUCE_SAPLING);
+                "salvia", Material.LILAC, "resin", Material.SPRUCE_SAPLING,
+                "tobacco", Material.AZALEA);
         plantBlocks.clear();
         for (String id : crops.keySet()) {
             if (id.equals("cannabis")) { plantBlocks.put(id, Material.FERN); continue; }

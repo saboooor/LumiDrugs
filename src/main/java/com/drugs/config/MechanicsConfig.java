@@ -10,6 +10,7 @@ public final class MechanicsConfig {
 
     private static int cannabisGrowthSeconds = 600;
     private static int cartDurabilityUses = 16;
+    private static int vapeDurabilityUses = 32;
     private static int bongDurabilityUses = 24;
     private static int workerTickInterval = 15;
     private static int maxHarvestPerCycle = 8;
@@ -26,6 +27,7 @@ public final class MechanicsConfig {
 
         YamlConfiguration yaml = YamlConfiguration.loadConfiguration(file);
         cannabisGrowthSeconds = Math.max(1, yaml.getInt("cannabis.growth-seconds", 600));
+        vapeDurabilityUses = Math.max(1, yaml.getInt("vape.durability-uses", 32));
         cartDurabilityUses = Math.max(1, yaml.getInt("cart.durability-uses", 16));
         bongDurabilityUses = Math.max(1, yaml.getInt("bong.durability-uses", 24));
         String farmSection = yaml.isConfigurationSection("farm") ? "farm." : "weed-farm.";
@@ -40,6 +42,10 @@ public final class MechanicsConfig {
 
     public static int getCartDurabilityUses() {
         return cartDurabilityUses;
+    }
+
+    public static int getVapeDurabilityUses() {
+        return vapeDurabilityUses;
     }
 
     public static int getBongDurabilityUses() {

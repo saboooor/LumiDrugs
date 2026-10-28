@@ -95,6 +95,72 @@ drug_specific:
             amplifier: 10
 
 
+  tobacco:
+    effects:
+      - type: "effects"
+        potion_effects:
+          - effect: "NAUSEA"
+            duration: 300
+            amplifier: 0
+          - effect: "WEAKNESS"
+            duration: 600
+            amplifier: 0
+
+  nicotine:
+    effects:
+      - type: "effects"
+        potion_effects:
+          - effect: "NAUSEA"
+            duration: 300
+            amplifier: 0
+          - effect: "WEAKNESS"
+            duration: 600
+            amplifier: 0
+
+  cigarette:
+    effects:
+      - type: "effects"
+        potion_effects:
+          - effect: "NAUSEA"
+            duration: 300
+            amplifier: 0
+          - effect: "WEAKNESS"
+            duration: 600
+            amplifier: 0
+
+  cigar:
+    effects:
+      - type: "effects"
+        potion_effects:
+          - effect: "NAUSEA"
+            duration: 300
+            amplifier: 0
+          - effect: "WEAKNESS"
+            duration: 600
+            amplifier: 0
+
+  chewing_tobacco:
+    effects:
+      - type: "effects"
+        potion_effects:
+          - effect: "NAUSEA"
+            duration: 300
+            amplifier: 0
+          - effect: "WEAKNESS"
+            duration: 600
+            amplifier: 0
+
+  vape:
+    effects:
+      - type: "effects"
+        potion_effects:
+          - effect: "NAUSEA"
+            duration: 300
+            amplifier: 0
+          - effect: "WEAKNESS"
+            duration: 600
+            amplifier: 0
+
 # Staged overdose progression (based on number of overdoses)
 staged:
   enabled: false

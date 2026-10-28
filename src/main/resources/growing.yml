@@ -32,3 +32,8 @@ resin:
 # Fixed active growth time; strains and shears harvesting are preserved.
 cannabis:
   growth-seconds: 600
+
+# Tobacco leaves are harvested ingredients; ordinary dried kelp cannot replace them.
+tobacco:
+  plant-block: AZALEA
+  growth-seconds: 600

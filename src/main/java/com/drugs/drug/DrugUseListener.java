@@ -108,8 +108,8 @@ public class DrugUseListener implements Listener {
         }
 
         if (player.getGameMode() != GameMode.CREATIVE) {
-            if (drugId.equalsIgnoreCase("cart")) {
-                handleCartDurability(player, item);
+            if (drugId.equalsIgnoreCase("cart") || drugId.equalsIgnoreCase("vape")) {
+                handleCartDurability(player, item, drugId);
             } else {
                 int newAmount = item.getAmount() - 1;
                 if (newAmount <= 0) {
@@ -122,13 +122,14 @@ public class DrugUseListener implements Listener {
     }
     
 
-    private void handleCartDurability(Player player, ItemStack item) {
+    private void handleCartDurability(Player player, ItemStack item, String drugId) {
         if (item == null || !item.hasItemMeta()) {
             return;
         }
 
         var meta = item.getItemMeta();
-        int maxDurability = MechanicsConfig.getCartDurabilityUses();
+        int maxDurability = drugId.equalsIgnoreCase("vape")
+                ? MechanicsConfig.getVapeDurabilityUses() : MechanicsConfig.getCartDurabilityUses();
         Integer currentDurability = DrugItemMetadata.getCartDurability(meta);
 
         if (currentDurability == null || currentDurability <= 0 || currentDurability > maxDurability) {
@@ -137,7 +138,7 @@ public class DrugUseListener implements Listener {
 
         int nextDurability = currentDurability - 1;
         if (nextDurability <= 0) {
-            sendCartDurabilityActionBar(player, 0, maxDurability);
+            sendCartDurabilityActionBar(player, 0, maxDurability, drugId);
             int newAmount = item.getAmount() - 1;
             if (newAmount <= 0) {
                 player.getInventory().setItemInMainHand(null);
@@ -156,11 +157,11 @@ public class DrugUseListener implements Listener {
         DrugItemMetadata.setCartDurability(meta, nextDurability);
         DrugItemMetadata.applyCartDurabilityLore(meta, nextDurability, maxDurability);
         item.setItemMeta(meta);
-        sendCartDurabilityActionBar(player, nextDurability, maxDurability);
+        sendCartDurabilityActionBar(player, nextDurability, maxDurability, drugId);
     }
 
-    private void sendCartDurabilityActionBar(Player player, int currentDurability, int maxDurability) {
-        String message = ChatColor.DARK_GREEN + "Cart Durability: "
+    private void sendCartDurabilityActionBar(Player player, int currentDurability, int maxDurability, String drugId) {
+        String message = ChatColor.DARK_GREEN + (drugId.equalsIgnoreCase("vape") ? "Vape Puffs: " : "Cart Durability: ")
                 + ChatColor.GREEN + Math.max(0, currentDurability)
                 + ChatColor.DARK_GRAY + "/"
                 + ChatColor.GREEN + Math.max(1, maxDurability);

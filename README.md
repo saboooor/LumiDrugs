@@ -20,6 +20,8 @@ Compared to a basic consumable-effects plugin, this version includes:
   - Configurable cooldown.
   - Configurable durability/uses.
 - Cart durability/uses mechanic.
+- Tobacco and nicotine products: `tobacco`, `nicotine`, `cigarette`, `cigar`, `chewing_tobacco`, and `vape`. All have crafting recipes, Haste/Hunger effects, tolerance, addiction, and nausea/weakness overdose penalties. Vapes provide 32 puffs by default (`mechanics.yml` → `vape.durability-uses`).
+  Existing servers should merge the new entries from the bundled `config.yml`, `recipes.yml`, `addiction.yml`, `tolerance.yml`, `overdose.yml`, and `growing.yml` into their saved files, then run `/drugs reload`. Tobacco products require custom Tobacco Leaves: craft seeds from wheat seeds + dried kelp, plant on hydrated farmland with light level 9+, and harvest after 600 seconds of active growth. Ordinary dried kelp cannot substitute for harvested leaves. See `/drugs growing tobacco`.
 - Native Minecraft advancements + configurable triggers.
 - PlaceholderAPI expansion for tolerance/effectiveness placeholders.
 - Admin tooling for reloading configs, purging player data, listing drugs, and resetting overdose counters.

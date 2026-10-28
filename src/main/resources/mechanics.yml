@@ -18,3 +18,7 @@ farm:
   max-harvest-per-cycle: 1
   # Base seeds planted per cycle (scaled by villagers up to 5x).
   max-plant-per-cycle: 2
+
+vape:
+  # Number of puffs before a disposable nicotine vape is consumed.
+  durability-uses: 32

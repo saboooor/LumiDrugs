@@ -177,3 +177,62 @@ salvia:
     L: LEAF_LITTER
     F: FERN
     D: DIRT
+
+tobacco:
+  shape:
+    - " K "
+    - "KSK"
+    - " K "
+  ingredients:
+    K: DRIED_KELP
+    S: WHEAT_SEEDS
+
+nicotine:
+  shape:
+    - " S "
+    - "KBK"
+    - " S "
+  ingredients:
+    S: SUGAR
+    K: DRIED_KELP
+    B: GLASS_BOTTLE
+
+cigarette:
+  shape:
+    - " PK"
+    - "   "
+    - "   "
+  ingredients:
+    P: PAPER
+    K: DRIED_KELP
+
+cigar:
+  shape:
+    - "KKK"
+    - "LLL"
+    - "   "
+  ingredients:
+    K: DRIED_KELP
+    L: LEAF_LITTER
+
+chewing_tobacco:
+  shape:
+    - " KS"
+    - " P "
+    - "   "
+  ingredients:
+    K: DRIED_KELP
+    S: SUGAR
+    P: PAPER
+
+vape:
+  shape:
+    - " G "
+    - "RSB"
+    - " C "
+  ingredients:
+    G: GLASS
+    R: REDSTONE
+    S: DRIED_KELP
+    B: STONE_BUTTON
+    C: COPPER_INGOT

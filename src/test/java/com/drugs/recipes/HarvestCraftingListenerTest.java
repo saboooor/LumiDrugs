@@ -40,6 +40,24 @@ class HarvestCraftingListenerTest {
         }
         return item;
     }
+    @Test void tobaccoRecipesRequireHarvestedLeaves() {
+        ShapedRecipe recipe = mock(ShapedRecipe.class);
+        var tobaccoKey = new NamespacedKey(DrugsV2.getInstance(), "cigarette");
+        when(recipe.getKey()).thenReturn(tobaccoKey);
+        when(inventory.getRecipe()).thenReturn(recipe);
+        try (var growing = mockStatic(DrugGrowing.class)) {
+            growing.when(() -> DrugGrowing.requirement("cigarette")).thenReturn("tobacco");
+            growing.when(() -> DrugGrowing.isHarvest(any(ItemStack.class), eq("tobacco"))).thenCallRealMethod();
+            growing.when(() -> DrugGrowing.material("tobacco")).thenReturn(Material.DRIED_KELP);
+            for (String type : new String[]{null, "seed_tobacco", "tobacco", "harvest_coca"}) {
+                doReturn(new ItemStack[]{ingredient(type, Material.DRIED_KELP)}).when(inventory).getMatrix();
+                assertFalse(HarvestCraftingListener.valid(inventory));
+            }
+            doReturn(new ItemStack[]{ingredient("harvest_tobacco", Material.DRIED_KELP),
+                    ingredient(null, Material.PAPER)}).when(inventory).getMatrix();
+            assertTrue(HarvestCraftingListener.valid(inventory));
+        }
+    }
     @Test void ordinaryFernsCannotCraftDrugs() {
         doReturn(new ItemStack[]{ingredient(null, Material.FERN)}).when(inventory).getMatrix();
         assertFalse(HarvestCraftingListener.valid(inventory));

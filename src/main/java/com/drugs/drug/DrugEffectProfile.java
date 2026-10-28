@@ -156,12 +156,12 @@ public class DrugEffectProfile {
         if (player == null) return;
 
         Location location = player.getLocation().add(0, 1.1, 0);
-        if (id.equalsIgnoreCase("blunt") || id.equalsIgnoreCase("joint")) {
+        if (id.equalsIgnoreCase("blunt") || id.equalsIgnoreCase("joint") || id.equalsIgnoreCase("cigarette") || id.equalsIgnoreCase("cigar") || id.equalsIgnoreCase("tobacco")) {
             player.getWorld().spawnParticle(Particle.CAMPFIRE_COSY_SMOKE, location, 10, 0.25, 0.35, 0.25, 0.01);
             return;
         }
 
-        if (id.equalsIgnoreCase("cart")) {
+        if (id.equalsIgnoreCase("cart") || id.equalsIgnoreCase("vape")) {
             player.getWorld().spawnParticle(Particle.POOF, location, 12, 0.25, 0.3, 0.25, 0.02);
         }
     }
@@ -216,8 +216,9 @@ public class DrugEffectProfile {
                 StrainProfile profile = StrainConfigLoader.getStrain(defaultStrain);
                 DrugItemMetadata.applyStrainLore(meta, profile);
             }
-            if (id.equalsIgnoreCase("cart")) {
-                int maxDurability = MechanicsConfig.getCartDurabilityUses();
+            if (id.equalsIgnoreCase("cart") || id.equalsIgnoreCase("vape")) {
+                int maxDurability = id.equalsIgnoreCase("vape")
+                        ? MechanicsConfig.getVapeDurabilityUses() : MechanicsConfig.getCartDurabilityUses();
                 DrugItemMetadata.setCartDurability(meta, maxDurability);
                 DrugItemMetadata.applyCartDurabilityLore(meta, maxDurability, maxDurability);
             }
