@@ -121,6 +121,55 @@ class CitizensCartelNpcsTest {
         verify(npc).setName("Miguel");
     }
 
+    @Test void reloadRestoresSavedBuyerThatDidNotSpawnDuringStartup() {
+        when(persistent.iterator()).thenAnswer(call -> List.of(npc).iterator());
+        when(metadata.get(CitizensCartelNpcs.ROLE, "")).thenReturn("buyer");
+        when(npc.isSpawned()).thenReturn(false);
+        when(npc.getStoredLocation()).thenReturn(location);
+        service.reload();
+        verify(npc).spawn(location);
+        verify(persistent, never()).createNPC(any(), anyString());
+        verify(npc, never()).destroy();
+    }
+
+    @Test void reloadDoesNotRespawnAnExistingBuyerOrUnrelatedNpc() {
+        when(persistent.iterator()).thenAnswer(call -> List.of(npc).iterator());
+        when(metadata.get(CitizensCartelNpcs.ROLE, "")).thenReturn("buyer");
+        service.reload();
+        when(npc.isSpawned()).thenReturn(false);
+        when(metadata.get(CitizensCartelNpcs.ROLE, "")).thenReturn("");
+        service.reload();
+        verify(npc, never()).spawn(any(Location.class));
+    }
+
+    @Test void chunkLoadRestoresOnlyBuyersStoredInThatChunk() {
+        when(persistent.iterator()).thenAnswer(call -> List.of(npc).iterator());
+        when(metadata.get(CitizensCartelNpcs.ROLE, "")).thenReturn("buyer");
+        when(npc.isSpawned()).thenReturn(false);
+        when(npc.getStoredLocation()).thenReturn(location);
+        Chunk chunk = mock(Chunk.class);
+        when(chunk.getWorld()).thenReturn(world);
+        when(chunk.getEntities()).thenReturn(new Entity[0]);
+        when(chunk.getX()).thenReturn(1);
+        service.onChunkLoad(new org.bukkit.event.world.ChunkLoadEvent(chunk, false));
+        verify(npc, never()).spawn(any(Location.class));
+        when(chunk.getX()).thenReturn(0);
+        service.onChunkLoad(new org.bukkit.event.world.ChunkLoadEvent(chunk, false));
+        verify(npc).spawn(location);
+    }
+
+    @Test void failedRecoveryKeepsSavedBuyerForAnotherAttempt() {
+        when(persistent.iterator()).thenAnswer(call -> List.of(npc).iterator());
+        when(metadata.get(CitizensCartelNpcs.ROLE, "")).thenReturn("buyer");
+        when(npc.isSpawned()).thenReturn(false);
+        when(npc.getStoredLocation()).thenReturn(location);
+        when(npc.spawn(location)).thenReturn(false, true);
+        service.reload();
+        service.reload();
+        verify(npc, times(2)).spawn(location);
+        verify(npc, never()).destroy();
+    }
+
     @Test void enforcersUseMemoryOnlyRegistryAndUsernameOverride() {
         config.set("npc.skin-name", "MyCartelSkin");
         assertNotNull(service.create(location, "enforcer"));

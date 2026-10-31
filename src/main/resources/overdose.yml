@@ -62,6 +62,12 @@ drug_specific:
           - effect: "CONFUSION"
             duration: 2400
             amplifier: 10
+          - effect: "SLOW"
+            duration: 1200
+            amplifier: 1
+          - effect: "HUNGER"
+            duration: 1200
+            amplifier: 1
 
   shrooms:
     effects:
@@ -70,6 +76,41 @@ drug_specific:
           - effect: "CONFUSION"
             duration: 2400
             amplifier: 10
+          - effect: "DARKNESS"
+            duration: 1200
+            amplifier: 0
+          - effect: "WEAKNESS"
+            duration: 1200
+            amplifier: 0
+
+  lsd:
+    effects:
+      - type: "effects"
+        potion_effects:
+          - effect: "CONFUSION"
+            duration: 2400
+            amplifier: 10
+          - effect: "DARKNESS"
+            duration: 1200
+            amplifier: 0
+          - effect: "BLINDNESS"
+            duration: 400
+            amplifier: 0
+
+  salvia:
+    effects:
+      - type: "effects"
+        potion_effects:
+          - effect: "CONFUSION"
+            duration: 1200
+            amplifier: 10
+          - effect: "BLINDNESS"
+            duration: 600
+            amplifier: 0
+          - effect: "SLOW"
+            duration: 600
+            amplifier: 2
+
   joint:
     effects:
       - type: "effects"
@@ -77,14 +118,26 @@ drug_specific:
           - effect: "CONFUSION"
             duration: 2400
             amplifier: 10
+          - effect: "SLOW"
+            duration: 1200
+            amplifier: 1
+          - effect: "HUNGER"
+            duration: 1200
+            amplifier: 1
 
   cart:
     effects:
       - type: "effects"
         potion_effects:
-          - effect: "NAUSEA"
+          - effect: "CONFUSION"
             duration: 2400
             amplifier: 10
+          - effect: "SLOW"
+            duration: 1200
+            amplifier: 1
+          - effect: "DARKNESS"
+            duration: 600
+            amplifier: 0
      
   edible:
     effects:
@@ -93,6 +146,12 @@ drug_specific:
           - effect: "CONFUSION"
             duration: 2400
             amplifier: 10
+          - effect: "SLOW"
+            duration: 1800
+            amplifier: 2
+          - effect: "BLINDNESS"
+            duration: 600
+            amplifier: 0
 
 
   tobacco:
@@ -160,6 +219,22 @@ drug_specific:
           - effect: "WEAKNESS"
             duration: 600
             amplifier: 0
+
+  caffeine:
+    effects:
+      - type: "message"
+        text: "&4&l💔 HEART ATTACK! &cYour heart stopped from a massive caffeine overdose!"
+        broadcast: false
+      - type: "death"
+        message: "&4%player% suffered a fatal heart attack from too much caffeine!"
+
+  energy_drink:
+    effects:
+      - type: "message"
+        text: "&4&l💔 HEART ATTACK! &cYour heart couldn't handle another energy drink!"
+        broadcast: false
+      - type: "death"
+        message: "&4%player% suffered a fatal heart attack from chugging too many energy drinks!"
 
 # Staged overdose progression (based on number of overdoses)
 staged:

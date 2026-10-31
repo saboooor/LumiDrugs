@@ -100,15 +100,29 @@ public class DrugEffectProfile {
             return;
         }
 
-        // Apply scaled base product effects
-        applyEffectList(player, effects, multiplier);
+        final StrainProfile resolvedStrain = strainProfile;
+        Runnable applyAll = () -> {
+            // Apply scaled base product effects
+            applyEffectList(player, effects, multiplier);
 
-        // Apply strain-specific effects for cannabis products
-        if (strainProfile != null && !strainProfile.getEffects().isEmpty()) {
-            if (DrugItemMetadata.DEFAULT_STRAIN_ID.equalsIgnoreCase(strainProfile.getId())) {
-                applyRandomReggieDebuff(player, strainProfile.getEffects(), multiplier);
-            } else {
-                applyEffectList(player, strainProfile.getEffects(), multiplier);
+            // Apply strain-specific effects for cannabis products
+            if (resolvedStrain != null && !resolvedStrain.getEffects().isEmpty()) {
+                if (DrugItemMetadata.DEFAULT_STRAIN_ID.equalsIgnoreCase(resolvedStrain.getId())) {
+                    applyRandomReggieDebuff(player, resolvedStrain.getEffects(), multiplier);
+                } else {
+                    applyEffectList(player, resolvedStrain.getEffects(), multiplier);
+                }
+            }
+        };
+
+        var plugin = com.drugs.DrugsV2.getInstance();
+        var sensory = plugin != null ? plugin.getSensoryEffectManager() : null;
+        if (id.equalsIgnoreCase("edible") && sensory != null) {
+            sensory.scheduleEdibleOnset(player, applyAll);
+        } else {
+            applyAll.run();
+            if (sensory != null) {
+                sensory.onDrugUse(player, id, multiplier);
             }
         }
 

@@ -72,6 +72,7 @@ public class CureProfile {
         if (meta != null) {
             meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', displayName));
             meta.setLore(new ArrayList<>(formattedLore));
+            com.drugs.items.DrugItemMetadata.setItemType(meta, id);
             item.setItemMeta(meta);
         }
         return item;

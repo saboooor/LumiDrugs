@@ -73,7 +73,7 @@ public class OverdoseEffectManager {
         // Load default effects
         ConfigurationSection defaultSection = config.getConfigurationSection("default");
         if (defaultSection != null) {
-            defaultEffects.addAll(loadEffectList(defaultSection.getConfigurationSection("effects")));
+            defaultEffects.addAll(loadEffectsFromParent(defaultSection));
         }
         
         // Load drug-specific effects
@@ -83,7 +83,7 @@ public class OverdoseEffectManager {
                 ConfigurationSection drugSection = drugSpecificSection.getConfigurationSection(drugId);
                 if (drugSection != null) {
                     drugSpecificEffects.put(drugId.toLowerCase(), 
-                            loadEffectList(drugSection.getConfigurationSection("effects")));
+                            loadEffectsFromParent(drugSection));
                 }
             }
         }
@@ -99,7 +99,7 @@ public class OverdoseEffectManager {
                 ConfigurationSection stageSection = stagedSection.getConfigurationSection(stage);
                 if (stageSection != null) {
                     stagedEffects.put(stage.toLowerCase(), 
-                            loadEffectList(stageSection.getConfigurationSection("effects")));
+                            loadEffectsFromParent(stageSection));
                 }
             }
         }
@@ -108,15 +108,74 @@ public class OverdoseEffectManager {
         ConfigurationSection randomSection = config.getConfigurationSection("random_effects");
         if (randomSection != null) {
             randomEnabled = randomSection.getBoolean("enabled", false);
-            randomEffects.addAll(loadEffectList(randomSection.getConfigurationSection("effects")));
+            randomEffects.addAll(loadEffectsFromParent(randomSection));
         }
         
         Bukkit.getLogger().info("[LumiDrugs] Loaded overdose effects configuration. Enabled: " + enabled);
     }
     
     /**
-     * Helper method to load a list of effects from a configuration section
+     * Helper method to load a list of effects from a parent configuration section
      */
+    private static List<OverdoseEffect> loadEffectsFromParent(ConfigurationSection parent) {
+        if (parent == null) return List.of();
+        ConfigurationSection section = parent.getConfigurationSection("effects");
+        if (section != null) return loadEffectList(section);
+        List<OverdoseEffect> effects = new ArrayList<>();
+        for (Map<?, ?> entry : parent.getMapList("effects")) {
+            String type = entry.get("type") != null ? String.valueOf(entry.get("type")).toLowerCase() : "";
+            switch (type) {
+                case "death" -> effects.add(new DeathEffect(entry.get("message") != null ? String.valueOf(entry.get("message")) : ""));
+                case "effects" -> {
+                    List<PotionEffect> potionEffects = new ArrayList<>();
+                    Object rawPotions = entry.get("potion_effects");
+                    if (rawPotions instanceof List<?> list) {
+                        for (Object item : list) {
+                            if (!(item instanceof Map<?, ?> map)) continue;
+                            String effectName = map.get("effect") != null ? String.valueOf(map.get("effect")) : "";
+                            int duration = map.get("duration") instanceof Number n ? n.intValue() : 200;
+                            int amplifier = map.get("amplifier") instanceof Number n ? n.intValue() : 0;
+                            PotionEffectType effectType = PotionEffectType.getByName(effectName);
+                            if (effectType == null && "NAUSEA".equalsIgnoreCase(effectName)) {
+                                effectType = PotionEffectType.getByName("CONFUSION");
+                            }
+                            if (effectType != null) {
+                                potionEffects.add(new PotionEffect(effectType, duration, amplifier));
+                            }
+                        }
+                    }
+                    effects.add(new PotionEffectsEffect(potionEffects));
+                }
+                case "damage" -> {
+                    double amount = entry.get("amount") instanceof Number n ? n.doubleValue() : 10;
+                    String message = entry.get("message") != null ? String.valueOf(entry.get("message")) : "";
+                    effects.add(new DamageEffect(amount, message));
+                }
+                case "message" -> {
+                    String text = entry.get("text") != null ? String.valueOf(entry.get("text")) : "";
+                    boolean broadcast = entry.get("broadcast") instanceof Boolean b && b;
+                    effects.add(new MessageEffect(text, broadcast));
+                }
+                case "sound" -> {
+                    String soundName = entry.get("sound") != null ? String.valueOf(entry.get("sound")) : "ENTITY_PLAYER_HURT";
+                    float volume = entry.get("volume") instanceof Number n ? n.floatValue() : 1.0f;
+                    float pitch = entry.get("pitch") instanceof Number n ? n.floatValue() : 1.0f;
+                    try {
+                        effects.add(new SoundEffect(Sound.valueOf(soundName), volume, pitch));
+                    } catch (Exception e) {
+                        Bukkit.getLogger().warning("[LumiDrugs] Invalid sound: " + soundName);
+                    }
+                }
+                case "command" -> {
+                    String command = entry.get("command") != null ? String.valueOf(entry.get("command")) : "";
+                    boolean asConsole = !(entry.get("as_console") instanceof Boolean b) || b;
+                    effects.add(new CommandEffect(command, asConsole));
+                }
+            }
+        }
+        return effects;
+    }
+
     private static List<OverdoseEffect> loadEffectList(ConfigurationSection section) {
         List<OverdoseEffect> effects = new ArrayList<>();
         
@@ -269,6 +328,9 @@ public class OverdoseEffectManager {
             if (effect.apply(player, drugId)) {
                 shouldDie = true;
             }
+        }
+        if (!shouldDie && DrugsV2.getInstance() != null && DrugsV2.getInstance().getSensoryEffectManager() != null) {
+            DrugsV2.getInstance().getSensoryEffectManager().triggerVomit(player);
         }
         
         return shouldDie;

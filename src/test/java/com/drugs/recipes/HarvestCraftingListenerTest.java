@@ -40,24 +40,43 @@ class HarvestCraftingListenerTest {
         }
         return item;
     }
-    @Test void tobaccoRecipesRequireHarvestedLeaves() {
-        ShapedRecipe recipe = mock(ShapedRecipe.class);
-        var tobaccoKey = new NamespacedKey(DrugsV2.getInstance(), "cigarette");
-        when(recipe.getKey()).thenReturn(tobaccoKey);
-        when(inventory.getRecipe()).thenReturn(recipe);
-        try (var growing = mockStatic(DrugGrowing.class)) {
-            growing.when(() -> DrugGrowing.requirement("cigarette")).thenReturn("tobacco");
-            growing.when(() -> DrugGrowing.isHarvest(any(ItemStack.class), eq("tobacco"))).thenCallRealMethod();
-            growing.when(() -> DrugGrowing.material("tobacco")).thenReturn(Material.DRIED_KELP);
-            for (String type : new String[]{null, "seed_tobacco", "tobacco", "harvest_coca"}) {
-                doReturn(new ItemStack[]{ingredient(type, Material.DRIED_KELP)}).when(inventory).getMatrix();
-                assertFalse(HarvestCraftingListener.valid(inventory));
-            }
-            doReturn(new ItemStack[]{ingredient("harvest_tobacco", Material.DRIED_KELP),
-                    ingredient(null, Material.PAPER)}).when(inventory).getMatrix();
-            assertTrue(HarvestCraftingListener.valid(inventory));
+    @Test void vapeRequiresBrewedLiquidRatherThanNicotineOrPlainPotion() {
+        var key = new NamespacedKey(DrugsV2.getInstance(), "vape");
+        when(((ShapedRecipe) inventory.getRecipe()).getKey()).thenReturn(key);
+        for (ItemStack item : new ItemStack[]{ingredient(null, Material.POTION),
+                ingredient("harvest_tobacco", Material.DRIED_KELP), ingredient("drug", Material.SUGAR)}) {
+            doReturn(new ItemStack[]{item}).when(inventory).getMatrix();
+            assertFalse(HarvestCraftingListener.valid(inventory));
         }
+        doReturn(new ItemStack[]{ingredient("vape_liquid", Material.POTION)}).when(inventory).getMatrix();
+        assertTrue(HarvestCraftingListener.valid(inventory));
     }
+
+    @Test void tobaccoAssemblyRequiresCuredTobaccoRatherThanLeaves() {
+        var key = new NamespacedKey(DrugsV2.getInstance(), "cigarette");
+        when(((ShapedRecipe) inventory.getRecipe()).getKey()).thenReturn(key);
+        for (String type : new String[]{null, "harvest_tobacco", "seed_tobacco"}) {
+            doReturn(new ItemStack[]{ingredient(type, Material.DRIED_KELP)}).when(inventory).getMatrix();
+            assertFalse(HarvestCraftingListener.valid(inventory));
+        }
+        ItemStack cured = ingredient("drug", Material.DRIED_KELP);
+        var drugKey = new NamespacedKey(DrugsV2.getInstance(), "drug_id");
+        when(cured.getItemMeta().getPersistentDataContainer().get(drugKey, PersistentDataType.STRING)).thenReturn("tobacco");
+        doReturn(new ItemStack[]{cured, ingredient(null, Material.PAPER)}).when(inventory).getMatrix();
+        assertTrue(HarvestCraftingListener.valid(inventory));
+    }
+
+    @Test void cartridgesRequireExtractAndRejectRawBudsAndPlainPotions() {
+        var key = new NamespacedKey(DrugsV2.getInstance(), "cart_strain_1");
+        when(((ShapedRecipe) inventory.getRecipe()).getKey()).thenReturn(key);
+        for (ItemStack item : new ItemStack[]{ingredient("harvest_cannabis", Material.FERN), ingredient(null, Material.POTION)}) {
+            doReturn(new ItemStack[]{item}).when(inventory).getMatrix();
+            assertFalse(HarvestCraftingListener.valid(inventory));
+        }
+        doReturn(new ItemStack[]{ingredient("cannabis_extract", Material.POTION)}).when(inventory).getMatrix();
+        assertTrue(HarvestCraftingListener.valid(inventory));
+    }
+
     @Test void ordinaryFernsCannotCraftDrugs() {
         doReturn(new ItemStack[]{ingredient(null, Material.FERN)}).when(inventory).getMatrix();
         assertFalse(HarvestCraftingListener.valid(inventory));
@@ -112,6 +131,8 @@ class HarvestCraftingListenerTest {
     }
     @Test void everyConfiguredDrugHasGrowingRequirement() {
         var config = org.bukkit.configuration.file.YamlConfiguration.loadConfiguration(new java.io.File("src/main/resources/config.yml"));
-        for (String drug : config.getKeys(false)) assertNotNull(DrugGrowing.requirement(drug), drug);
+        for (String drug : config.getKeys(false)) {
+            if (!drug.equals("vape")) assertNotNull(DrugGrowing.requirement(drug), drug);
+        }
     }
 }

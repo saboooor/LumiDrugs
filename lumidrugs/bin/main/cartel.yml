@@ -1,0 +1,73 @@
+# Unit prices in your Vault economy's currency. Missing, zero, or negative prices disable sales.
+# Example values: adjust these to suit your server economy before creating dealers.
+prices:
+  heroin: 50.0
+  fent: 20.0
+  shrooms: 15.0
+  meth: 35.0
+  blunt: 15.0
+  cocaine: 40.0
+  joint: 6.0
+  edible: 10.0
+  glue: 2.0
+  molly: 20.0
+  lsd: 30.0
+  salvia: 12.0
+# Cartridges are excluded by default. Partially used cartridges are always rejected.
+# Optional absolute price overrides per drug and strain, for example:
+# strain-prices:
+#   joint:
+#     reggie: 10.0
+strain-prices: {}
+
+# Player NPCs require Citizens. Blank uses the bundled camouflage-style cartel skin.
+# Set a Minecraft username here to use that account's skin instead, then /cartel reload.
+npc:
+  # Buyer name; applied to existing buyers with /cartel reload.
+  name: "Pablo"
+  skin-name: ""
+
+# Temporary cartel encounters. Existing cartel.yml files use these defaults if absent.
+enforcer:
+  wall-climbing:
+    enabled: true
+    max-height: 6             # Blocks; capped at 16.
+    timeout-ticks: 100        # Maximum time per climb (20 ticks = 1 second).
+  open-doors: true             # Allow Citizens navigation to open doors along the route.
+  enabled: true                 # Automatic spawns; admins can still trigger encounters manually.
+  # Each encounter chooses a random registered drug with a positive, finite base price.
+  min-amount: 8                 # Inclusive random quantity limits, clamped to 1–2304.
+  max-amount: 32                # Values below min-amount use min-amount.
+  check-interval-seconds: 300
+  spawn-chance: 0.25            # Chance per eligible player at each check; 0–1.
+  cooldown-seconds: 1800        # Per-player cooldown after an encounter ends.
+  max-active: 8                # Server-wide cap.
+  spawn-min-distance: 8
+  spawn-max-distance: 12
+  approach-timeout-seconds: 60  # No penalty if the enforcer cannot reach you.
+  deadline-seconds: 90          # Starts once the enforcer approaches you.
+  warning-interval-seconds: 15
+  # Consecutive expired demands per player; completing a demand resets the streak.
+  # Streaks survive reconnects/restarts. Called-off encounters do not count as refusals.
+  aggravation:
+    angry-after-refusals: 15
+    furious-after-refusals: 20
+    angry-deadline-seconds: 45   # Caps the normal deadline once angry.
+    furious-deadline-seconds: 30
+  failure-damage: 0             # Dialogue only by default. Optional nearby damage in HP (2 = 1 heart).
+  # Optional damage is capped at 20 HP and at health minus 1; respects damage event cancellation.
+  # Placeholders: {drug}, {amount}, {remaining}, {seconds}, {refusals}; supports & color codes.
+  messages:
+    arrival: "&8Someone from the cartel is heading your way."
+    demand: "&4Cartel: &cSell me {amount} {drug} within {seconds}s, or you'll answer to the cartel. Throw the drugs near me. Smaller deliveries count. You'll be paid."
+    warning: "&cThe cartel doesn't like waiting. Throw {remaining} more {drug} near me. You have {seconds}s left."
+    failure: "&4Cartel: &cYou refused our deal. We'll remember this. Watch your back."
+    success: "&2Cartel: &aGood. We can do business. You're clear."
+    angry-arrival: "&cThe cartel enforcer is back, and he looks angry."
+    angry-demand: "&4Cartel: &cYou've refused us {refusals} times in a row. My patience is running out. Sell me {amount} {drug} in {seconds}s. Throw it near me. You'll be paid."
+    angry-warning: "&4Cartel: &cDon't test me again. {remaining} more {drug}, and only {seconds}s left."
+    angry-failure: "&4Cartel: &cThat's {refusals} refusals in a row. You're pushing your luck. Next time, come prepared."
+    furious-arrival: "&4The cartel enforcer is back. His patience with you is gone."
+    furious-demand: "&4Cartel: &c&lEnough! &r&cYou've refused us {refusals} times in a row. Sell me {amount} {drug} in {seconds}s. Throw it near me. You'll be paid. No more excuses."
+    furious-warning: "&4Cartel: &c&lI'm done waiting! &r&c{remaining} more {drug}. {seconds}s left. Move!"
+    furious-failure: "&4Cartel: &c&lAgain?! &r&c{refusals} refusals in a row. You've made an enemy of the cartel. This isn't over."

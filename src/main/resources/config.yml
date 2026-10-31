@@ -6,11 +6,14 @@ heroin:
     - "&a&oStrength II"
     - "&a&oResistance III"
     - "&c&oSlowness II"
+    - "&c&oMining Fatigue I"
+    - "&c&oDarkness I"
+    - "&c&oNausea I"
     - "&7OD Risk: &4&lHigh"
     - "&7Abuse Potential: &4&lHigh"
   effects:
     STRENGTH:
-      duration:  1200
+      duration: 1200
       amplifier: 1
     SLOW:
       duration: 2400
@@ -18,6 +21,15 @@ heroin:
     RESISTANCE:
       duration: 2000
       amplifier: 2
+    SLOW_DIGGING:
+      duration: 1600
+      amplifier: 0
+    DARKNESS:
+      duration: 600
+      amplifier: 0
+    CONFUSION:
+      duration: 200
+      amplifier: 0
 
 fent:
   material: IRON_NUGGET
@@ -28,6 +40,9 @@ fent:
     - "&a&oAbsorption II"
     - "&a&oResistance III"
     - "&c&oSlowness IV"
+    - "&c&oMining Fatigue II"
+    - "&c&oDarkness I"
+    - "&c&oNausea I"
     - "&7OD Risk: &4&lVERY HIGH"
     - "&7Abuse Potential: &4&lVERY HIGH"
   effects:
@@ -43,6 +58,15 @@ fent:
     RESISTANCE:
       duration: 1000
       amplifier: 2
+    SLOW_DIGGING:
+      duration: 1600
+      amplifier: 1
+    DARKNESS:
+      duration: 800
+      amplifier: 0
+    CONFUSION:
+      duration: 240
+      amplifier: 0
 
 
 shrooms:
@@ -52,6 +76,8 @@ shrooms:
     - "&7Trippppyyyy"
     - "&a&oJump Boost II"
     - "&a&oLuck X"
+    - "&a&oNight Vision I"
+    - "&a&oSlow Falling I"
     - "&c&oNausea X"
     - "&7OD Risk: &2&lNon-Lethal"
     - "&7Abuse Potential: &2&lNon-Addictive"
@@ -62,6 +88,12 @@ shrooms:
     LUCK:
       duration: 1200
       amplifier: 9
+    NIGHT_VISION:
+      duration: 1200
+      amplifier: 0
+    SLOW_FALLING:
+      duration: 600
+      amplifier: 0
     CONFUSION:
       duration: 1200
       amplifier: 9
@@ -73,6 +105,8 @@ meth:
     - "&7High octane, high voltage. Good for mining"
     - "&a&oSpeed III"
     - "&a&oHaste II"
+    - "&a&oNight Vision I"
+    - "&c&oHunger I"
     - "&c&oWeakness II"
     - "&7OD Risk: &e&lMedium"
     - "&7Abuse Potential: &e&lMedium"
@@ -83,6 +117,12 @@ meth:
     HASTE:
       duration: 3000
       amplifier: 1
+    NIGHT_VISION:
+      duration: 2000
+      amplifier: 0
+    HUNGER:
+      duration: 1200
+      amplifier: 0
     WEAKNESS:
       duration: 3000
       amplifier: 1
@@ -103,6 +143,8 @@ cocaine:
     - "&a&oSaturation III"
     - "&a&oSpeed IV"
     - "&a&oStrength I"
+    - "&a&oNight Vision I"
+    - "&c&oHunger I"
     - "&7OD Risk: &4&lHigh"
     - "&7Abuse Potential: &4&lHigh"
   effects:
@@ -114,6 +156,12 @@ cocaine:
       amplifier: 3
     STRENGTH:
       duration: 200
+      amplifier: 0
+    NIGHT_VISION:
+      duration: 200
+      amplifier: 0
+    HUNGER:
+      duration: 400
       amplifier: 0
       
       
@@ -152,11 +200,23 @@ glue:
   display-name: "&fGlue"
   lore:
     - "&7Ever wanted to sniff glue in Minecraft?"
-    - "&c&oPosion I"
-    - "&c&oMining Fatigue I"
+    - "&a&oSlow Falling I"
+    - "&c&oNausea II"
+    - "&c&oDarkness I"
+    - "&c&oPoison I"
+    - "&c&oMining Fatigue II"
     - "&7OD Risk: &4&lHigh"
     - "&7Abuse Potential: &4&lHigh"
   effects:
+    SLOW_FALLING:
+      duration: 160
+      amplifier: 0
+    CONFUSION:
+      duration: 400
+      amplifier: 1
+    DARKNESS:
+      duration: 300
+      amplifier: 0
     POISON:
       duration: 800
       amplifier: 0
@@ -171,7 +231,10 @@ molly:
     - "&7MDMA, Ecstacy"
     - "&a&oRegeneration II"
     - "&a&oAbsorption II"
+    - "&a&oSpeed I"
+    - "&a&oNight Vision I"
     - "&c&oGlowing I"
+    - "&c&oHunger I"
     - "&7OD Risk: &3&lLow"
     - "&7Abuse Potential: &3&lLow"
   effects:
@@ -184,6 +247,15 @@ molly:
     ABSORPTION:
       duration: 1000
       amplifier: 1
+    SPEED:
+      duration: 1000
+      amplifier: 0
+    NIGHT_VISION:
+      duration: 1200
+      amplifier: 0
+    HUNGER:
+      duration: 600
+      amplifier: 0
 
 lsd:
   material: PURPLE_DYE
@@ -215,14 +287,18 @@ tobacco:
   lore:
     - "&7Loose tobacco leaves."
     - "&a&oHaste I"
-    - "&c&oHunger I"
+    - "&a&oSpeed I"
+    - "&a&oSaturation I"
     - "&7Abuse Potential: &cHigh"
   effects:
     HASTE:
       duration: 200
       amplifier: 0
-    HUNGER:
-      duration: 200
+    SPEED:
+      duration: 140
+      amplifier: 0
+    SATURATION:
+      duration: 40
       amplifier: 0
 
 nicotine:
@@ -231,14 +307,22 @@ nicotine:
   lore:
     - "&7A concentrated nicotine dose."
     - "&a&oHaste I"
-    - "&c&oHunger I"
+    - "&a&oSpeed I"
+    - "&a&oSaturation I"
+    - "&c&oNausea I"
     - "&7Abuse Potential: &cHigh"
   effects:
     HASTE:
       duration: 400
       amplifier: 0
-    HUNGER:
-      duration: 160
+    SPEED:
+      duration: 240
+      amplifier: 0
+    SATURATION:
+      duration: 60
+      amplifier: 0
+    CONFUSION:
+      duration: 100
       amplifier: 0
 
 cigarette:
@@ -247,14 +331,18 @@ cigarette:
   lore:
     - "&7A paper-wrapped tobacco smoke."
     - "&a&oHaste I"
-    - "&c&oHunger I"
+    - "&a&oSpeed I"
+    - "&a&oSaturation I"
     - "&7Abuse Potential: &cHigh"
   effects:
     HASTE:
       duration: 300
       amplifier: 0
-    HUNGER:
-      duration: 120
+    SPEED:
+      duration: 200
+      amplifier: 0
+    SATURATION:
+      duration: 40
       amplifier: 0
 
 cigar:
@@ -263,14 +351,18 @@ cigar:
   lore:
     - "&7A slow-burning tobacco roll."
     - "&a&oHaste I"
-    - "&c&oHunger I"
+    - "&a&oSpeed I"
+    - "&a&oSaturation I"
     - "&7Abuse Potential: &cHigh"
   effects:
     HASTE:
       duration: 600
       amplifier: 0
-    HUNGER:
-      duration: 240
+    SPEED:
+      duration: 300
+      amplifier: 0
+    SATURATION:
+      duration: 60
       amplifier: 0
 
 chewing_tobacco:
@@ -279,14 +371,22 @@ chewing_tobacco:
   lore:
     - "&7A pinch of chewing tobacco."
     - "&a&oHaste I"
-    - "&c&oHunger I"
+    - "&a&oSpeed I"
+    - "&a&oSaturation I"
+    - "&c&oNausea I"
     - "&7Abuse Potential: &cHigh"
   effects:
     HASTE:
       duration: 400
       amplifier: 0
-    HUNGER:
+    SPEED:
       duration: 200
+      amplifier: 0
+    SATURATION:
+      duration: 40
+      amplifier: 0
+    CONFUSION:
+      duration: 80
       amplifier: 0
 
 vape:
@@ -295,12 +395,64 @@ vape:
   lore:
     - "&7A disposable nicotine vape with limited puffs."
     - "&a&oHaste I"
-    - "&c&oHunger I"
+    - "&a&oSpeed I"
+    - "&a&oSaturation I"
     - "&7Abuse Potential: &cHigh"
   effects:
     HASTE:
       duration: 240
       amplifier: 0
-    HUNGER:
-      duration: 100
+    SPEED:
+      duration: 160
       amplifier: 0
+    SATURATION:
+      duration: 40
+      amplifier: 0
+
+caffeine:
+  material: GLOWSTONE_DUST
+  display-name: "&ePure Caffeine"
+  lore:
+    - "&7Refined anhydrous caffeine powder."
+    - "&a&oSpeed II"
+    - "&a&oHaste II"
+    - "&a&oSaturation I"
+    - "&c&oHeart Attack Risk if Binged"
+    - "&7OD Risk: &4&lCardiac Arrest"
+    - "&7Abuse Potential: &e&lMedium"
+  effects:
+    SPEED:
+      duration: 600
+      amplifier: 1
+    HASTE:
+      duration: 600
+      amplifier: 1
+    SATURATION:
+      duration: 60
+      amplifier: 0
+
+energy_drink:
+  material: HONEY_BOTTLE
+  display-name: "&b⚡ Energy Drink"
+  lore:
+    - "&7Loaded with caffeine, taurine, and sugar."
+    - "&a&oSpeed III"
+    - "&a&oHaste II"
+    - "&a&oJump Boost I"
+    - "&a&oSaturation II"
+    - "&c&oHeart Attack Risk if Binged"
+    - "&7OD Risk: &4&lCardiac Arrest"
+    - "&7Abuse Potential: &e&lMedium"
+  effects:
+    SPEED:
+      duration: 900
+      amplifier: 2
+    HASTE:
+      duration: 900
+      amplifier: 1
+    JUMP:
+      duration: 600
+      amplifier: 0
+    SATURATION:
+      duration: 80
+      amplifier: 1

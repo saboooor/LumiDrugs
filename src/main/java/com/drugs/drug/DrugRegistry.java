@@ -50,6 +50,7 @@ public class DrugRegistry {
         needsCacheCleanup = false;
 
         for (String key : new ArrayList<>(config.getKeys(false))) loadDrug(plugin, config, recipes, key);
+        com.drugs.recipes.ProductionRecipes.register();
         Bukkit.getLogger().info("[LumiDrugs] Loaded " + drugProfiles.size() + " drugs");
     }
 

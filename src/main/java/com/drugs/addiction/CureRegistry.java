@@ -45,7 +45,8 @@ public class CureRegistry {
 
     public static CureProfile getProfileById(String id) {
         if (id == null) return null;
-        return cureProfiles.get(id.toLowerCase());
+        CureProfile profile = cureProfiles.get(id.toLowerCase());
+        return profile != null ? profile : AddictionConfigLoader.getCureProfile(id);
     }
 
     public static ItemStack getCureItem(String id, int amount) {

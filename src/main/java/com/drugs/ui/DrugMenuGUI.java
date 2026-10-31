@@ -52,6 +52,10 @@ public class DrugMenuGUI {
             }
         }
 
+        for (String intermediateId : com.drugs.recipes.ProductionRecipes.intermediates()) {
+            menuItems.add(com.drugs.recipes.ProductionRecipes.intermediate(intermediateId, null));
+        }
+
         if (BongConfigLoader.isEnabled()) {
             menuItems.add(BongItemFactory.createBongItem(1));
         }

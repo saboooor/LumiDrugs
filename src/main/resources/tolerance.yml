@@ -186,3 +186,23 @@ vape:
     6: 0.4
     7: 0.3
     8: 0.1
+
+caffeine:
+  max-tolerance: 4
+  decay-delay-minutes: 3
+  effectiveness-scaling:
+    0: 1.0
+    1: 0.85
+    2: 0.65
+    3: 0.4
+    4: 0.15
+
+energy_drink:
+  max-tolerance: 4
+  decay-delay-minutes: 3
+  effectiveness-scaling:
+    0: 1.0
+    1: 0.85
+    2: 0.65
+    3: 0.4
+    4: 0.15

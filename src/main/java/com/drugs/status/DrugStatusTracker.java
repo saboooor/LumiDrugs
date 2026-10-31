@@ -68,6 +68,17 @@ public final class DrugStatusTracker implements Listener {
                 merge(status, "salvia", new Status(salvia.getRemainingTicks(player), salvia.getDelayTicks(player),
                         List.of(salvia.isPending(player) ? "block disguise pending" : "block disguise")));
             }
+            var sensory = plugin.getSensoryEffectManager();
+            if (sensory != null) {
+                if (sensory.hasPendingEdible(player)) {
+                    merge(status, "edible", new Status(0, sensory.getEdibleDelayTicks(player),
+                            List.of("edible kick-in pending")));
+                }
+                if (sensory.hasSchizophrenia(player)) {
+                    merge(status, "schizophrenia", new Status(sensory.getSchizophreniaRemainingTicks(player), 0,
+                            List.of("auditory & visual hallucinations")));
+                }
+            }
         }
         return new LinkedHashMap<>(status);
     }

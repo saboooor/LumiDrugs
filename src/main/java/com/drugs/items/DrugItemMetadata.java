@@ -24,6 +24,18 @@ public final class DrugItemMetadata {
 
     public static final String DEFAULT_STRAIN_ID = "reggie";
 
+    private static final java.util.Set<String> RESOURCE_PACK_TYPES = java.util.Set.of(
+            "heroin", "fent", "shrooms", "meth", "blunt",
+            "cocaine", "joint", "cart", "edible", "glue",
+            "molly", "lsd", "salvia", "tobacco", "nicotine",
+            "cigarette", "cigar", "chewing_tobacco", "vape", "caffeine",
+            "energy_drink", "suboxone", "cbd", "bong", "infused_dough",
+            "cannabis_extract", "vape_liquid", "cannabis_plant", "seed_cannabis", "seed_poppy",
+            "seed_mushroom", "seed_ephedra", "seed_coca", "seed_sassafras", "seed_ergot",
+            "seed_salvia", "seed_resin", "seed_tobacco", "seed_coffee", "harvest_cannabis",
+            "harvest_poppy", "harvest_mushroom", "harvest_ephedra", "harvest_coca", "harvest_sassafras",
+            "harvest_ergot", "harvest_salvia", "harvest_resin", "harvest_tobacco", "harvest_coffee");
+
     private DrugItemMetadata() {
     }
 
@@ -36,7 +48,12 @@ public final class DrugItemMetadata {
     }
 
     public static void setItemType(ItemMeta meta, String itemType) {
-        meta.getPersistentDataContainer().set(key("item_type"), PersistentDataType.STRING, itemType.toLowerCase());
+        String type = itemType.toLowerCase(Locale.ROOT);
+        meta.getPersistentDataContainer().set(key("item_type"), PersistentDataType.STRING, type);
+        // Use separate models for items that share a vanilla material.
+        if (RESOURCE_PACK_TYPES.contains(type)) {
+            meta.setItemModel(new NamespacedKey("lumidrugs", type));
+        }
     }
 
     public static void setStrainId(ItemMeta meta, String strainId) {

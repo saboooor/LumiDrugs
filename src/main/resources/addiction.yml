@@ -36,7 +36,7 @@ cures:
     display-name: "&bRest"
     lore:
       - "&7Sleeping helps ease withdrawal."
-    cures: ["cocaine", "molly", "meth"]
+    cures: ["cocaine", "molly", "meth", "caffeine", "energy_drink"]
     clears_points: true
     reduce_points: 0
     block_withdrawal_seconds: 1
@@ -65,6 +65,12 @@ drugs:
     withdrawal_effects:
       - type: POISON
         amplifier: 1
+      - type: WEAKNESS
+        amplifier: 1
+      - type: SLOW
+        amplifier: 1
+      - type: CONFUSION
+        amplifier: 0
 
   glue:
     addictive: true
@@ -76,6 +82,10 @@ drugs:
       points_decay_per_minute: 0.25
     withdrawal_effects:
       - type: POISON
+        amplifier: 1
+      - type: CONFUSION
+        amplifier: 0
+      - type: SLOW_DIGGING
         amplifier: 1
 
   # High addiction, but not necessarily 1-hit
@@ -89,6 +99,12 @@ drugs:
     withdrawal_effects:
       - type: POISON
         amplifier: 1
+      - type: WEAKNESS
+        amplifier: 1
+      - type: SLOW
+        amplifier: 0
+      - type: CONFUSION
+        amplifier: 0
 
   cocaine:
     addictive: true
@@ -99,8 +115,14 @@ drugs:
       enabled: true
       points_decay_per_minute: 0.5
     withdrawal_effects:
-      - type: POISON
+      - type: SLOW
         amplifier: 1
+      - type: WEAKNESS
+        amplifier: 1
+      - type: SLOW_DIGGING
+        amplifier: 0
+      - type: HUNGER
+        amplifier: 0
 
   meth:
     addictive: true
@@ -111,8 +133,14 @@ drugs:
       enabled: true
       points_decay_per_minute: 2
     withdrawal_effects:
-      - type: POISON
+      - type: SLOW
         amplifier: 1
+      - type: WEAKNESS
+        amplifier: 1
+      - type: SLOW_DIGGING
+        amplifier: 1
+      - type: HUNGER
+        amplifier: 0
 
   # Lower addiction: weed + molly
   blunt:
@@ -174,6 +202,10 @@ drugs:
     withdrawal_effects:
       - type: HUNGER
         amplifier: 1
+      - type: WEAKNESS
+        amplifier: 0
+      - type: DARKNESS
+        amplifier: 0
 
   tobacco:
     addictive: true
@@ -185,6 +217,10 @@ drugs:
       points_decay_per_minute: 0.5
     withdrawal_effects:
       - type: SLOW_DIGGING
+        amplifier: 0
+      - type: HUNGER
+        amplifier: 0
+      - type: WEAKNESS
         amplifier: 0
 
   nicotine:
@@ -198,6 +234,10 @@ drugs:
     withdrawal_effects:
       - type: SLOW_DIGGING
         amplifier: 0
+      - type: HUNGER
+        amplifier: 0
+      - type: WEAKNESS
+        amplifier: 0
 
   cigarette:
     addictive: true
@@ -209,6 +249,10 @@ drugs:
       points_decay_per_minute: 0.5
     withdrawal_effects:
       - type: SLOW_DIGGING
+        amplifier: 0
+      - type: HUNGER
+        amplifier: 0
+      - type: WEAKNESS
         amplifier: 0
 
   cigar:
@@ -222,6 +266,10 @@ drugs:
     withdrawal_effects:
       - type: SLOW_DIGGING
         amplifier: 0
+      - type: HUNGER
+        amplifier: 0
+      - type: WEAKNESS
+        amplifier: 0
 
   chewing_tobacco:
     addictive: true
@@ -234,6 +282,10 @@ drugs:
     withdrawal_effects:
       - type: SLOW_DIGGING
         amplifier: 0
+      - type: HUNGER
+        amplifier: 0
+      - type: WEAKNESS
+        amplifier: 0
 
   vape:
     addictive: true
@@ -245,4 +297,42 @@ drugs:
       points_decay_per_minute: 0.5
     withdrawal_effects:
       - type: SLOW_DIGGING
+        amplifier: 0
+      - type: HUNGER
+        amplifier: 0
+      - type: WEAKNESS
+        amplifier: 0
+
+  caffeine:
+    addictive: true
+    points_per_use: 1
+    addicted_at_points: 4
+    withdrawal_after_seconds: 240
+    decay:
+      enabled: true
+      points_decay_per_minute: 1.0
+    withdrawal_effects:
+      - type: SLOW
+        amplifier: 0
+      - type: SLOW_DIGGING
+        amplifier: 0
+      - type: WEAKNESS
+        amplifier: 0
+
+  energy_drink:
+    addictive: true
+    points_per_use: 1
+    addicted_at_points: 3
+    withdrawal_after_seconds: 240
+    decay:
+      enabled: true
+      points_decay_per_minute: 1.0
+    withdrawal_effects:
+      - type: SLOW
+        amplifier: 1
+      - type: SLOW_DIGGING
+        amplifier: 0
+      - type: WEAKNESS
+        amplifier: 0
+      - type: HUNGER
         amplifier: 0

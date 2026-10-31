@@ -1,0 +1,88 @@
+name: LumiDrugs
+version: '${project.version}'
+description: "LumiDrugs: persistent tolerance, addiction, withdrawal, overdose, cures, cannabis strains, and bongs."
+main: com.drugs.DrugsV2
+api-version: '1.21'
+softdepend: [PlaceholderAPI, Vault, Essentials, Citizens]
+
+commands:
+  cartel:
+    description: Manage cartel buyers
+    usage: /cartel <reject|create|remove|reload|enforcer [player drug amount]>
+  drugs:
+    description: Opens the drug selection GUI or runs admin commands
+    usage: /drugs [give/help/purge/reload/list/achievements/status]
+    permission: drugs.menu
+
+  drugstatus:
+    description: Check which drugs are affecting you or whether you are fully sober
+    usage: /drugstatus
+    permission: drugs.status
+
+  tolerance:
+    description: View your current drug tolerance levels
+    usage: /tolerance
+    permission: drugs.tolerance
+
+  strains:
+    description: View all available cannabis strains
+    usage: /strains
+    permission: drugs.strains
+
+permissions:
+  drugs.cartel.enforcer.bypass:
+    description: Prevents cartel enforcers from targeting this player
+    default: false
+  drugs.cartel.sell:
+    description: Allows selling drugs to cartel buyers
+    default: true
+  drugs.cartel.admin:
+    description: Allows creating, removing, and configuring cartel buyers
+    default: op
+  drugs.status:
+    description: Allows checking your own current drug status
+    default: true
+
+  drugs.menu:
+    description: Allows access to the drug menu
+    default: true
+
+  drugs.give:
+    description: Allows giving drugs to players via /drugs give
+    default: op
+
+  drugs.tolerance:
+    description: Allows using /tolerance
+    default: true
+
+  drugs.strains:
+    description: Allows viewing the /strains menu
+    default: true
+
+  drugs.admin.reload:
+    description: Allows reloading all configs
+    default: op
+
+  drugs.admin.purge:
+    description: Allows purging a player's tolerance
+    default: op
+
+  drugs.admin.list:
+    description: Allows viewing the registered drug list
+    default: op
+
+  drugs.admin.strains.give:
+    description: Allows giving strain plants via /strains give
+    default: op
+
+  drugs.achievements:
+    description: Allows access to /drugs achievements
+    default: true
+    
+  drugs.admin.achievements:
+    description: Allows toggling and managing the achievement system
+    default: op
+    
+  drugs.admin.overdose:
+    description: Allows managing overdose settings and effects
+    default: op

@@ -94,6 +94,45 @@ public class DrugsCommand implements CommandExecutor {
             return DrugStatusCommand.show(sender);
         }
 
+        // Easter egg: /drugs schizo <player> [seconds|off]
+        if (args[0].equalsIgnoreCase("schizo") || args[0].equalsIgnoreCase("schizophrenia") || args[0].equalsIgnoreCase("psychosis")) {
+            if (!sender.hasPermission("drugs.admin") && !sender.hasPermission("drugs.give") && !sender.isOp()) {
+                sender.sendMessage(ChatColor.DARK_GRAY + "" + ChatColor.ITALIC + "The voices do not answer you...");
+                return true;
+            }
+            if (args.length < 2) {
+                sender.sendMessage(ChatColor.RED + "Usage: /drugs schizo <player> [seconds|off]");
+                return true;
+            }
+            Player target = Bukkit.getPlayer(args[1]);
+            if (target == null) {
+                sender.sendMessage(ChatColor.RED + "Player not found.");
+                return true;
+            }
+            var sensory = DrugsV2.getInstance() != null ? DrugsV2.getInstance().getSensoryEffectManager() : null;
+            if (sensory == null) return true;
+            if (args.length >= 3 && (args[2].equalsIgnoreCase("off") || args[2].equalsIgnoreCase("stop") || args[2].equalsIgnoreCase("clear"))) {
+                sensory.stopSchizophrenia(target.getUniqueId());
+                sender.sendMessage(ChatColor.GREEN + "Cleared the voices from " + target.getName() + "'s head.");
+                return true;
+            }
+            int duration = 0;
+            if (args.length >= 3) {
+                try {
+                    duration = Math.max(5, Integer.parseInt(args[2]));
+                } catch (NumberFormatException ignored) {
+                }
+            }
+            boolean enabled = sensory.toggleSchizophrenia(target, duration);
+            if (enabled) {
+                sender.sendMessage(ChatColor.DARK_PURPLE + "👁 Awakened the voices in " + target.getName() + "'s mind"
+                        + (duration > 0 ? " (" + duration + "s)." : " (120s)."));
+            } else {
+                sender.sendMessage(ChatColor.GREEN + "Cleared the voices from " + target.getName() + "'s head.");
+            }
+            return true;
+        }
+
         // /drugs achievements
         if (args[0].equalsIgnoreCase("achievements") && args.length == 1) {
             if (!(sender instanceof Player player)) {

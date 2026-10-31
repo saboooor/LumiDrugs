@@ -28,6 +28,7 @@ import com.drugs.drug.DrugRegistry;
 import com.drugs.drug.DrugUseListener;
 import com.drugs.effects.LsdEffectManager;
 import com.drugs.effects.SalviaEffectManager;
+import com.drugs.effects.SensoryEffectManager;
 import com.drugs.growing.CannabisPlantListener;
 import com.drugs.growing.CannabisPlantRegistry;
 import com.drugs.growing.DrugGrowing;
@@ -76,6 +77,7 @@ public class DrugsV2 extends JavaPlugin {
     }
     private LsdEffectManager lsdEffectManager;
     private SalviaEffectManager salviaEffectManager;
+    private SensoryEffectManager sensoryEffectManager;
     private PluginStartup startup;
     private DrugsPlaceholderExpansion placeholderExpansion;
     private boolean cannabisLoaded;
@@ -141,8 +143,9 @@ public class DrugsV2 extends JavaPlugin {
                 new PluginStartup.Step("begin recipe batch", RecipeUpdates::begin),
                 new PluginStartup.Step("ingredient crops and recipes", () -> drugGrowing = new DrugGrowing(this)),
                 PluginStartup.Step.expand("drug recipes", () -> DrugRegistry.startupSteps(this)),
-                new PluginStartup.Step("achievement definitions", () -> CustomAchievementLoader.load(getDataFolder())),
                 new PluginStartup.Step("cure recipes", () -> CureRegistry.init(this)),
+                new PluginStartup.Step("production recipes", com.drugs.recipes.ProductionRecipes::register),
+                new PluginStartup.Step("achievement definitions", () -> CustomAchievementLoader.load(getDataFolder())),
                 new PluginStartup.Step("bong and farm recipes", () -> {
                     registerBongRecipe();
                     registerFarmControllerRecipe();
@@ -181,6 +184,8 @@ public class DrugsV2 extends JavaPlugin {
         manager.registerEvents(lsdEffectManager, this);
         salviaEffectManager = new SalviaEffectManager(this);
         manager.registerEvents(salviaEffectManager, this);
+        sensoryEffectManager = new SensoryEffectManager(this);
+        manager.registerEvents(sensoryEffectManager, this);
         manager.registerEvents(new NativeAdvancements(), this);
         farmControllerListener = new FarmControllerListener(farmManager);
         manager.registerEvents(farmControllerListener, this);
@@ -239,6 +244,7 @@ public class DrugsV2 extends JavaPlugin {
     @Override
     public void onDisable() {
         if (startup != null) startup.cancel();
+        com.drugs.recipes.ProductionRecipes.clear();
         RecipeUpdates.reset();
         if (cartelDroppedSales != null) cartelDroppedSales.shutdown();
         if (cartelEnforcer != null) cartelEnforcer.shutdown();
@@ -247,6 +253,7 @@ public class DrugsV2 extends JavaPlugin {
         if (placeholderExpansion != null) placeholderExpansion.unregister();
         if (lsdEffectManager != null) lsdEffectManager.cleanupAll();
         if (salviaEffectManager != null) salviaEffectManager.cleanupAll();
+        if (sensoryEffectManager != null) sensoryEffectManager.cleanupAll();
         // Save only successfully loaded stores; unloading during initialization must
         // not replace saved player data with an empty, partly initialized registry.
         if (cannabisLoaded) savePhase("saving cannabis plants", CannabisPlantRegistry::save);
@@ -275,6 +282,41 @@ public class DrugsV2 extends JavaPlugin {
             saveResource("recipes.yml", false);
         }
         recipesConfig = YamlConfiguration.loadConfiguration(recipesFile);
+        if (recipesConfig.getInt("processing-version", 0) < 1) {
+            for (String id : java.util.List.of("tobacco", "nicotine", "salvia")) {
+                if (recipesConfig.contains(id + ".type")) continue;
+                recipesConfig.set(id + ".type", id.equals("tobacco") ? "smoker" : id.equals("nicotine") ? "furnace" : "campfire");
+                recipesConfig.set(id + ".input-crop", id.equals("salvia") ? "salvia" : "tobacco");
+                recipesConfig.set(id + ".cooking-time", id.equals("tobacco") ? 200 : id.equals("nicotine") ? 400 : 600);
+            }
+            recipesConfig.set("vape.ingredients.S", "SUGAR");
+            recipesConfig.set("processing-version", 1);
+            try { recipesConfig.save(recipesFile); }
+            catch (java.io.IOException exception) { getLogger().warning("Could not save recipe migration: " + exception.getMessage()); }
+        }
+        if (recipesConfig.getInt("processing-version", 0) < 2) {
+            recipesConfig.set("glue.type", "furnace");
+            recipesConfig.set("glue.input-crop", "resin");
+            recipesConfig.set("glue.cooking-time", 200);
+            for (String id : java.util.List.of("edible", "cbd", "cart", "vape", "cigarette", "cigar")) {
+                recipesConfig.set(id + ".type", "production");
+                recipesConfig.set(id + ".shape", null);
+                recipesConfig.set(id + ".ingredients", null);
+            }
+            recipesConfig.set("processing-version", 2);
+            try { recipesConfig.save(recipesFile); }
+            catch (java.io.IOException exception) { getLogger().warning("Could not save production recipe migration: " + exception.getMessage()); }
+        }
+        if (!recipesConfig.contains("caffeine") || !recipesConfig.contains("energy_drink")) {
+            recipesConfig.set("caffeine.type", "furnace");
+            recipesConfig.set("caffeine.input-crop", "coffee");
+            recipesConfig.set("caffeine.cooking-time", 200);
+            recipesConfig.set("caffeine.experience", 0.1);
+            recipesConfig.set("energy_drink.type", "production");
+            try { recipesConfig.save(recipesFile); }
+            catch (java.io.IOException exception) { getLogger().warning("Could not save caffeine recipe migration: " + exception.getMessage()); }
+        }
+
     }
 
     public void saveToleranceConfig() {
@@ -373,5 +415,9 @@ public class DrugsV2 extends JavaPlugin {
 
     public SalviaEffectManager getSalviaEffectManager() {
         return salviaEffectManager;
+    }
+
+    public SensoryEffectManager getSensoryEffectManager() {
+        return sensoryEffectManager;
     }
 }

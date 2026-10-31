@@ -143,8 +143,12 @@ public class AddictionManager {
         long threshold = profile.getWithdrawalAfterSeconds() * 1000L;
 
         if (threshold > 0 && now - lastUse >= threshold) {
+            boolean wasActive = state.isWithdrawalActive();
             applyWithdrawalEffects(player, profile, settings.getInfiniteDurationTicks());
             state.setWithdrawalActive(true);
+            if (!wasActive) {
+                notifyWithdrawalStarted(player, profile);
+            }
         } else if (state.isWithdrawalActive()) {
             clearWithdrawalEffects(player, profile);
             state.setWithdrawalActive(false);
@@ -218,16 +222,40 @@ public class AddictionManager {
         }, 1L);
     }
 
+    private static void notifyWithdrawalStarted(Player player, AddictionDrugProfile profile) {
+        String drugId = profile.getId();
+        var drugProfile = com.drugs.drug.DrugRegistry.getProfileById(drugId);
+        String drugName = drugProfile != null
+                ? org.bukkit.ChatColor.stripColor(org.bukkit.ChatColor.translateAlternateColorCodes('&', drugProfile.getDisplayName()))
+                : drugId;
+        java.util.List<String> effectNames = new java.util.ArrayList<>();
+        for (WithdrawalEffect effect : profile.getWithdrawalEffects()) {
+            String raw = effect.getType().getKey().getKey().replace('_', ' ');
+            String formatted = Character.toUpperCase(raw.charAt(0)) + raw.substring(1);
+            effectNames.add(formatted + " " + (effect.getAmplifier() + 1));
+        }
+        String effectsSummary = effectNames.isEmpty() ? "Tremors" : String.join(", ", effectNames);
+        player.sendMessage("§4§l⚠ WITHDRAWAL §8» §cYou are going into §e" + drugName + " §cwithdrawal! §7(Effects: §f" + effectsSummary + "§7)");
+    }
+
     private static void applyWithdrawalEffects(Player player, AddictionDrugProfile profile, int duration) {
         for (WithdrawalEffect effect : profile.getWithdrawalEffects()) {
             PotionEffect potion = new PotionEffect(effect.getType(), duration, effect.getAmplifier(), true, true, true);
             DrugStatusTracker.applyEffect(player, DrugStatusTracker.WITHDRAWAL_PREFIX + profile.getId(), potion);
+        }
+        DrugsV2 plugin = DrugsV2.getInstance();
+        if (plugin != null && plugin.getSensoryEffectManager() != null) {
+            plugin.getSensoryEffectManager().onWithdrawalTick(player, profile.getId());
         }
     }
 
     private static void clearWithdrawalEffects(Player player, AddictionDrugProfile profile) {
         for (WithdrawalEffect effect : profile.getWithdrawalEffects()) {
             player.removePotionEffect(effect.getType());
+        }
+        DrugsV2 plugin = DrugsV2.getInstance();
+        if (plugin != null && plugin.getSensoryEffectManager() != null) {
+            plugin.getSensoryEffectManager().clearWithdrawalSensory(player);
         }
     }
 

@@ -25,6 +25,7 @@ public class DrugsTabCompleter implements TabCompleter {
             options.add("help");
             if (sender.hasPermission("drugs.status")) options.add("status");
             options.add("growing");
+            options.add("recipe");
             options.add("list");
             options.add("purge");
             options.add("reload");
@@ -60,6 +61,15 @@ public class DrugsTabCompleter implements TabCompleter {
                 return partialMatch(args[2], playerNames);
             }
             return Collections.emptyList();
+        }
+
+        if (args.length == 2 && args[0].equalsIgnoreCase("recipe")) {
+            List<String> recipeIds = new ArrayList<>(DrugRegistry.getRegisteredDrugNames());
+            recipeIds.addAll(CureRegistry.getRegisteredCureNames());
+            recipeIds.addAll(com.drugs.recipes.ProductionRecipes.intermediates());
+            recipeIds.add("bong");
+            recipeIds.add("farm-controller");
+            return partialMatch(args[1], recipeIds);
         }
 
         if (args.length == 2 && args[0].equalsIgnoreCase("give")) {

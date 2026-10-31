@@ -29,13 +29,24 @@ class NicotineProductsTest {
         var tolerance = resource("tolerance.yml");
         var overdose = resource("overdose.yml");
         for (String id : List.of("tobacco", "nicotine", "cigarette", "cigar", "chewing_tobacco", "vape")) {
-            assertEquals("tobacco", DrugGrowing.requirement(id), id);
-            assertTrue(recipes.getConfigurationSection(id + ".ingredients").getValues(false)
-                    .containsValue("DRIED_KELP"), id);
+            if (id.equals("vape")) assertNull(DrugGrowing.requirement(id));
+            else assertEquals("tobacco", DrugGrowing.requirement(id), id);
+            boolean processing = id.equals("tobacco") || id.equals("nicotine");
+            boolean production = java.util.Set.of("cigarette", "cigar", "vape").contains(id);
+            if (processing) {
+                assertEquals(id.equals("tobacco") ? "smoker" : "furnace", recipes.getString(id + ".type"));
+                assertEquals("tobacco", recipes.getString(id + ".input-crop"));
+                assertTrue(recipes.getInt(id + ".cooking-time") > 0);
+            } else if (production) {
+                assertEquals("production", recipes.getString(id + ".type"));
+            } else {
+                assertTrue(recipes.getConfigurationSection(id + ".ingredients").getValues(false)
+                        .containsValue("DRIED_KELP"), id);
+            }
             assertNotNull(Material.matchMaterial(config.getString(id + ".material")), id);
             assertFalse(config.getConfigurationSection(id + ".effects").getKeys(false).isEmpty(), id);
             var shape = recipes.getStringList(id + ".shape");
-            assertEquals(3, shape.size(), id);
+            assertEquals(processing || production ? 0 : 3, shape.size(), id);
             for (String row : shape) {
                 assertEquals(3, row.length(), id);
                 for (char symbol : row.toCharArray()) {

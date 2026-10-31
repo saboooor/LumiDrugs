@@ -98,7 +98,9 @@ class EnforcerGuideTest {
         when(result.clone()).thenReturn(result);
         when(recipe.getResult()).thenReturn(result);
         when(recipe.getShape()).thenReturn(new String[]{" P ", "   ", "   "});
-        when(recipe.getIngredientMap()).thenReturn(Map.of('P', paper));
+        org.bukkit.inventory.RecipeChoice choice = mock(org.bukkit.inventory.RecipeChoice.class);
+        when(choice.getItemStack()).thenReturn(paper);
+        when(recipe.getChoiceMap()).thenReturn(Map.of('P', choice));
         bukkit.when(() -> Bukkit.getRecipe(new NamespacedKey(plugin, "joint"))).thenReturn(recipe);
 
         // 1. Dialogue opens as Paper Dialog

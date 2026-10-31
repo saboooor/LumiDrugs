@@ -16,6 +16,7 @@ import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.world.ChunkLoadEvent;
+import org.bukkit.event.world.WorldLoadEvent;
 import org.bukkit.persistence.PersistentDataType;
 
 import java.io.InputStreamReader;
@@ -113,11 +114,24 @@ final class CitizensCartelNpcs implements CartelNpcs, Listener {
             if (owns(npc, "buyer")) {
                 npc.setName(buyerName());
                 applySkin(npc);
+                restoreBuyer(npc);
                 if (npc.getEntity() instanceof LivingEntity living) living.setCanPickupItems(false);
             }
         }
         for (World world : Bukkit.getWorlds()) {
             for (Villager villager : world.getEntitiesByClass(Villager.class)) migrate(villager);
+        }
+    }
+
+    private void restoreBuyer(NPC npc) {
+        if (closed || !owns(npc, "buyer") || npc.isSpawned()) return;
+        Location location = npc.getStoredLocation();
+        if (location == null || location.getWorld() == null) return;
+        if (!npc.spawn(location)) {
+            plugin.getLogger().warning("Could not restore cartel buyer at " + location
+                    + "; will retry when its chunk loads.");
+        } else if (npc.getEntity() instanceof LivingEntity living) {
+            living.setCanPickupItems(false);
         }
     }
 
@@ -155,8 +169,20 @@ final class CitizensCartelNpcs implements CartelNpcs, Listener {
     }
 
     @EventHandler public void onCitizensEnable(CitizensEnableEvent event) { reload(); }
+    @EventHandler public void onWorldLoad(WorldLoadEvent event) {
+        // Let Citizens resolve stored world references before attempting recovery.
+        if (!closed) plugin.getServer().getScheduler().runTask(plugin, this::reload);
+    }
+
     @EventHandler public void onChunkLoad(ChunkLoadEvent event) {
         if (closed) return;
+        for (NPC npc : CitizensAPI.getNPCRegistry()) {
+            if (!owns(npc, "buyer") || npc.isSpawned()) continue;
+            Location location = npc.getStoredLocation();
+            if (location != null && event.getWorld().equals(location.getWorld())
+                    && (location.getBlockX() >> 4) == event.getChunk().getX()
+                    && (location.getBlockZ() >> 4) == event.getChunk().getZ()) restoreBuyer(npc);
+        }
         for (Entity entity : event.getChunk().getEntities()) {
             if (entity instanceof Villager villager) migrate(villager);
         }

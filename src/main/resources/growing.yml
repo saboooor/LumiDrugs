@@ -37,3 +37,8 @@ cannabis:
 tobacco:
   plant-block: AZALEA
   growth-seconds: 600
+
+# Coffee beans are harvested ingredients used to refine caffeine and energy drinks.
+coffee:
+  plant-block: OAK_SAPLING
+  growth-seconds: 480

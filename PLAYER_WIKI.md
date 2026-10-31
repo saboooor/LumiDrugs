@@ -305,3 +305,36 @@ cannot skip the wait. Use `/drugs` to view recipes with the required harvested i
 For cannabis, grow a fern into a large fern and harvest it with shears. Use the Cannabis
 Buds for crafting or loading bongs, and replant the strain ferns. Ordinary ferns and
 planting stock cannot replace buds in recipes.
+
+## Processing harvested ingredients
+
+Some ingredients now need a processing block instead of a crafting table:
+
+| Input | Block | Time | Output |
+| --- | --- | --- | --- |
+| Harvested tobacco leaves | Smoker | 10 seconds | Tobacco |
+| Harvested tobacco leaves | Furnace | 20 seconds | Nicotine |
+| Harvested salvia leaves | Campfire | 30 seconds | Salvia |
+
+Furnaces and smokers require fuel. Use custom harvested items, not ordinary materials
+or planting stock. `/drugs recipe <item>` shows the registered recipe. Click a processed
+ingredient in the preview to view its production recipe.
+
+### Production chains
+
+| Product | Steps |
+| --- | --- |
+| Edible | Craft wheat + sugar + harvested cannabis buds into infused dough (shapeless), then smoke the dough for 10 seconds. |
+| Glue | Heat harvested resin in a furnace for 10 seconds. |
+| CBD | Brew water bottles with harvested cannabis buds. |
+| Vape | Brew water bottles with nicotine to make vape liquid, then assemble the device using glass above, redstone left, a stone button right, and copper below the liquid. |
+| Cartridge | Brew awkward potions with harvested cannabis buds to make cannabis extract, then assemble the cartridge with the same device parts around the extract. |
+| Cigarette | Craft paper + cured tobacco from the smoker. |
+| Cigar | Craft three cured tobacco above three leaf litter. |
+
+Brewing uses a brewing stand with blaze powder fuel and takes 20 seconds. Put the
+bottles in the bottom slots and the custom ingredient in the top slot. Water produces
+CBD; awkward potion produces cannabis extract. Ordinary sugar cannot replace nicotine.
+Processed liquids and dough are recipe ingredients, not consumable drugs.
+Cannabis strains carry through dough, edibles, extracts, cartridges, and CBD.
+The old direct crafting recipes for these products have been replaced.

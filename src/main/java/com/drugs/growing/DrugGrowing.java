@@ -37,7 +37,8 @@ public final class DrugGrowing implements Listener {
         Map.entry("edible", "cannabis"), Map.entry("cbd", "cannabis"),
         Map.entry("tobacco", "tobacco"), Map.entry("nicotine", "tobacco"),
         Map.entry("cigarette", "tobacco"), Map.entry("cigar", "tobacco"),
-        Map.entry("chewing_tobacco", "tobacco"), Map.entry("vape", "tobacco"));
+        Map.entry("chewing_tobacco", "tobacco"),
+        Map.entry("caffeine", "coffee"), Map.entry("energy_drink", "coffee"));
     private record Plant(String crop, int elapsed) {}
     private final Map<String, Plant> plants = new HashMap<>();
     private final DrugsV2 plugin;
@@ -70,12 +71,13 @@ public final class DrugGrowing implements Listener {
         add("salvia", "Salvia Leaves", Material.LILAC, 600, config);
         add("resin", "Harvested Resin", Material.BONE_MEAL, 600, config);
         add("tobacco", "Tobacco Leaves", Material.DRIED_KELP, 600, config);
-        Map<String, Material> defaults = Map.of(
-                "poppy", Material.POPPY, "mushroom", Material.RED_MUSHROOM,
-                "ephedra", Material.DEAD_BUSH, "coca", Material.AZALEA,
-                "sassafras", Material.OAK_SAPLING, "ergot", Material.WHEAT,
-                "salvia", Material.LILAC, "resin", Material.SPRUCE_SAPLING,
-                "tobacco", Material.AZALEA);
+        add("coffee", "Coffee Beans", Material.COCOA_BEANS, 480, config);
+        Map<String, Material> defaults = Map.ofEntries(
+                Map.entry("poppy", Material.POPPY), Map.entry("mushroom", Material.RED_MUSHROOM),
+                Map.entry("ephedra", Material.DEAD_BUSH), Map.entry("coca", Material.AZALEA),
+                Map.entry("sassafras", Material.OAK_SAPLING), Map.entry("ergot", Material.WHEAT),
+                Map.entry("salvia", Material.LILAC), Map.entry("resin", Material.SPRUCE_SAPLING),
+                Map.entry("tobacco", Material.AZALEA), Map.entry("coffee", Material.OAK_SAPLING));
         plantBlocks.clear();
         for (String id : crops.keySet()) {
             if (id.equals("cannabis")) { plantBlocks.put(id, Material.FERN); continue; }

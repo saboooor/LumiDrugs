@@ -48,6 +48,18 @@ public class DrugMenuListener implements Listener {
             // Only the three ingredient columns are interactive; the result is not an ingredient.
             int slot = event.getRawSlot();
             if (slot < 0 || slot % 9 < 1 || slot % 9 > 3) return;
+            String ingredientRecipe = com.drugs.recipes.ProductionRecipes.ingredientRecipe(clicked);
+            if (ingredientRecipe != null) {
+                Bukkit.getScheduler().runTask(DrugsV2.getInstance(), () -> {
+                    openingGrowingGuide.add(player.getUniqueId());
+                    try {
+                        DrugRecipeViewer.openRecipe(player, ingredientRecipe);
+                    } finally {
+                        openingGrowingGuide.remove(player.getUniqueId());
+                    }
+                });
+                return;
+            }
             String crop = GrowingGuide.cropFromIngredient(clicked);
             if (crop != null) {
                 String recipe = title.substring("Recipe: ".length());
@@ -82,6 +94,12 @@ public class DrugMenuListener implements Listener {
                 CureProfile cureProfile = CureRegistry.getProfileFromItem(clicked);
                 if (cureProfile != null) {
                     DrugRecipeViewer.openRecipe(player, cureProfile.getId());
+                    return;
+                }
+
+                String ingredientRecipe = com.drugs.recipes.ProductionRecipes.ingredientRecipe(clicked);
+                if (ingredientRecipe != null) {
+                    DrugRecipeViewer.openRecipe(player, ingredientRecipe);
                     return;
                 }
 

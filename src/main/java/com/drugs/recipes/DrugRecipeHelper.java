@@ -8,18 +8,17 @@ import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.ShapedRecipe;
+import org.bukkit.inventory.*;
 import org.bukkit.plugin.Plugin;
 
 
 /**
- * Loads and registers shaped crafting recipes from recipes.yml
+ * Loads crafting and block processing recipes from recipes.yml
  */
 public class DrugRecipeHelper {
 
     /**
-     * Registers a shaped crafting recipe from config for a given drug.
+     * Registers a crafting or processing recipe from config for a given drug.
      *
      * Expected format in recipes.yml:
      *   drug_id:
@@ -38,13 +37,9 @@ public class DrugRecipeHelper {
      * @param plugin The plugin instance for key registration
      */
     public static void registerDrugRecipe(String id, ConfigurationSection section, Plugin plugin) {
-        if (section == null) return;
+        if (section == null || ProductionRecipes.manages(id)) return;
 
         Bukkit.getLogger().info("[LumiDrugs] Attempting to register recipe for: " + id);
-
-        // Parse the shape
-        var shape = section.getStringList("shape");
-        if (shape.size() != 3) return;
 
         // Build the result item
         DrugEffectProfile profile = DrugRegistry.getProfileById(id);
@@ -55,8 +50,28 @@ public class DrugRecipeHelper {
     }
 
     public static void registerItemRecipe(String id, ConfigurationSection section, ItemStack result, Plugin plugin) {
-        if (section == null || result == null) return;
+        if (section == null || result == null || ProductionRecipes.manages(id)) return;
 
+        String type = section.getString("type", "crafting").toLowerCase(java.util.Locale.ROOT);
+        if (type.equals("production")) return;
+        NamespacedKey processingKey = new NamespacedKey(plugin, id.toLowerCase());
+        if (!type.equals("crafting")) {
+            String crop = section.getString("input-crop", DrugGrowing.requirement(id));
+            if (crop == null || DrugGrowing.crop(crop) == null) return;
+            RecipeChoice input = new RecipeChoice.ExactChoice(DrugGrowing.harvest(crop, null));
+            int ticks = Math.max(1, section.getInt("cooking-time", 200));
+            float experience = Math.max(0, (float) section.getDouble("experience", 0.1));
+            Recipe processing = switch (type) {
+                case "furnace" -> new FurnaceRecipe(processingKey, result, input, experience, ticks);
+                case "smoker" -> new SmokingRecipe(processingKey, result, input, experience, ticks);
+                case "blast-furnace" -> new BlastingRecipe(processingKey, result, input, experience, ticks);
+                case "campfire" -> new CampfireRecipe(processingKey, result, input, experience, ticks);
+                case "stonecutter" -> new StonecuttingRecipe(processingKey, result, input);
+                default -> throw new IllegalArgumentException("Unknown recipe type: " + type);
+            };
+            RecipeUpdates.replace(processingKey, processing);
+            return;
+        }
         var shape = section.getStringList("shape");
         if (shape.size() != 3) return;
 
@@ -92,6 +107,11 @@ public class DrugRecipeHelper {
             }
             if (required == 0) return;
             recipe.setIngredient(required, DrugGrowing.material(crop));
+        }
+        if (id.equals("vape")) {
+            ItemStack nicotine = DrugRegistry.getDrugItem("nicotine", 1);
+            if (nicotine == null) return;
+            recipe.setIngredient('S', new RecipeChoice.ExactChoice(nicotine));
         }
         RecipeUpdates.replace(key, recipe);
     }

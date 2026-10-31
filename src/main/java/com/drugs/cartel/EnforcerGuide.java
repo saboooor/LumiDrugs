@@ -81,8 +81,47 @@ public final class EnforcerGuide implements Listener {
     }
 
     private static MultiActionDialog growingDialog(String drug) {
-        String crop = DrugGrowing.requirement(drug);
-        List<String> instructions = growingSteps(crop);
+        String crop = switch (drug) {
+            case "vape", "vape_liquid" -> "tobacco";
+            case "infused_dough", "cannabis_extract" -> "cannabis";
+            default -> DrugGrowing.requirement(drug);
+        };
+        List<String> instructions = new java.util.ArrayList<>(growingSteps(crop));
+        switch (drug) {
+            case "vape" -> {
+                instructions.add("Process harvested tobacco leaves in a furnace for 20 seconds to make nicotine.");
+                instructions.add("Brew a water bottle with nicotine to make vape liquid, then assemble the vape with that liquid.");
+            }
+            case "vape_liquid" -> {
+                instructions.add("Process harvested tobacco leaves in a furnace for 20 seconds to make nicotine.");
+                instructions.add("Brew a water bottle with nicotine in a brewing stand to make vape liquid.");
+            }
+            case "edible" -> {
+                instructions.add("Craft Infused Dough (shapeless: wheat + sugar + harvested cannabis buds).");
+                instructions.add("Bake the Infused Dough in a smoker for 10 seconds to make an Edible.");
+            }
+            case "infused_dough" -> instructions.add("Craft Infused Dough shapelessly using wheat, sugar, and harvested cannabis buds.");
+            case "cart" -> {
+                instructions.add("Brew an awkward potion with harvested cannabis buds to make Cannabis Extract.");
+                instructions.add("Assemble the Cart in a crafting table using glass, redstone, stone button, copper ingot, and Cannabis Extract.");
+            }
+            case "cannabis_extract" -> instructions.add("Brew an awkward potion with harvested cannabis buds in a brewing stand to make Cannabis Extract.");
+            case "cbd" -> instructions.add("Brew a water bottle with harvested cannabis buds in a brewing stand to make CBD.");
+            case "cigarette" -> {
+                instructions.add("Smoke harvested tobacco leaves in a smoker for 10 seconds to make Tobacco.");
+                instructions.add("Craft a Cigarette using paper and processed Tobacco.");
+            }
+            case "cigar" -> {
+                instructions.add("Smoke harvested tobacco leaves in a smoker for 10 seconds to make Tobacco.");
+                instructions.add("Craft a Cigar using 3 processed Tobacco and 3 leaf litter.");
+            }
+            case "caffeine" -> instructions.add("Roast harvested Coffee Beans in a furnace for 10 seconds to refine Pure Caffeine.");
+            case "energy_drink" -> {
+                instructions.add("Roast harvested Coffee Beans in a furnace for 10 seconds to refine Pure Caffeine.");
+                instructions.add("Brew an awkward potion with Pure Caffeine in a brewing stand to make an Energy Drink.");
+            }
+            default -> {}
+        }
         StringBuilder sb = new StringBuilder();
         if (crop != null) {
             sb.append("Growing guide for ").append(crop).append(":\n\n");
@@ -103,23 +142,48 @@ public final class EnforcerGuide implements Listener {
         RecipeMenu menu = new RecipeMenu(drug);
         Inventory inventory = menu.inventory;
         Recipe recipe = Bukkit.getRecipe(new NamespacedKey(plugin, drug));
-        if (recipe instanceof ShapedRecipe shaped) {
+        var brewing = com.drugs.recipes.ProductionRecipes.brewingPreview(drug);
+        if (brewing != null) {
+            inventory.setItem(11, com.drugs.ui.DrugRecipeViewer.decorateIngredient(brewing.base()));
+            inventory.setItem(12, com.drugs.ui.DrugRecipeViewer.decorateIngredient(brewing.ingredient()));
+            inventory.setItem(24, brewing.result());
+            inventory.setItem(16, icon(Material.BREWING_STAND, "§eBrew ingredient", "§7Base below, ingredient above; fuel with blaze powder.", "§7Brewing time: 20 seconds."));
+        } else if (recipe instanceof ShapedRecipe shaped) {
             String crop = DrugGrowing.requirement(drug);
             String[] shape = shaped.getShape();
-            Map<Character, ItemStack> ingredients = shaped.getIngredientMap();
+            Map<Character, RecipeChoice> ingredients = shaped.getChoiceMap();
             for (int row = 0; row < shape.length; row++) {
                 for (int column = 0; column < shape[row].length(); column++) {
-                    ItemStack ingredient = ingredients.get(shape[row].charAt(column));
-                    if (ingredient != null && crop != null && DrugGrowing.material(crop) == ingredient.getType()) {
+                    RecipeChoice choice = ingredients.get(shape[row].charAt(column));
+                    ItemStack ingredient = choice == null ? null : choice.getItemStack();
+                    if (choice instanceof RecipeChoice.MaterialChoice && ingredient != null && crop != null && DrugGrowing.material(crop) == ingredient.getType()) {
                         ingredient = DrugGrowing.harvest(crop, null);
                     }
-                    inventory.setItem(10 + row * 9 + column, ingredient);
+                    inventory.setItem(10 + row * 9 + column, com.drugs.ui.DrugRecipeViewer.decorateIngredient(ingredient));
                 }
             }
             inventory.setItem(24, shaped.getResult().clone());
             inventory.setItem(16, icon(Material.CRAFTING_TABLE, "§eRecipe preview", "§7Copy the grid into a crafting table."));
+        } else if (recipe instanceof ShapelessRecipe shapeless) {
+            int slot = 10;
+            for (RecipeChoice choice : shapeless.getChoiceList()) {
+                inventory.setItem(slot++, com.drugs.ui.DrugRecipeViewer.decorateIngredient(choice.getItemStack()));
+            }
+            inventory.setItem(24, shapeless.getResult().clone());
+            inventory.setItem(16, icon(Material.CRAFTING_TABLE, "§eShapeless recipe", "§7Place ingredients anywhere in a crafting grid."));
+        } else if (recipe instanceof CookingRecipe<?> cooking) {
+            inventory.setItem(11, com.drugs.ui.DrugRecipeViewer.decorateIngredient(cooking.getInputChoice().getItemStack()));
+            inventory.setItem(24, cooking.getResult());
+            Material station = cooking instanceof SmokingRecipe ? Material.SMOKER
+                    : cooking instanceof BlastingRecipe ? Material.BLAST_FURNACE
+                    : cooking instanceof CampfireRecipe ? Material.CAMPFIRE : Material.FURNACE;
+            inventory.setItem(16, icon(station, "§eProcess ingredient", "§7Time: " + cooking.getCookingTime() / 20.0 + " seconds."));
+        } else if (recipe instanceof StonecuttingRecipe cutting) {
+            inventory.setItem(11, com.drugs.ui.DrugRecipeViewer.decorateIngredient(cutting.getInputChoice().getItemStack()));
+            inventory.setItem(24, cutting.getResult());
+            inventory.setItem(16, icon(Material.STONECUTTER, "§eCut ingredient"));
         } else {
-            inventory.setItem(22, icon(Material.BARRIER, "§cNo crafting recipe available"));
+            inventory.setItem(22, icon(Material.BARRIER, "§cNo recipe available"));
         }
         inventory.setItem(45, icon(Material.ARROW, "§eBack to enforcer"));
         inventory.setItem(49, icon(Material.WHEAT_SEEDS, "§aHow to grow the ingredient"));
@@ -180,6 +244,14 @@ public final class EnforcerGuide implements Listener {
                 openPage(plugin, player, menu.drug, Page.DIALOGUE);
             });
             return;
+        }
+        if (slot >= 10 && slot <= 30 && slot % 9 >= 1 && slot % 9 <= 3) {
+            String ingredientRecipe = com.drugs.recipes.ProductionRecipes.ingredientRecipe(event.getCurrentItem());
+            if (ingredientRecipe != null) {
+                plugin.getServer().getScheduler().runTask(plugin,
+                        () -> com.drugs.ui.DrugRecipeViewer.openRecipe(player, ingredientRecipe));
+                return;
+            }
         }
         if (slot == 49 || (slot >= 10 && slot <= 30 && slot % 9 >= 1 && slot % 9 <= 3
                 && GrowingGuide.cropFromIngredient(event.getCurrentItem()) != null)) {

@@ -1,0 +1,190 @@
+processing-version: 2
+# Production chains are registered together after drug profiles load.
+# Types: crafting, furnace, smoker, blast-furnace, campfire, stonecutter.
+# Processing recipes use custom harvested input-crop items; cooking-time is in ticks.
+heroin:
+  shape:
+    - " S "
+    - "GAG"
+    - " B "
+  ingredients:
+    S: POPPY
+    G: GUNPOWDER
+    A: WITHER_ROSE
+    B: CHARCOAL
+
+fent:
+  shape:
+    - " G "
+    - "GHG"
+    - " R "
+  ingredients:
+    G: POPPY
+    H: CHARCOAL
+    R: GUNPOWDER
+
+shrooms:
+  shape:
+    - " M "
+    - "SBS"
+    - " M "
+  ingredients:
+    M: RED_MUSHROOM
+    S: BROWN_MUSHROOM
+    B: BLAZE_POWDER
+
+meth:
+  shape:
+    - " L "
+    - "SBS"
+    - " L "
+  ingredients:
+    L: QUARTZ
+    S: AMETHYST_SHARD
+    B: SUSPICIOUS_STEW
+
+blunt:
+  shape:
+    - " GF"
+    - "   "
+    - "   "
+  ingredients:
+    F: FERN
+    G: LEAF_LITTER
+
+cocaine:
+  shape:
+    - "BSB"
+    - "SDS"
+    - "WBW"
+  ingredients:
+    B: SNOWBALL
+    S: VINE
+    D: DRAGON_BREATH
+    W: WHITE_CONCRETE_POWDER
+    
+    
+joint:
+  shape:
+    - " GF"
+    - "   "
+    - "   "
+  ingredients:
+    F: FERN
+    G: PAPER
+    
+edible:
+  type: production
+
+cart:
+  type: production
+
+glue:
+  type: furnace
+  input-crop: resin
+  cooking-time: 200
+  experience: 0.1
+
+molly:
+  shape:
+    - "QQQ"
+    - "EGE"
+    - "MPM"
+  ingredients:
+    Q: QUARTZ
+    E: SPIDER_EYE
+    G: GOLDEN_APPLE
+    M: MAGENTA_DYE
+    P: PUFFERFISH
+
+
+suboxone:
+  shape:
+    - " P "
+    - "GSG"
+    - " P "
+  ingredients:
+    G: GOLDEN_APPLE
+    S: SUGAR
+    P: POPPY
+
+
+cbd:
+  type: production
+
+bong:
+  shape:
+    - " G "
+    - "BGF"
+    - " W "
+  ingredients:
+    G: GLASS
+    B: BLAZE_ROD
+    F: FLINT_AND_STEEL
+    W: WATER_BUCKET
+farm-controller:
+  shape:
+    - "IRI"
+    - "CBC"
+    - "IRI"
+  ingredients:
+    I: IRON_INGOT
+    R: REDSTONE
+    C: COPPER_INGOT
+    B: BARREL
+
+lsd:
+  shape:
+    - "PPP"
+    - "SES"
+    - "PPP"
+  ingredients:
+    P: PAPER
+    S: SPORE_BLOSSOM
+    E: ENDER_EYE
+
+salvia:
+  type: campfire
+  input-crop: salvia
+  cooking-time: 600
+  experience: 0.1
+
+tobacco:
+  type: smoker
+  input-crop: tobacco
+  cooking-time: 200
+  experience: 0.1
+
+nicotine:
+  type: furnace
+  input-crop: tobacco
+  cooking-time: 400
+  experience: 0.1
+
+cigarette:
+  type: production
+
+cigar:
+  type: production
+
+chewing_tobacco:
+  shape:
+    - " KS"
+    - " P "
+    - "   "
+  ingredients:
+    K: DRIED_KELP
+    S: SUGAR
+    P: PAPER
+
+vape:
+  type: production
+
+caffeine:
+  type: furnace
+  input-crop: coffee
+  cooking-time: 200
+  experience: 0.1
+
+energy_drink:
+  type: production

@@ -1,3 +1,7 @@
+processing-version: 2
+# Production chains are registered together after drug profiles load.
+# Types: crafting, furnace, smoker, blast-furnace, campfire, stonecutter.
+# Processing recipes use custom harvested input-crop items; cooking-time is in ticks.
 heroin:
   shape:
     - " S "
@@ -70,39 +74,17 @@ joint:
     G: PAPER
     
 edible:
-  shape:
-    - " GF"
-    - "   "
-    - "   "
-  ingredients:
-    F: FERN
-    G: COOKIE
-    
+  type: production
+
 cart:
-  shape:
-    - " G "
-    - "RFB"
-    - " C "
-  ingredients:
-    F: FERN
-    G: GLASS
-    C: COPPER_INGOT
-    R: REDSTONE
-    B: STONE_BUTTON
-    
-    
+  type: production
+
 glue:
-  shape:
-    - " WB"
-    - "   "
-    - "   "
-  ingredients:
-    W: WATER_BUCKET
-    B: BONE_MEAL
-    
-    
-    
-    
+  type: furnace
+  input-crop: resin
+  cooking-time: 200
+  experience: 0.1
+
 molly:
   shape:
     - "QQQ"
@@ -128,14 +110,7 @@ suboxone:
 
 
 cbd:
-  shape:
-    - "FFF"
-    - "FFF"
-    - "FFF"
-  ingredients:
-    F: FERN
-
-
+  type: production
 
 bong:
   shape:
@@ -169,51 +144,28 @@ lsd:
     E: ENDER_EYE
 
 salvia:
-  shape:
-    - " L "
-    - "FDF"
-    - " L "
-  ingredients:
-    L: LEAF_LITTER
-    F: FERN
-    D: DIRT
+  type: campfire
+  input-crop: salvia
+  cooking-time: 600
+  experience: 0.1
 
 tobacco:
-  shape:
-    - " K "
-    - "KSK"
-    - " K "
-  ingredients:
-    K: DRIED_KELP
-    S: WHEAT_SEEDS
+  type: smoker
+  input-crop: tobacco
+  cooking-time: 200
+  experience: 0.1
 
 nicotine:
-  shape:
-    - " S "
-    - "KBK"
-    - " S "
-  ingredients:
-    S: SUGAR
-    K: DRIED_KELP
-    B: GLASS_BOTTLE
+  type: furnace
+  input-crop: tobacco
+  cooking-time: 400
+  experience: 0.1
 
 cigarette:
-  shape:
-    - " PK"
-    - "   "
-    - "   "
-  ingredients:
-    P: PAPER
-    K: DRIED_KELP
+  type: production
 
 cigar:
-  shape:
-    - "KKK"
-    - "LLL"
-    - "   "
-  ingredients:
-    K: DRIED_KELP
-    L: LEAF_LITTER
+  type: production
 
 chewing_tobacco:
   shape:
@@ -226,13 +178,13 @@ chewing_tobacco:
     P: PAPER
 
 vape:
-  shape:
-    - " G "
-    - "RSB"
-    - " C "
-  ingredients:
-    G: GLASS
-    R: REDSTONE
-    S: DRIED_KELP
-    B: STONE_BUTTON
-    C: COPPER_INGOT
+  type: production
+
+caffeine:
+  type: furnace
+  input-crop: coffee
+  cooking-time: 200
+  experience: 0.1
+
+energy_drink:
+  type: production
