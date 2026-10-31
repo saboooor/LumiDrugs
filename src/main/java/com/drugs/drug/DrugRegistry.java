@@ -75,7 +75,8 @@ public class DrugRegistry {
 
         try {
             String name = key;
-            Material material = Material.valueOf(section.getString("material", "SUGAR").toUpperCase());
+            Material configuredMaterial = Material.matchMaterial(section.getString("material", "SUGAR"));
+            Material material = DrugItemMetadata.sanitizeMaterial(key, configuredMaterial, Material.SUGAR);
             String displayName = section.getString("display-name", "&fUnknown Drug");
             List<String> lore = section.getStringList("lore");
             List<PotionEffect> effects = EffectUtils.parsePotionEffects(section.getConfigurationSection("effects"));

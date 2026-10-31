@@ -3,6 +3,6 @@ base-drug-id: blunt
 cooldown-ms: 1500
 
 item:
-  material: STRUCTURE_VOID
+  material: GLASS_BOTTLE
   display-name: '&bGlass Bong'
-  custom-model-data: 0
+  custom-model-data: 1024

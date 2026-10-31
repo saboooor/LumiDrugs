@@ -3,6 +3,7 @@ package com.drugs.items;
 import com.drugs.DrugsV2;
 import com.drugs.strains.StrainProfile;
 
+import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.ChatColor;
 import org.bukkit.inventory.ItemStack;
@@ -16,6 +17,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * Utility class for writing/reading persistent metadata on drug items.
@@ -24,7 +26,7 @@ public final class DrugItemMetadata {
 
     public static final String DEFAULT_STRAIN_ID = "reggie";
 
-    private static final java.util.Set<String> RESOURCE_PACK_TYPES = java.util.Set.of(
+    private static final List<String> RESOURCE_PACK_TYPES = List.of(
             "heroin", "fent", "shrooms", "meth", "blunt",
             "cocaine", "joint", "cart", "edible", "glue",
             "molly", "lsd", "salvia", "tobacco", "nicotine",
@@ -36,11 +38,64 @@ public final class DrugItemMetadata {
             "harvest_poppy", "harvest_mushroom", "harvest_ephedra", "harvest_coca", "harvest_sassafras",
             "harvest_ergot", "harvest_salvia", "harvest_resin", "harvest_tobacco", "harvest_coffee");
 
+    private static final Set<Material> UNOBTAINABLE_MATERIALS = Set.of(
+            Material.COMMAND_BLOCK_MINECART,
+            Material.COMMAND_BLOCK,
+            Material.CHAIN_COMMAND_BLOCK,
+            Material.REPEATING_COMMAND_BLOCK,
+            Material.LIGHT,
+            Material.STRUCTURE_VOID,
+            Material.STRUCTURE_BLOCK,
+            Material.JIGSAW,
+            Material.BARRIER,
+            Material.DEBUG_STICK,
+            Material.BEDROCK,
+            Material.KNOWLEDGE_BOOK,
+            Material.SPAWNER,
+            Material.TRIAL_SPAWNER,
+            Material.VAULT,
+            Material.END_PORTAL_FRAME,
+            Material.REINFORCED_DEEPSLATE,
+            Material.PETRIFIED_OAK_SLAB);
+
     private DrugItemMetadata() {
     }
 
     private static NamespacedKey key(String key) {
         return new NamespacedKey(DrugsV2.getInstance(), key);
+    }
+
+    public static List<String> resourcePackTypes() {
+        return RESOURCE_PACK_TYPES;
+    }
+
+    public static int customModelData(String itemType) {
+        if (itemType == null) return 0;
+        int index = RESOURCE_PACK_TYPES.indexOf(itemType.toLowerCase(Locale.ROOT));
+        return index >= 0 ? 1001 + index : 0;
+    }
+
+    public static boolean isUnobtainableMaterial(Material material) {
+        return material == null
+                || material == Material.AIR
+                || material == Material.CAVE_AIR
+                || material == Material.VOID_AIR
+                || UNOBTAINABLE_MATERIALS.contains(material);
+    }
+
+    public static Material sanitizeMaterial(String id, Material configured, Material fallback) {
+        if (!isUnobtainableMaterial(configured)) {
+            return configured;
+        }
+        if (id != null) {
+            return switch (id.toLowerCase(Locale.ROOT)) {
+                case "joint" -> Material.PAPER;
+                case "cart" -> Material.BLAZE_ROD;
+                case "bong" -> Material.GLASS_BOTTLE;
+                default -> fallback;
+            };
+        }
+        return fallback;
     }
 
     public static void setDrugId(ItemMeta meta, String drugId) {
@@ -50,8 +105,12 @@ public final class DrugItemMetadata {
     public static void setItemType(ItemMeta meta, String itemType) {
         String type = itemType.toLowerCase(Locale.ROOT);
         meta.getPersistentDataContainer().set(key("item_type"), PersistentDataType.STRING, type);
-        // Use separate models for items that share a vanilla material.
-        if (RESOURCE_PACK_TYPES.contains(type)) {
+        // Use separate models and custom model data for items that share a vanilla material.
+        int cmd = customModelData(type);
+        if (cmd > 0) {
+            if (!meta.hasCustomModelData()) {
+                meta.setCustomModelData(cmd);
+            }
             meta.setItemModel(new NamespacedKey("lumidrugs", type));
         }
     }

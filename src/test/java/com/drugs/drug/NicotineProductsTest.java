@@ -1,16 +1,23 @@
 package com.drugs.drug;
 
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
+import com.drugs.DrugsV2;
 import com.drugs.growing.DrugGrowing;
+import com.drugs.items.DrugItemMetadata;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataContainer;
 import org.junit.jupiter.api.Test;
 
+import java.io.File;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 class NicotineProductsTest {
     private YamlConfiguration resource(String name) throws Exception {
@@ -60,5 +67,49 @@ class NicotineProductsTest {
             assertFalse(penalties.isEmpty(), id);
             assertTrue(penalties.stream().allMatch(p -> "effects".equals(p.get("type"))), id);
         }
+    }
+
+    @Test void noConfiguredDrugCureOrBongUsesUnobtainableMaterialsAndModelDataIsApplied() throws Exception {
+        var config = resource("config.yml");
+        var addiction = resource("addiction.yml");
+        var bong = resource("bong.yml");
+
+        for (String id : config.getKeys(false)) {
+            Material material = Material.matchMaterial(config.getString(id + ".material", ""));
+            assertNotNull(material, id);
+            assertFalse(DrugItemMetadata.isUnobtainableMaterial(material), "Unobtainable material for " + id + ": " + material);
+        }
+        for (String id : addiction.getConfigurationSection("cures").getKeys(false)) {
+            Material material = Material.matchMaterial(addiction.getString("cures." + id + ".material", ""));
+            assertNotNull(material, id);
+            assertFalse(DrugItemMetadata.isUnobtainableMaterial(material), "Unobtainable material for cure " + id + ": " + material);
+        }
+        Material bongMaterial = Material.matchMaterial(bong.getString("item.material", ""));
+        assertNotNull(bongMaterial);
+        assertFalse(DrugItemMetadata.isUnobtainableMaterial(bongMaterial));
+        assertEquals(DrugItemMetadata.customModelData("bong"), bong.getInt("item.custom-model-data"));
+
+        assertEquals(Material.PAPER, DrugItemMetadata.sanitizeMaterial("joint", Material.LIGHT, Material.SUGAR));
+        assertEquals(Material.BLAZE_ROD, DrugItemMetadata.sanitizeMaterial("cart", Material.COMMAND_BLOCK_MINECART, Material.SUGAR));
+        assertEquals(Material.GLASS_BOTTLE, DrugItemMetadata.sanitizeMaterial("bong", Material.STRUCTURE_VOID, Material.GLASS_BOTTLE));
+
+        DrugsV2 plugin = mock(DrugsV2.class);
+        when(plugin.getName()).thenReturn("LumiDrugs");
+        when(plugin.namespace()).thenReturn("lumidrugs");
+        var field = DrugsV2.class.getDeclaredField("instance");
+        field.setAccessible(true);
+        field.set(null, plugin);
+
+        ItemMeta meta = mock(ItemMeta.class);
+        PersistentDataContainer pdc = mock(PersistentDataContainer.class);
+        when(meta.getPersistentDataContainer()).thenReturn(pdc);
+        DrugItemMetadata.setItemType(meta, "cart");
+        verify(meta).setCustomModelData(DrugItemMetadata.customModelData("cart"));
+        verify(meta).setItemModel(new NamespacedKey("lumidrugs", "cart"));
+
+        File rpTextures = new File("resourcepack/assets/minecraft/textures");
+        File parentRpTextures = new File("../resourcepack/assets/minecraft/textures");
+        assertFalse(rpTextures.exists() || parentRpTextures.exists(),
+                "Resource pack must not replace vanilla textures under assets/minecraft/textures");
     }
 }

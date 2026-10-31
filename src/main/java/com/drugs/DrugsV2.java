@@ -244,16 +244,16 @@ public class DrugsV2 extends JavaPlugin {
     @Override
     public void onDisable() {
         if (startup != null) startup.cancel();
-        com.drugs.recipes.ProductionRecipes.clear();
+        savePhase("removing production recipes", com.drugs.recipes.ProductionRecipes::clear);
         RecipeUpdates.reset();
-        if (cartelDroppedSales != null) cartelDroppedSales.shutdown();
-        if (cartelEnforcer != null) cartelEnforcer.shutdown();
-        if (cartelNpcs != null) cartelNpcs.shutdown();
-        NativeAdvancements.shutdown();
-        if (placeholderExpansion != null) placeholderExpansion.unregister();
-        if (lsdEffectManager != null) lsdEffectManager.cleanupAll();
-        if (salviaEffectManager != null) salviaEffectManager.cleanupAll();
-        if (sensoryEffectManager != null) sensoryEffectManager.cleanupAll();
+        if (cartelDroppedSales != null) savePhase("stopping cartel sales", cartelDroppedSales::shutdown);
+        if (cartelEnforcer != null) savePhase("stopping cartel encounters", cartelEnforcer::shutdown);
+        if (cartelNpcs != null) savePhase("stopping Citizens integration", cartelNpcs::shutdown);
+        savePhase("stopping advancements", NativeAdvancements::shutdown);
+        if (placeholderExpansion != null) savePhase("unregistering placeholders", placeholderExpansion::unregister);
+        if (lsdEffectManager != null) savePhase("clearing LSD effects", lsdEffectManager::cleanupAll);
+        if (salviaEffectManager != null) savePhase("clearing salvia effects", salviaEffectManager::cleanupAll);
+        if (sensoryEffectManager != null) savePhase("clearing sensory effects", sensoryEffectManager::cleanupAll);
         // Save only successfully loaded stores; unloading during initialization must
         // not replace saved player data with an empty, partly initialized registry.
         if (cannabisLoaded) savePhase("saving cannabis plants", CannabisPlantRegistry::save);
@@ -269,6 +269,8 @@ public class DrugsV2 extends JavaPlugin {
         long started = System.nanoTime();
         try {
             action.run();
+        } catch (RuntimeException exception) {
+            getLogger().log(Level.SEVERE, "Shutdown failed during " + name + "; continuing cleanup", exception);
         } finally {
             PluginStartup.reportDuration(this, name, started);
         }

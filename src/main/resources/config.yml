@@ -167,7 +167,7 @@ cocaine:
       
       
 joint:
-  material: LIGHT
+  material: PAPER
   display-name: "&2Joint"
   lore:
     - "&7Cannabis wrapped in paper"
@@ -177,7 +177,7 @@ joint:
       
       
 cart:
-  material: COMMAND_BLOCK_MINECART
+  material: BLAZE_ROD
   display-name: "&2Cart"
   lore:
     - "&7Digital Cannabis"
@@ -186,7 +186,7 @@ cart:
 
       
 edible:
-  material: Cookie
+  material: COOKIE
   display-name: "&2Edible"
   lore:
     - "&7Cannabis without the lung damage" 

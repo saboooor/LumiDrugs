@@ -85,6 +85,7 @@ class CitizensCartelNpcsTest {
         when(temporary.createNPC(eq(EntityType.PLAYER), anyString())).thenReturn(npc);
         world = mock(World.class);
         location = new Location(world, 1, 64, 1);
+        when(world.isChunkLoaded(0, 0)).thenReturn(true);
         when(entity.getWorld()).thenReturn(world);
         when(entity.getLocation()).thenReturn(location);
         service = new CitizensCartelNpcs(plugin, dealer);
@@ -129,6 +130,18 @@ class CitizensCartelNpcsTest {
         service.reload();
         verify(npc).spawn(location);
         verify(persistent, never()).createNPC(any(), anyString());
+        verify(npc, never()).destroy();
+    }
+
+    @Test void reloadLeavesBuyersInUnloadedChunksForChunkLoadRecovery() {
+        when(persistent.iterator()).thenAnswer(call -> List.of(npc).iterator());
+        when(metadata.get(CitizensCartelNpcs.ROLE, "")).thenReturn("buyer");
+        when(npc.isSpawned()).thenReturn(false);
+        when(npc.getStoredLocation()).thenReturn(location);
+        when(world.isChunkLoaded(0, 0)).thenReturn(false);
+        service.reload();
+        verify(npc, never()).spawn(any(Location.class));
+        verify(world, never()).getChunkAt(anyInt(), anyInt());
         verify(npc, never()).destroy();
     }
 
@@ -287,7 +300,7 @@ class CitizensCartelNpcsTest {
         service.shutdown();
         verify(temporary, times(1)).deregisterAll();
         verify(persistent, never()).deregisterAll();
-        verify(persistent).saveToStore();
+        verify(persistent, never()).saveToStore();
         citizens.verify(() -> CitizensAPI.removeNamedNPCRegistry("lumidrugs-cartel-enforcers"));
     }
 

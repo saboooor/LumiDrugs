@@ -1,6 +1,7 @@
 package com.drugs.bong;
 
 import com.drugs.DrugsV2;
+import com.drugs.items.DrugItemMetadata;
 
 import org.bukkit.Material;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -15,7 +16,7 @@ public final class BongConfigLoader {
 
     private static Material bongItemMaterial = Material.GLASS_BOTTLE;
     private static String bongDisplayName = "&bGlass Bong";
-    private static int bongCustomModelData = 0;
+    private static int bongCustomModelData = DrugItemMetadata.customModelData("bong");
 
     private BongConfigLoader() {
     }
@@ -31,12 +32,11 @@ public final class BongConfigLoader {
         baseDrugId = yaml.getString("base-drug-id", "blunt").toLowerCase();
         cooldownMillis = Math.max(0L, yaml.getLong("cooldown-ms", 1500L));
 
-        bongItemMaterial = Material.matchMaterial(yaml.getString("item.material", "GLASS_BOTTLE"));
-        if (bongItemMaterial == null) {
-            bongItemMaterial = Material.GLASS_BOTTLE;
-        }
+        Material configured = Material.matchMaterial(yaml.getString("item.material", "GLASS_BOTTLE"));
+        bongItemMaterial = DrugItemMetadata.sanitizeMaterial("bong", configured, Material.GLASS_BOTTLE);
         bongDisplayName = yaml.getString("item.display-name", "&bGlass Bong");
-        bongCustomModelData = Math.max(0, yaml.getInt("item.custom-model-data", 0));
+        int configuredCmd = yaml.getInt("item.custom-model-data", DrugItemMetadata.customModelData("bong"));
+        bongCustomModelData = configuredCmd > 0 ? configuredCmd : DrugItemMetadata.customModelData("bong");
     }
 
     public static boolean isEnabled() { return enabled; }

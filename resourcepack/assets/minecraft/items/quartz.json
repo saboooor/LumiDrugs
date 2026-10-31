@@ -1,0 +1,26 @@
+{
+  "model": {
+    "type": "minecraft:range_dispatch",
+    "property": "minecraft:custom_model_data",
+    "entries": [
+      {
+        "threshold": 1004,
+        "model": {
+          "type": "minecraft:model",
+          "model": "lumidrugs:item/meth"
+        }
+      },
+      {
+        "threshold": 1043,
+        "model": {
+          "type": "minecraft:model",
+          "model": "lumidrugs:item/harvest_ephedra"
+        }
+      }
+    ],
+    "fallback": {
+      "type": "minecraft:model",
+      "model": "minecraft:item/quartz"
+    }
+  }
+}

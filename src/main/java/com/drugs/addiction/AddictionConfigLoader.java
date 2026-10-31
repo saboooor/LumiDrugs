@@ -59,10 +59,8 @@ public class AddictionConfigLoader {
 
             boolean enabled = cureSection.getBoolean("enabled", true);
             boolean itemEnabled = cureSection.getBoolean("item_enabled", true);
-            Material material = Material.matchMaterial(cureSection.getString("material", "PAPER"));
-            if (material == null) {
-                material = Material.PAPER;
-            }
+            Material configuredMaterial = Material.matchMaterial(cureSection.getString("material", "PAPER"));
+            Material material = com.drugs.items.DrugItemMetadata.sanitizeMaterial(key, configuredMaterial, Material.PAPER);
 
             String displayName = cureSection.getString("display-name", key);
             List<String> lore = cureSection.getStringList("lore");

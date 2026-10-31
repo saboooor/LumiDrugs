@@ -1,14 +1,76 @@
 #!/usr/bin/env python3
 """Build the pack's simple pixel icons and model files. Requires Pillow."""
+from collections import defaultdict
 import colorsys
 import hashlib
 import json
+import shutil
 from pathlib import Path
 from zipfile import ZipFile, ZIP_DEFLATED
 from PIL import Image, ImageDraw
 
 ROOT = Path(__file__).resolve().parents[1]
 IDS = json.loads((ROOT / 'tools/items.json').read_text())
+
+MATERIALS = {
+    'heroin': 'dried_kelp',
+    'fent': 'iron_nugget',
+    'shrooms': 'brown_mushroom',
+    'meth': 'quartz',
+    'blunt': 'stick',
+    'cocaine': 'sugar',
+    'joint': 'paper',
+    'cart': 'blaze_rod',
+    'edible': 'cookie',
+    'glue': 'milk_bucket',
+    'molly': 'popped_chorus_fruit',
+    'lsd': 'purple_dye',
+    'salvia': 'fern',
+    'tobacco': 'dried_kelp',
+    'nicotine': 'sugar',
+    'cigarette': 'paper',
+    'cigar': 'stick',
+    'chewing_tobacco': 'brown_dye',
+    'vape': 'blaze_rod',
+    'caffeine': 'glowstone_dust',
+    'energy_drink': 'honey_bottle',
+    'suboxone': 'blue_egg',
+    'cbd': 'large_fern',
+    'bong': 'glass_bottle',
+    'infused_dough': 'wheat',
+    'cannabis_extract': 'potion',
+    'vape_liquid': 'potion',
+    'cannabis_plant': 'fern',
+    'seed_cannabis': 'fern',
+    'seed_poppy': 'wheat_seeds',
+    'seed_mushroom': 'wheat_seeds',
+    'seed_ephedra': 'wheat_seeds',
+    'seed_coca': 'wheat_seeds',
+    'seed_sassafras': 'wheat_seeds',
+    'seed_ergot': 'wheat_seeds',
+    'seed_salvia': 'wheat_seeds',
+    'seed_resin': 'wheat_seeds',
+    'seed_tobacco': 'wheat_seeds',
+    'seed_coffee': 'wheat_seeds',
+    'harvest_cannabis': 'fern',
+    'harvest_poppy': 'poppy',
+    'harvest_mushroom': 'red_mushroom',
+    'harvest_ephedra': 'quartz',
+    'harvest_coca': 'vine',
+    'harvest_sassafras': 'magenta_dye',
+    'harvest_ergot': 'spore_blossom',
+    'harvest_salvia': 'lilac',
+    'harvest_resin': 'bone_meal',
+    'harvest_tobacco': 'dried_kelp',
+    'harvest_coffee': 'cocoa_beans',
+}
+
+TINTED_FALLBACKS = {
+    'fern': [{'type': 'minecraft:constant', 'value': -12012264}],
+    'large_fern': [{'type': 'minecraft:constant', 'value': -12012264}],
+    'vine': [{'type': 'minecraft:constant', 'value': -12012264}],
+    'potion': [{'type': 'minecraft:potion', 'default': -13083194}],
+}
 
 def write_json(path, data):
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -81,28 +143,49 @@ def icon(name):
         leaf(2,5,green); leaf(7,2,green); leaf(7,8,green)
     return image
 
-for item in IDS:
+shutil.rmtree(ROOT / 'assets/minecraft', ignore_errors=True)
+by_material = defaultdict(list)
+
+for index, item in enumerate(IDS):
+    cmd = 1001 + index
     base = ROOT / 'assets/lumidrugs'
     texture = base / f'textures/item/{item}.png'
     texture.parent.mkdir(parents=True, exist_ok=True)
-    # Retain the original artwork for the three established items.
-    legacy = {'joint':'light_15','cart':'command_block_minecart','bong':'structure_void'}.get(item)
-    if item == "cannabis_plant":
-        with Image.open(ROOT / "tools/artwork/fern.png") as image:
-            image.save(texture)
-    elif legacy:
-        with Image.open(ROOT / f'assets/minecraft/textures/item/{legacy}.png') as image:
+    # Retain custom artwork without replacing any vanilla textures.
+    artwork = {'cannabis_plant': 'fern', 'joint': 'joint', 'cart': 'cart', 'bong': 'bong'}.get(item)
+    if artwork:
+        with Image.open(ROOT / f'tools/artwork/{artwork}.png') as image:
             image.save(texture)
     else:
         icon(item).save(texture)
-    write_json(base / f'items/{item}.json', {'model':{'type':'minecraft:model','model':f'lumidrugs:item/{item}'}})
-    write_json(base / f'models/item/{item}.json', {'parent':'minecraft:item/generated','textures':{'layer0':f'lumidrugs:item/{item}'}})
+    write_json(base / f'items/{item}.json', {'model': {'type': 'minecraft:model', 'model': f'lumidrugs:item/{item}'}})
+    write_json(base / f'models/item/{item}.json', {'parent': 'minecraft:item/generated', 'textures': {'layer0': f'lumidrugs:item/{item}'}})
+    by_material[MATERIALS[item]].append((cmd, item))
+
+for material, entries in sorted(by_material.items()):
+    fallback = {'type': 'minecraft:model', 'model': f'minecraft:item/{material}'}
+    if material in TINTED_FALLBACKS:
+        fallback['tints'] = TINTED_FALLBACKS[material]
+    write_json(ROOT / f'assets/minecraft/items/{material}.json', {
+        'model': {
+            'type': 'minecraft:range_dispatch',
+            'property': 'minecraft:custom_model_data',
+            'entries': [
+                {
+                    'threshold': cmd,
+                    'model': {'type': 'minecraft:model', 'model': f'lumidrugs:item/{item}'},
+                }
+                for cmd, item in entries
+            ],
+            'fallback': fallback,
+        }
+    })
 
 write_json(ROOT / 'pack.mcmeta', {'pack': {'min_format':69,'max_format':69,'description':'LumiDrugs — crops, ingredients, drugs and cures (1.21.9–1.21.10)'}})
 # Keep source artwork/tools outside the distributable pack.
-archive = ROOT.parent / 'LumiDrugs-resourcepack.zip'
-with ZipFile(archive, 'w', ZIP_DEFLATED) as out:
-    out.write(ROOT / 'pack.mcmeta', 'pack.mcmeta')
-    for path in sorted((ROOT / 'assets').rglob('*')):
-        if path.is_file(): out.write(path, path.relative_to(ROOT))
-print(f'Built {len(IDS)} item models and textures: {archive.name}')
+for archive in (ROOT.parent / 'LumiDrugs-resourcepack.zip', ROOT / 'LumiDrugs.zip'):
+    with ZipFile(archive, 'w', ZIP_DEFLATED) as out:
+        out.write(ROOT / 'pack.mcmeta', 'pack.mcmeta')
+        for path in sorted((ROOT / 'assets').rglob('*')):
+            if path.is_file(): out.write(path, path.relative_to(ROOT))
+print(f'Built {len(IDS)} item models and textures with custom_model_data (1001–{1000 + len(IDS)})')

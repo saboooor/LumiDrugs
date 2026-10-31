@@ -127,6 +127,8 @@ final class CitizensCartelNpcs implements CartelNpcs, Listener {
         if (closed || !owns(npc, "buyer") || npc.isSpawned()) return;
         Location location = npc.getStoredLocation();
         if (location == null || location.getWorld() == null) return;
+        // Recovery must not synchronously load or generate chunks during a reload.
+        if (!location.getWorld().isChunkLoaded(location.getBlockX() >> 4, location.getBlockZ() >> 4)) return;
         if (!npc.spawn(location)) {
             plugin.getLogger().warning("Could not restore cartel buyer at " + location
                     + "; will retry when its chunk loads.");
@@ -147,7 +149,8 @@ final class CitizensCartelNpcs implements CartelNpcs, Listener {
         following.close();
         temporary.deregisterAll();
         CitizensAPI.removeNamedNPCRegistry(TEMPORARY_REGISTRY);
-        CitizensAPI.getNPCRegistry().saveToStore();
+        // Buyers remain owned by Citizens, which handles its own persistence.
+        // Saving its entire registry here makes unloading depend on every NPC trait.
     }
 
     @EventHandler(ignoreCancelled = true) public void onRightClick(NPCRightClickEvent event) {

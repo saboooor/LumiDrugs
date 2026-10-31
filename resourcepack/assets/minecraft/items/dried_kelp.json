@@ -1,0 +1,33 @@
+{
+  "model": {
+    "type": "minecraft:range_dispatch",
+    "property": "minecraft:custom_model_data",
+    "entries": [
+      {
+        "threshold": 1001,
+        "model": {
+          "type": "minecraft:model",
+          "model": "lumidrugs:item/heroin"
+        }
+      },
+      {
+        "threshold": 1014,
+        "model": {
+          "type": "minecraft:model",
+          "model": "lumidrugs:item/tobacco"
+        }
+      },
+      {
+        "threshold": 1049,
+        "model": {
+          "type": "minecraft:model",
+          "model": "lumidrugs:item/harvest_tobacco"
+        }
+      }
+    ],
+    "fallback": {
+      "type": "minecraft:model",
+      "model": "minecraft:item/dried_kelp"
+    }
+  }
+}

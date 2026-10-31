@@ -73,6 +73,7 @@ public class BongListener implements Listener {
 
         ItemStack handItem = event.getPlayer().getInventory().getItemInMainHand();
         if (!BongItemFactory.isBongItem(handItem)) return;
+        event.setCancelled(true);
 
         Block clicked = event.getClickedBlock();
         if (clicked == null || !clicked.getType().isSolid()) return;
@@ -96,7 +97,6 @@ public class BongListener implements Listener {
         int placedDurability = resolveBongDurability(handItem);
         float placementYaw = snapToOctantYaw(event.getPlayer().getLocation().getYaw());
         spawnOrReplace(anchor, placementYaw, placedDurability);
-        event.setCancelled(true);
 
         if (event.getPlayer().getGameMode() != GameMode.CREATIVE) {
             handItem.setAmount(handItem.getAmount() - 1);

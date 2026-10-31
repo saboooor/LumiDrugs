@@ -603,7 +603,8 @@ public class SensoryEffectManager implements Listener {
         Set<Location> locations = morphedBlocks.remove(player.getUniqueId());
         if (locations != null) {
             for (Location loc : locations) {
-                if (loc.getWorld() != null && loc.getWorld().equals(player.getWorld())) {
+                if (loc.getWorld() != null && loc.getWorld().equals(player.getWorld())
+                        && loc.getWorld().isChunkLoaded(loc.getBlockX() >> 4, loc.getBlockZ() >> 4)) {
                     player.sendBlockChange(loc, loc.getBlock().getBlockData());
                 }
             }

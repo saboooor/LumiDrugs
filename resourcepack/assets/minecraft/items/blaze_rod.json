@@ -1,0 +1,26 @@
+{
+  "model": {
+    "type": "minecraft:range_dispatch",
+    "property": "minecraft:custom_model_data",
+    "entries": [
+      {
+        "threshold": 1008,
+        "model": {
+          "type": "minecraft:model",
+          "model": "lumidrugs:item/cart"
+        }
+      },
+      {
+        "threshold": 1019,
+        "model": {
+          "type": "minecraft:model",
+          "model": "lumidrugs:item/vape"
+        }
+      }
+    ],
+    "fallback": {
+      "type": "minecraft:model",
+      "model": "minecraft:item/blaze_rod"
+    }
+  }
+}
