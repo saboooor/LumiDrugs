@@ -87,7 +87,10 @@ for item in IDS:
     texture.parent.mkdir(parents=True, exist_ok=True)
     # Retain the original artwork for the three established items.
     legacy = {'joint':'light_15','cart':'command_block_minecart','bong':'structure_void'}.get(item)
-    if legacy:
+    if item == "cannabis_plant":
+        with Image.open(ROOT / "tools/artwork/fern.png") as image:
+            image.save(texture)
+    elif legacy:
         with Image.open(ROOT / f'assets/minecraft/textures/item/{legacy}.png') as image:
             image.save(texture)
     else:
