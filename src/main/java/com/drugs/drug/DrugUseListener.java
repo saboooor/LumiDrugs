@@ -30,12 +30,13 @@ public class DrugUseListener implements Listener {
     @EventHandler
     public void onDrugUse(PlayerInteractEvent event) {
         // Only handle right-click interactions for drug use
-        if (event.getHand() != EquipmentSlot.HAND || !event.getAction().isRightClick()) return;
+        EquipmentSlot hand = event.getHand();
+        if (hand == null || !event.getAction().isRightClick()) return;
 
         if (com.drugs.recipes.FlavorInfusionListener.isInfusionGesture(event)) return;
 
         Player player = event.getPlayer();
-        ItemStack item = player.getInventory().getItemInMainHand();
+        ItemStack item = player.getInventory().getItem(hand);
 
         // Skip if item is null or air
         if (item == null || item.getType().isAir()) return;
@@ -48,7 +49,7 @@ public class DrugUseListener implements Listener {
         if (item.hasItemMeta() && !DrugItemMetadata.hasDrugId(item.getItemMeta())) {
             ItemStack migrated = DrugRegistry.getDrugItem(drugId, item.getAmount(), DrugItemMetadata.getStrainId(item));
             if (migrated != null) {
-                player.getInventory().setItemInMainHand(migrated);
+                player.getInventory().setItem(hand, migrated);
                 item = migrated;
             }
         }
@@ -111,11 +112,11 @@ public class DrugUseListener implements Listener {
 
         if (player.getGameMode() != GameMode.CREATIVE) {
             if (drugId.equalsIgnoreCase("cart") || drugId.equalsIgnoreCase("vape")) {
-                handleCartDurability(player, item, drugId);
+                handleCartDurability(player, item, drugId, hand);
             } else {
                 int newAmount = item.getAmount() - 1;
                 if (newAmount <= 0) {
-                    player.getInventory().setItemInMainHand(null);
+                    player.getInventory().setItem(hand, null);
                 } else {
                     item.setAmount(newAmount);
                 }
@@ -124,7 +125,7 @@ public class DrugUseListener implements Listener {
     }
     
 
-    private void handleCartDurability(Player player, ItemStack item, String drugId) {
+    private void handleCartDurability(Player player, ItemStack item, String drugId, EquipmentSlot hand) {
         if (item == null || !item.hasItemMeta()) {
             return;
         }
@@ -143,7 +144,7 @@ public class DrugUseListener implements Listener {
             sendCartDurabilityActionBar(player, 0, maxDurability, drugId);
             int newAmount = item.getAmount() - 1;
             if (newAmount <= 0) {
-                player.getInventory().setItemInMainHand(null);
+                player.getInventory().setItem(hand, null);
             } else {
                 item.setAmount(newAmount);
                 var refreshedMeta = item.getItemMeta();
