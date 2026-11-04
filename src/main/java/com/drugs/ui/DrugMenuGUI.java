@@ -41,7 +41,15 @@ public class DrugMenuGUI {
         for (String drugId : drugIds) {
             DrugEffectProfile profile = DrugRegistry.getProfileById(drugId);
             if (profile != null) {
-                menuItems.add(profile.createItem(1));
+                ItemStack item = profile.createItem(1);
+                if (com.drugs.recipes.FlavorVariants.hasFlavors(drugId)) {
+                    var meta = item.getItemMeta();
+                    var lore = new ArrayList<>(meta.hasLore() ? meta.getLore() : List.<String>of());
+                    lore.add("§eClick to browse flavors and the base recipe.");
+                    meta.setLore(lore);
+                    item.setItemMeta(meta);
+                }
+                menuItems.add(item);
             }
         }
 
@@ -90,4 +98,28 @@ public class DrugMenuGUI {
 
         player.openInventory(gui);
     }
+    public static void openFlavors(Player player, String product, int page) {
+        List<ItemStack> items = com.drugs.recipes.FlavorVariants.menuItems(product);
+        if (items.isEmpty()) { DrugRecipeViewer.openRecipe(player, product); return; }
+        int maxPage = Math.max(1, (items.size() + ITEMS_PER_PAGE - 1) / ITEMS_PER_PAGE);
+        page = Math.max(0, Math.min(page, maxPage - 1));
+        Inventory gui = Bukkit.createInventory(null, GUI_SIZE, "§2Flavors: " + product + " (Page " + (page + 1) + ")");
+        int start = page * ITEMS_PER_PAGE;
+        for (int i = start; i < Math.min(start + ITEMS_PER_PAGE, items.size()); i++)
+            gui.setItem(i - start, items.get(i));
+        if (page > 0) gui.setItem(27, MenuUtils.createButtonItem("§ePrevious Page", org.bukkit.Material.ARROW));
+        if (page + 1 < maxPage) gui.setItem(35, MenuUtils.createButtonItem("§eNext Page", org.bukkit.Material.ARROW));
+        ItemStack base = DrugRegistry.getDrugItem(product, 1);
+        if (base != null) {
+            var meta = base.getItemMeta();
+            var lore = new ArrayList<>(meta.hasLore() ? meta.getLore() : List.<String>of());
+            lore.add("§eClick to view the unflavored recipe.");
+            meta.setLore(lore);
+            base.setItemMeta(meta);
+            gui.setItem(30, base);
+        }
+        gui.setItem(31, MenuUtils.createButtonItem("§eBack to Drugs", org.bukkit.Material.ARROW));
+        player.openInventory(gui);
+    }
+
 }

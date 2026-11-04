@@ -1,0 +1,19 @@
+{
+  "model": {
+    "type": "minecraft:range_dispatch",
+    "property": "minecraft:custom_model_data",
+    "entries": [
+      {
+        "threshold": 1181,
+        "model": {
+          "type": "minecraft:model",
+          "model": "lumidrugs:item/farm_controller"
+        }
+      }
+    ],
+    "fallback": {
+      "type": "minecraft:model",
+      "model": "minecraft:item/barrel"
+    }
+  }
+}

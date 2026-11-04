@@ -26,7 +26,7 @@ public final class DrugItemMetadata {
 
     public static final String DEFAULT_STRAIN_ID = "reggie";
 
-    private static final List<String> RESOURCE_PACK_TYPES = List.of(
+    private static final List<String> BASE_RESOURCE_PACK_TYPES = List.of(
             "heroin", "fent", "shrooms", "meth", "blunt",
             "cocaine", "joint", "cart", "edible", "glue",
             "molly", "lsd", "salvia", "tobacco", "nicotine",
@@ -37,6 +37,31 @@ public final class DrugItemMetadata {
             "seed_salvia", "seed_resin", "seed_tobacco", "seed_coffee", "harvest_cannabis",
             "harvest_poppy", "harvest_mushroom", "harvest_ephedra", "harvest_coca", "harvest_sassafras",
             "harvest_ergot", "harvest_salvia", "harvest_resin", "harvest_tobacco", "harvest_coffee");
+
+    private static final List<String> FLAVOR_IDS = List.of(
+            "berry", "apple", "melon", "honey", "chocolate", "vanilla", "cherry",
+            "citrus", "mint", "cinnamon", "coffee", "grape", "peach");
+    private static final List<String> FLAVOR_PRODUCTS = List.of(
+            "vape", "cart", "edible", "joint", "blunt", "energy_drink", "tobacco",
+            "chewing_tobacco", "cigar", "cigarette");
+    private static final List<String> RESOURCE_PACK_TYPES = resourcePackCatalog();
+
+    private static List<String> resourcePackCatalog() {
+        List<String> types = new ArrayList<>(BASE_RESOURCE_PACK_TYPES);
+        // Append variants so existing item model numbers remain stable.
+        for (String product : FLAVOR_PRODUCTS)
+            for (String flavor : FLAVOR_IDS) types.add(product + "_flavor_" + flavor);
+        types.addAll(List.of("farm_controller", "farm_area_wand", "farm_work_contract"));
+        return List.copyOf(types);
+    }
+
+    public static void applyFlavorModel(ItemMeta meta, String product, String flavor) {
+        String model = product + "_flavor_" + flavor;
+        int data = customModelData(model);
+        if (data == 0) return; // Custom server flavors retain their base model.
+        meta.setCustomModelData(data);
+        meta.setItemModel(new NamespacedKey("lumidrugs", model));
+    }
 
     private static final Set<Material> UNOBTAINABLE_MATERIALS = Set.of(
             Material.COMMAND_BLOCK_MINECART,
@@ -106,12 +131,14 @@ public final class DrugItemMetadata {
         String type = itemType.toLowerCase(Locale.ROOT);
         meta.getPersistentDataContainer().set(key("item_type"), PersistentDataType.STRING, type);
         // Use separate models and custom model data for items that share a vanilla material.
-        int cmd = customModelData(type);
+        String modelType = type.startsWith("farm_area_wand:") ? "farm_area_wand"
+                : type.startsWith("farm_work_contract:") ? "farm_work_contract" : type;
+        int cmd = customModelData(modelType);
         if (cmd > 0) {
             if (!meta.hasCustomModelData()) {
                 meta.setCustomModelData(cmd);
             }
-            meta.setItemModel(new NamespacedKey("lumidrugs", type));
+            meta.setItemModel(new NamespacedKey("lumidrugs", modelType));
         }
     }
 

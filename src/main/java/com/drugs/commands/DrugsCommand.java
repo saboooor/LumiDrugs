@@ -344,6 +344,7 @@ public class DrugsCommand implements CommandExecutor {
                 if (DrugsV2.getInstance().getBongListener() != null) {
                     BongRegistry.respawnMissing(DrugsV2.getInstance().getBongListener());
                 }
+                com.drugs.recipes.FlavorVariants.load(DrugsV2.getInstance().getDataFolder());
                 DrugRegistry.init(DrugsV2.getInstance());
                 CustomAchievementLoader.load(DrugsV2.getInstance().getDataFolder());
                 CureRegistry.init(DrugsV2.getInstance());

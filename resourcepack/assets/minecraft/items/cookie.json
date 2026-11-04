@@ -9,6 +9,97 @@
           "type": "minecraft:model",
           "model": "lumidrugs:item/edible"
         }
+      },
+      {
+        "threshold": 1077,
+        "model": {
+          "type": "minecraft:model",
+          "model": "lumidrugs:item/edible_flavor_berry"
+        }
+      },
+      {
+        "threshold": 1078,
+        "model": {
+          "type": "minecraft:model",
+          "model": "lumidrugs:item/edible_flavor_apple"
+        }
+      },
+      {
+        "threshold": 1079,
+        "model": {
+          "type": "minecraft:model",
+          "model": "lumidrugs:item/edible_flavor_melon"
+        }
+      },
+      {
+        "threshold": 1080,
+        "model": {
+          "type": "minecraft:model",
+          "model": "lumidrugs:item/edible_flavor_honey"
+        }
+      },
+      {
+        "threshold": 1081,
+        "model": {
+          "type": "minecraft:model",
+          "model": "lumidrugs:item/edible_flavor_chocolate"
+        }
+      },
+      {
+        "threshold": 1082,
+        "model": {
+          "type": "minecraft:model",
+          "model": "lumidrugs:item/edible_flavor_vanilla"
+        }
+      },
+      {
+        "threshold": 1083,
+        "model": {
+          "type": "minecraft:model",
+          "model": "lumidrugs:item/edible_flavor_cherry"
+        }
+      },
+      {
+        "threshold": 1084,
+        "model": {
+          "type": "minecraft:model",
+          "model": "lumidrugs:item/edible_flavor_citrus"
+        }
+      },
+      {
+        "threshold": 1085,
+        "model": {
+          "type": "minecraft:model",
+          "model": "lumidrugs:item/edible_flavor_mint"
+        }
+      },
+      {
+        "threshold": 1086,
+        "model": {
+          "type": "minecraft:model",
+          "model": "lumidrugs:item/edible_flavor_cinnamon"
+        }
+      },
+      {
+        "threshold": 1087,
+        "model": {
+          "type": "minecraft:model",
+          "model": "lumidrugs:item/edible_flavor_coffee"
+        }
+      },
+      {
+        "threshold": 1088,
+        "model": {
+          "type": "minecraft:model",
+          "model": "lumidrugs:item/edible_flavor_grape"
+        }
+      },
+      {
+        "threshold": 1089,
+        "model": {
+          "type": "minecraft:model",
+          "model": "lumidrugs:item/edible_flavor_peach"
+        }
       }
     ],
     "fallback": {

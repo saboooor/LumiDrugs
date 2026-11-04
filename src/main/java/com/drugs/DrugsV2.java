@@ -172,6 +172,7 @@ public class DrugsV2 extends JavaPlugin {
         manager.registerEvents(new DrugStatusTracker(), this);
         manager.registerEvents(new DrugMenuListener(), this);
         manager.registerEvents(new DrugUseListener(), this);
+        manager.registerEvents(new com.drugs.recipes.FlavorInfusionListener(), this);
         manager.registerEvents(new AddictionListener(), this);
         manager.registerEvents(new CannabisPlantListener(drugGrowing), this);
         manager.registerEvents(new StrainCraftingListener(), this);
@@ -244,8 +245,9 @@ public class DrugsV2 extends JavaPlugin {
     @Override
     public void onDisable() {
         if (startup != null) startup.cancel();
-        savePhase("removing production recipes", com.drugs.recipes.ProductionRecipes::clear);
+        // Discard an unfinished startup batch before publishing shutdown removals.
         RecipeUpdates.reset();
+        savePhase("removing production recipes", com.drugs.recipes.ProductionRecipes::clear);
         if (cartelDroppedSales != null) savePhase("stopping cartel sales", cartelDroppedSales::shutdown);
         if (cartelEnforcer != null) savePhase("stopping cartel encounters", cartelEnforcer::shutdown);
         if (cartelNpcs != null) savePhase("stopping Citizens integration", cartelNpcs::shutdown);

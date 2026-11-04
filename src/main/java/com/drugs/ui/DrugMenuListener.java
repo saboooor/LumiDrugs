@@ -38,11 +38,25 @@ public class DrugMenuListener implements Listener {
         if (inv == null) return;
 
         String title = ChatColor.stripColor(event.getView().getTitle());
-        if (!title.startsWith("Drugs Menu") && !title.startsWith("Recipe: ")) return;
+        if (!title.startsWith("Drugs Menu") && !title.startsWith("Recipe: ") && !title.startsWith("Flavors: ")) return;
 
         event.setCancelled(true); // Fully prevent item movement/dragging
 
         if (clicked == null || clicked.getType() == Material.AIR || event.getRawSlot() >= inv.getSize()) return;
+
+        if (title.startsWith("Flavors: ")) {
+            String product = title.substring("Flavors: ".length(), title.lastIndexOf(" (Page "));
+            int slot = event.getRawSlot();
+            if (slot == 27) DrugMenuGUI.openFlavors(player, product, parsePageNumber(title) - 1);
+            else if (slot == 35) DrugMenuGUI.openFlavors(player, product, parsePageNumber(title) + 1);
+            else if (slot == 31) DrugMenuGUI.open(player, 0);
+            else if (slot == 30) DrugRecipeViewer.openRecipe(player, product);
+            else if (slot >= 0 && slot < 27) {
+                String recipe = com.drugs.recipes.FlavorVariants.recipeFor(clicked);
+                if (recipe != null) DrugRecipeViewer.openRecipe(player, recipe);
+            }
+            return;
+        }
 
         if (title.startsWith("Recipe: ")) {
             // Only the three ingredient columns are interactive; the result is not an ingredient.
@@ -86,9 +100,16 @@ public class DrugMenuListener implements Listener {
             }
             case "close" -> player.closeInventory();
             default -> {
+                String flavoredRecipe = com.drugs.recipes.FlavorVariants.recipeFor(clicked);
+                if (flavoredRecipe != null) {
+                    DrugRecipeViewer.openRecipe(player, flavoredRecipe);
+                    return;
+                }
                 DrugEffectProfile profile = DrugRegistry.getProfileFromItem(clicked);
                 if (profile != null) {
-                    DrugRecipeViewer.openRecipe(player, profile.getId());
+                    if (!com.drugs.recipes.FlavorVariants.hasFlavors(profile.getId()))
+                        DrugRecipeViewer.openRecipe(player, profile.getId());
+                    else DrugMenuGUI.openFlavors(player, profile.getId(), 0);
                     return;
                 }
                 CureProfile cureProfile = CureRegistry.getProfileFromItem(clicked);
@@ -118,7 +139,7 @@ public class DrugMenuListener implements Listener {
     @EventHandler
     public void onMenuDrag(org.bukkit.event.inventory.InventoryDragEvent event) {
         String title = ChatColor.stripColor(event.getView().getTitle());
-        if (title.startsWith("Drugs Menu") || title.startsWith("Recipe: ")) event.setCancelled(true);
+        if (title.startsWith("Drugs Menu") || title.startsWith("Recipe: ") || title.startsWith("Flavors: ")) event.setCancelled(true);
     }
 
     /**
@@ -131,7 +152,11 @@ public class DrugMenuListener implements Listener {
             Player player = (Player) event.getPlayer();
             if (openingGrowingGuide.contains(player.getUniqueId())) return;
             Bukkit.getScheduler().runTaskLater(DrugsV2.getInstance(), () -> {
-                DrugMenuGUI.open(player, 0);
+                if (!player.isOnline()) return;
+                String recipe = title.substring("Recipe: ".length());
+                int flavor = recipe.indexOf("_flavor_");
+                if (flavor > 0) DrugMenuGUI.openFlavors(player, recipe.substring(0, flavor), 0);
+                else DrugMenuGUI.open(player, 0);
             }, 1L); // Delay to prevent recursion
         }
     }
@@ -141,7 +166,7 @@ public class DrugMenuListener implements Listener {
      */
     private int parsePageNumber(String title) {
         try {
-            return Integer.parseInt(title.replaceAll("\\D+", "")) - 1;
+            return Integer.parseInt(title.substring(title.lastIndexOf("(Page ") + 6, title.lastIndexOf(')'))) - 1;
         } catch (Exception e) {
             return 0;
         }

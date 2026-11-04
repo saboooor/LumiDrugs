@@ -8,9 +8,17 @@ import shutil
 from pathlib import Path
 from zipfile import ZipFile, ZIP_DEFLATED
 from PIL import Image, ImageDraw
+from flavor_icons import flavor_icon
 
 ROOT = Path(__file__).resolve().parents[1]
 IDS = json.loads((ROOT / 'tools/items.json').read_text())
+FLAVORS = json.loads((ROOT / 'tools/flavors.json').read_text())
+# Append only: the original 50 custom model data IDs must stay stable.
+VARIANTS = {f'{product}_flavor_{flavor}': (product, flavor, color)
+            for product in FLAVORS['products']
+            for flavor, color in FLAVORS['flavors'].items()}
+EXTRA_ITEMS = json.loads((ROOT / 'tools/extra-items.json').read_text())
+IDS += list(VARIANTS) + list(EXTRA_ITEMS)
 
 MATERIALS = {
     'heroin': 'dried_kelp',
@@ -65,6 +73,8 @@ MATERIALS = {
     'harvest_coffee': 'cocoa_beans',
 }
 
+MATERIALS.update(EXTRA_ITEMS)
+
 TINTED_FALLBACKS = {
     'fern': [{'type': 'minecraft:constant', 'value': -12012264}],
     'large_fern': [{'type': 'minecraft:constant', 'value': -12012264}],
@@ -87,7 +97,23 @@ def icon(name):
     def leaf(x, y, c):
         draw.polygon([(x,y+5),(x+1,y+1),(x+4,y),(x+5,y+3),(x+2,y+6)], fill=c)
         draw.line((x,y+5,x+4,y+1), fill=light)
-    if name.startswith('seed_') or name == 'cannabis_plant':
+    if name == 'farm_controller':
+        rect((3,3,12,14),'#513b29'); rect((4,4,11,13),'#ac7843')
+        for x in (5,8,11): draw.line((x,4,x,13), fill='#78512f')
+        rect((3,5,12,6),'#8da1a0'); rect((3,11,12,12),'#8da1a0')
+        rect((6,7,10,10),'#254e40'); rect((7,8,9,9),'#8ed76d')
+    elif name == 'farm_area_wand':
+        draw.line((3,13,11,5),fill='#45322e',width=3)
+        draw.line((3,12,10,5),fill='#aa8753')
+        draw.polygon([(8,3),(11,1),(14,4),(11,7)],fill='#2c797c')
+        draw.polygon([(9,3),(11,2),(13,4),(11,6)],fill='#73e6d2')
+        draw.point((12,2), fill='#effff3'); draw.point((6,3),fill='#b0efff')
+    elif name == 'farm_work_contract':
+        rect((3,2,12,13),'#946e48'); rect((4,2,11,12),'#efdfb7')
+        rect((2,1,11,2),'#d8b985'); rect((4,12,13,14),'#d8b985')
+        for y in (4,6,8): draw.line((5,y,10,y),fill='#978364')
+        draw.ellipse((8,9,12,13), fill='#9654a4'); draw.point((10,10),fill='#e0ace0')
+    elif name.startswith('seed_') or name == 'cannabis_plant':
         for x,y in [(3,4),(9,3),(6,9)]:
             rect((x,y,x+2,y+3),dark); rect((x,y,x+1,y+1),color)
         if name == 'cannabis_plant':
@@ -153,14 +179,16 @@ for index, item in enumerate(IDS):
     texture.parent.mkdir(parents=True, exist_ok=True)
     # Retain custom artwork without replacing any vanilla textures.
     artwork = {'cannabis_plant': 'fern', 'joint': 'joint', 'cart': 'cart', 'bong': 'bong'}.get(item)
-    if artwork:
+    if item in VARIANTS:
+        flavor_icon(*VARIANTS[item], icon).save(texture)
+    elif artwork:
         with Image.open(ROOT / f'tools/artwork/{artwork}.png') as image:
             image.save(texture)
     else:
         icon(item).save(texture)
     write_json(base / f'items/{item}.json', {'model': {'type': 'minecraft:model', 'model': f'lumidrugs:item/{item}'}})
     write_json(base / f'models/item/{item}.json', {'parent': 'minecraft:item/generated', 'textures': {'layer0': f'lumidrugs:item/{item}'}})
-    by_material[MATERIALS[item]].append((cmd, item))
+    by_material[MATERIALS[VARIANTS[item][0] if item in VARIANTS else item]].append((cmd, item))
 
 for material, entries in sorted(by_material.items()):
     fallback = {'type': 'minecraft:model', 'model': f'minecraft:item/{material}'}
@@ -181,7 +209,7 @@ for material, entries in sorted(by_material.items()):
         }
     })
 
-write_json(ROOT / 'pack.mcmeta', {'pack': {'min_format':69,'max_format':69,'description':'LumiDrugs — crops, ingredients, drugs and cures (1.21.9–1.21.10)'}})
+write_json(ROOT / 'pack.mcmeta', {'pack': {'min_format':69,'max_format':[97, 1],'description':'LumiDrugs — crops, ingredients, flavors, drugs and cures (1.21.9–26.3)'}})
 # Keep source artwork/tools outside the distributable pack.
 for archive in (ROOT.parent / 'LumiDrugs-resourcepack.zip', ROOT / 'LumiDrugs.zip'):
     with ZipFile(archive, 'w', ZIP_DEFLATED) as out:
@@ -189,3 +217,18 @@ for archive in (ROOT.parent / 'LumiDrugs-resourcepack.zip', ROOT / 'LumiDrugs.zi
         for path in sorted((ROOT / 'assets').rglob('*')):
             if path.is_file(): out.write(path, path.relative_to(ROOT))
 print(f'Built {len(IDS)} item models and textures with custom_model_data (1001–{1000 + len(IDS)})')
+
+# Review sheet stays outside the distributed pack.
+cell_w, cell_h = 88, 80
+sheet = Image.new('RGB', (120 + cell_w * len(FLAVORS['flavors']), 32 + cell_h * len(FLAVORS['products'])), '#20232b')
+draw = ImageDraw.Draw(sheet)
+for column, flavor in enumerate(FLAVORS['flavors']):
+    draw.text((125 + column * cell_w, 10), flavor.title(), fill='#eeeeee')
+for row, product in enumerate(FLAVORS['products']):
+    draw.text((5, 60 + row * cell_h), product.replace('_', ' '), fill='#eeeeee')
+    for column, flavor in enumerate(FLAVORS['flavors']):
+        item = f'{product}_flavor_{flavor}'
+        with Image.open(ROOT / f'assets/lumidrugs/textures/item/{item}.png') as image:
+            enlarged = image.resize((64, 64), Image.Resampling.NEAREST)
+            sheet.paste(enlarged, (130 + column * cell_w, 38 + row * cell_h), enlarged)
+sheet.save(ROOT / 'tools/flavor-preview.png')

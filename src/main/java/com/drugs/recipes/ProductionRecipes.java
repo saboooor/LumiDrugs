@@ -59,6 +59,8 @@ public final class ProductionRecipes {
         if (item == null || !item.hasItemMeta()) return null;
         String type = DrugItemMetadata.getItemType(item.getItemMeta());
         if (Set.of("infused_dough", "cannabis_extract", "vape_liquid").contains(Objects.requireNonNullElse(type, ""))) return type;
+        if (drug(item, "vape")) return "vape";
+        if (drug(item, "cart")) return "cart";
         if (drug(item, "tobacco")) return "tobacco";
         if (drug(item, "nicotine")) return "nicotine";
         if (drug(item, "caffeine")) return "caffeine";
@@ -85,22 +87,35 @@ public final class ProductionRecipes {
     private static void brew(String id, ItemStack base, ItemStack ingredient, ItemStack result,
                              java.util.function.Predicate<ItemStack> acceptsIngredient) {
         NamespacedKey key = key(id);
-        Bukkit.getPotionBrewer().removePotionMix(key);
         PotionType baseType = ((PotionMeta) base.getItemMeta()).getBasePotionType();
-        Bukkit.getPotionBrewer().addPotionMix(new PotionMix(key, result,
+        BrewingRecipes.replace(new PotionMix(key, result,
                 PotionMix.createPredicateChoice(item -> plainPotion(item, baseType)),
                 PotionMix.createPredicateChoice(acceptsIngredient)));
         mixKeys.add(key);
         previews.put(id, new Brew(base, ingredient, result));
     }
     public static void clear() {
-        for (NamespacedKey key : recipeKeys) RecipeUpdates.remove(key);
-        for (NamespacedKey key : mixKeys) Bukkit.getPotionBrewer().removePotionMix(key);
-        recipeKeys.clear();
-        mixKeys.clear();
-        previews.clear();
+        RecipeUpdates.begin();
+        try {
+            for (NamespacedKey key : recipeKeys) RecipeUpdates.remove(key);
+            for (NamespacedKey key : mixKeys) BrewingRecipes.remove(key);
+            FlavorVariants.clear();
+            recipeKeys.clear();
+            mixKeys.clear();
+            previews.clear();
+        } finally {
+            RecipeUpdates.end();
+        }
     }
     public static void register() {
+        RecipeUpdates.begin();
+        try {
+            registerAll();
+        } finally {
+            RecipeUpdates.end();
+        }
+    }
+    private static void registerAll() {
         clear();
         for (String id : MANAGED) RecipeUpdates.remove(key(id));
         ItemStack tobacco = DrugRegistry.getDrugItem("tobacco", 1);
@@ -170,5 +185,6 @@ public final class ProductionRecipes {
                 add(cartId, recipe);
             }
         }
+        FlavorVariants.initialize();
     }
 }

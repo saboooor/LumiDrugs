@@ -26,6 +26,7 @@ public final class MechanicsConfig {
         }
 
         YamlConfiguration yaml = YamlConfiguration.loadConfiguration(file);
+        com.drugs.recipes.FlavorVariants.load(dataFolder);
         cannabisGrowthSeconds = Math.max(1, yaml.getInt("cannabis.growth-seconds", 600));
         vapeDurabilityUses = Math.max(1, yaml.getInt("vape.durability-uses", 32));
         cartDurabilityUses = Math.max(1, yaml.getInt("cart.durability-uses", 16));

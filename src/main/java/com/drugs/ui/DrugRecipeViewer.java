@@ -32,6 +32,23 @@ public class DrugRecipeViewer {
 
     public static void openRecipe(Player player, String drugId) {
         String key = "farm-controller".equals(drugId) ? "farm_controller" : drugId;
+        var infusion = com.drugs.recipes.FlavorVariants.infusion(drugId);
+        if (infusion != null) {
+            Inventory gui = Bukkit.createInventory(null, 27, "Recipe: " + drugId);
+            gui.setItem(10, decorateIngredient(infusion.base()));
+            gui.setItem(11, decorateIngredient(infusion.ingredient()));
+            ItemStack station = new ItemStack(org.bukkit.Material.CAULDRON);
+            var meta = station.getItemMeta();
+            meta.setLore(java.util.List.of("§7Hold one unflavored product in your main hand.",
+                    "§7Hold the flavor ingredient in your offhand.",
+                    "§7Sneak-right-click an empty or water cauldron.",
+                    "§7Consumes one ingredient; preserves strain and puffs."));
+            station.setItemMeta(meta);
+            gui.setItem(13, station);
+            gui.setItem(15, infusion.result());
+            player.openInventory(gui);
+            return;
+        }
         var brewing = com.drugs.recipes.ProductionRecipes.brewingPreview(drugId);
         if (brewing != null) {
             Inventory gui = Bukkit.createInventory(null, 27, "Recipe: " + drugId);

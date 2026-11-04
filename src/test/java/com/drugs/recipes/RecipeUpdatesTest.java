@@ -66,6 +66,53 @@ public class RecipeUpdatesTest {
         }
     }
 
+    @Test void disablingProductionRecipesUsesOneBulkRemoval() throws Exception {
+        Server server = mock(Server.class, withSettings().extraInterfaces(BulkRecipes.class));
+        var field = ProductionRecipes.class.getDeclaredField("recipeKeys");
+        field.setAccessible(true);
+        @SuppressWarnings("unchecked")
+        var keys = (java.util.Set<NamespacedKey>) field.get(null);
+        var expected = new java.util.HashSet<NamespacedKey>();
+        for (int i = 0; i < 100; i++) expected.add(new NamespacedKey("lumidrugs", "cleanup_" + i));
+        keys.addAll(expected);
+        try (var bukkit = mockStatic(Bukkit.class)) {
+            bukkit.when(Bukkit::getServer).thenReturn(server);
+            ProductionRecipes.clear();
+            verify((BulkRecipes) server, times(1)).removeRecipes(argThat(removed -> {
+                var actual = new java.util.HashSet<NamespacedKey>();
+                removed.forEach(actual::add);
+                return expected.equals(actual);
+            }));
+            verify((BulkRecipes) server, never()).addRecipes(any());
+            bukkit.verify(() -> Bukkit.removeRecipe(any(), anyBoolean()), never());
+            bukkit.verify(Bukkit::updateRecipes, never());
+            ProductionRecipes.clear();
+            verifyNoMoreInteractions(server);
+        } finally {
+            keys.clear();
+        }
+    }
+
+    @Test void productionCleanupRespectsOuterBatchOnOlderPaper() throws Exception {
+        var field = ProductionRecipes.class.getDeclaredField("recipeKeys");
+        field.setAccessible(true);
+        @SuppressWarnings("unchecked")
+        var keys = (java.util.Set<NamespacedKey>) field.get(null);
+        var key = new NamespacedKey("lumidrugs", "cleanup");
+        keys.add(key);
+        try (var bukkit = mockStatic(Bukkit.class)) {
+            bukkit.when(Bukkit::getServer).thenReturn(mock(Server.class));
+            RecipeUpdates.begin();
+            ProductionRecipes.clear();
+            bukkit.verify(() -> Bukkit.removeRecipe(key, false), never());
+            RecipeUpdates.end();
+            bukkit.verify(() -> Bukkit.removeRecipe(key, false), times(1));
+            bukkit.verify(Bukkit::updateRecipes, times(1));
+        } finally {
+            keys.clear();
+        }
+    }
+
     @Test void bulkFailureDoesNotRetryIndividualAdditions() {
         Server server = mock(Server.class, withSettings().extraInterfaces(BulkRecipes.class));
         when(((BulkRecipes) server).addRecipes(any())).thenThrow(new IllegalStateException("failed"));

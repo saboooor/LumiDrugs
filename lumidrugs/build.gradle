@@ -35,3 +35,29 @@ tasks.named('shadowJar') {
     relocate 'io.github.saboooor.lumifollow', 'com.drugs.internal.lumifollow'
 }
 tasks.named('assemble') { dependsOn tasks.named('shadowJar') }
+
+// Validate the deployable artifact as well as the compiled classes used by tests.
+def verifyPluginJar = tasks.register('verifyPluginJar') {
+    dependsOn tasks.named('shadowJar')
+    inputs.file(tasks.named('shadowJar').flatMap { it.archiveFile })
+    inputs.files(sourceSets.main.output.classesDirs)
+    doLast {
+        def archive = tasks.named('shadowJar').get().archiveFile.get().asFile
+        new java.util.zip.ZipFile(archive).withCloseable { zip ->
+            def missing = []
+            sourceSets.main.output.classesDirs.each { directory ->
+                fileTree(directory).matching { include '**/*.class' }.each { compiled ->
+                    def entry = directory.toPath().relativize(compiled.toPath()).toString().replace('\\', '/')
+                    if (zip.getEntry(entry) == null) missing.add(entry)
+                }
+            }
+            ['plugin.yml', 'com/drugs/DrugsV2.class', 'com/drugs/recipes/RecipeUpdates.class',
+             'com/drugs/recipes/BrewingRecipes.class', 'com/drugs/recipes/FlavorInfusionListener.class'].each { entry ->
+                if (zip.getEntry(entry) == null) missing.add(entry)
+            }
+            if (!missing.isEmpty()) throw new GradleException("Incomplete plugin JAR: ${missing.unique().join(', ')}")
+            logger.lifecycle("Verified all plugin classes are packaged in ${archive.name}")
+        }
+    }
+}
+tasks.named('check') { dependsOn verifyPluginJar }

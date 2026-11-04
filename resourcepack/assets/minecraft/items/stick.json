@@ -16,6 +16,188 @@
           "type": "minecraft:model",
           "model": "lumidrugs:item/cigar"
         }
+      },
+      {
+        "threshold": 1103,
+        "model": {
+          "type": "minecraft:model",
+          "model": "lumidrugs:item/blunt_flavor_berry"
+        }
+      },
+      {
+        "threshold": 1104,
+        "model": {
+          "type": "minecraft:model",
+          "model": "lumidrugs:item/blunt_flavor_apple"
+        }
+      },
+      {
+        "threshold": 1105,
+        "model": {
+          "type": "minecraft:model",
+          "model": "lumidrugs:item/blunt_flavor_melon"
+        }
+      },
+      {
+        "threshold": 1106,
+        "model": {
+          "type": "minecraft:model",
+          "model": "lumidrugs:item/blunt_flavor_honey"
+        }
+      },
+      {
+        "threshold": 1107,
+        "model": {
+          "type": "minecraft:model",
+          "model": "lumidrugs:item/blunt_flavor_chocolate"
+        }
+      },
+      {
+        "threshold": 1108,
+        "model": {
+          "type": "minecraft:model",
+          "model": "lumidrugs:item/blunt_flavor_vanilla"
+        }
+      },
+      {
+        "threshold": 1109,
+        "model": {
+          "type": "minecraft:model",
+          "model": "lumidrugs:item/blunt_flavor_cherry"
+        }
+      },
+      {
+        "threshold": 1110,
+        "model": {
+          "type": "minecraft:model",
+          "model": "lumidrugs:item/blunt_flavor_citrus"
+        }
+      },
+      {
+        "threshold": 1111,
+        "model": {
+          "type": "minecraft:model",
+          "model": "lumidrugs:item/blunt_flavor_mint"
+        }
+      },
+      {
+        "threshold": 1112,
+        "model": {
+          "type": "minecraft:model",
+          "model": "lumidrugs:item/blunt_flavor_cinnamon"
+        }
+      },
+      {
+        "threshold": 1113,
+        "model": {
+          "type": "minecraft:model",
+          "model": "lumidrugs:item/blunt_flavor_coffee"
+        }
+      },
+      {
+        "threshold": 1114,
+        "model": {
+          "type": "minecraft:model",
+          "model": "lumidrugs:item/blunt_flavor_grape"
+        }
+      },
+      {
+        "threshold": 1115,
+        "model": {
+          "type": "minecraft:model",
+          "model": "lumidrugs:item/blunt_flavor_peach"
+        }
+      },
+      {
+        "threshold": 1155,
+        "model": {
+          "type": "minecraft:model",
+          "model": "lumidrugs:item/cigar_flavor_berry"
+        }
+      },
+      {
+        "threshold": 1156,
+        "model": {
+          "type": "minecraft:model",
+          "model": "lumidrugs:item/cigar_flavor_apple"
+        }
+      },
+      {
+        "threshold": 1157,
+        "model": {
+          "type": "minecraft:model",
+          "model": "lumidrugs:item/cigar_flavor_melon"
+        }
+      },
+      {
+        "threshold": 1158,
+        "model": {
+          "type": "minecraft:model",
+          "model": "lumidrugs:item/cigar_flavor_honey"
+        }
+      },
+      {
+        "threshold": 1159,
+        "model": {
+          "type": "minecraft:model",
+          "model": "lumidrugs:item/cigar_flavor_chocolate"
+        }
+      },
+      {
+        "threshold": 1160,
+        "model": {
+          "type": "minecraft:model",
+          "model": "lumidrugs:item/cigar_flavor_vanilla"
+        }
+      },
+      {
+        "threshold": 1161,
+        "model": {
+          "type": "minecraft:model",
+          "model": "lumidrugs:item/cigar_flavor_cherry"
+        }
+      },
+      {
+        "threshold": 1162,
+        "model": {
+          "type": "minecraft:model",
+          "model": "lumidrugs:item/cigar_flavor_citrus"
+        }
+      },
+      {
+        "threshold": 1163,
+        "model": {
+          "type": "minecraft:model",
+          "model": "lumidrugs:item/cigar_flavor_mint"
+        }
+      },
+      {
+        "threshold": 1164,
+        "model": {
+          "type": "minecraft:model",
+          "model": "lumidrugs:item/cigar_flavor_cinnamon"
+        }
+      },
+      {
+        "threshold": 1165,
+        "model": {
+          "type": "minecraft:model",
+          "model": "lumidrugs:item/cigar_flavor_coffee"
+        }
+      },
+      {
+        "threshold": 1166,
+        "model": {
+          "type": "minecraft:model",
+          "model": "lumidrugs:item/cigar_flavor_grape"
+        }
+      },
+      {
+        "threshold": 1167,
+        "model": {
+          "type": "minecraft:model",
+          "model": "lumidrugs:item/cigar_flavor_peach"
+        }
       }
     ],
     "fallback": {

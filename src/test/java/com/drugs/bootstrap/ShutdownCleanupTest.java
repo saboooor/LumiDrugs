@@ -38,7 +38,12 @@ class ShutdownCleanupTest {
              var recipes = mockStatic(RecipeUpdates.class);
              var advancements = mockStatic(NativeAdvancements.class);
              var plants = mockStatic(CannabisPlantRegistry.class)) {
+            production.when(ProductionRecipes::clear).thenAnswer(invocation -> {
+                recipes.verify(RecipeUpdates::reset);
+                return null;
+            });
             plugin.onDisable();
+            production.verify(ProductionRecipes::clear);
             plants.verifyNoInteractions();
         }
     }

@@ -1,0 +1,18 @@
+{
+  "products": ["vape", "cart", "edible", "joint", "blunt", "energy_drink", "tobacco", "chewing_tobacco", "cigar", "cigarette"],
+  "flavors": {
+    "berry": "#b3489d",
+    "apple": "#e6504b",
+    "melon": "#70c15a",
+    "honey": "#efb735",
+    "chocolate": "#79513d",
+    "vanilla": "#f4dfae",
+    "cherry": "#b62c51",
+    "citrus": "#f49a32",
+    "mint": "#68d9b2",
+    "cinnamon": "#b96e40",
+    "coffee": "#69432c",
+    "grape": "#9062c5",
+    "peach": "#f5a18c"
+  }
+}

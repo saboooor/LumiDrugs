@@ -32,6 +32,8 @@ public class DrugUseListener implements Listener {
         // Only handle right-click interactions for drug use
         if (event.getHand() != EquipmentSlot.HAND || !event.getAction().isRightClick()) return;
 
+        if (com.drugs.recipes.FlavorInfusionListener.isInfusionGesture(event)) return;
+
         Player player = event.getPlayer();
         ItemStack item = player.getInventory().getItemInMainHand();
 

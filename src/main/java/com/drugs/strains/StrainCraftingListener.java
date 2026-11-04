@@ -29,6 +29,8 @@ public class StrainCraftingListener implements Listener {
     private void applyStrainToResult(CraftingInventory inventory) {
         ItemStack result = inventory.getResult();
         if (result == null) return;
+        // Flavor recipes already use an exact, strain-specific input and output.
+        if (com.drugs.recipes.FlavorVariants.recipeFor(result) != null) return;
 
         DrugEffectProfile profile = DrugRegistry.getProfileFromItem(result);
         if (profile == null || !StrainConfigLoader.isCannabisDrug(profile.getId())) return;
