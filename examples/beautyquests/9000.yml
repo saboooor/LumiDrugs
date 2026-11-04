@@ -1,0 +1,15 @@
+# Optional manual setup; the default -1 setting creates a quest automatically.
+# Example BeautyQuests 2.0 quest. Pick an unused ID before installing.
+# Copy to plugins/BeautyQuests/quests/9000.yml with the server stopped.
+# Set enforcer.beautyquests-quest-id: 9000 in plugins/LumiDrugs/cartel.yml.
+id: 9000
+name: Cartel delivery
+repeatable: true
+cancellable: true
+manager:
+  branches:
+    '0':
+      stages:
+        '0':
+          stageType: lumidrugs-cartel-delivery
+      endingStages: {}

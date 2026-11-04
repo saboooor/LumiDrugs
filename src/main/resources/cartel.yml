@@ -29,6 +29,11 @@ npc:
 
 # Temporary cartel encounters. Existing cartel.yml files use these defaults if absent.
 enforcer:
+  # Leave -1 for automatic setup: LumiDrugs creates/selects its own BeautyQuests quest.
+  # No quest file copying or ID lookup needed. Existing quests are never overwritten.
+  # Advanced: set your own quest ID instead, then /cartel reload.
+  # Switching back to automatic setup requires a server restart.
+  beautyquests-quest-id: -1
   wall-climbing:
     enabled: true
     max-height: 6             # Blocks; capped at 16.

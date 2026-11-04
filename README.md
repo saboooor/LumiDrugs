@@ -301,11 +301,57 @@ Review the example unit prices in `cartel.yml` before opening sales. Missing, ze
 
 Permissions: `drugs.cartel.sell` defaults to everyone; `drugs.cartel.admin` defaults to operators. NPC creation requires Citizens. Keep its NPC data when backing up the server. Daily limits and bulk delivery bonuses are not part of this version.
 
+### BeautyQuests setup for cartel enforcers
+
+Enforcers now require **BeautyQuests 2.0** (compiled and tested against its official release)
+in addition to Citizens, Vault and an economy provider. BeautyQuests is an optional plugin
+dependency for LumiDrugs as a whole: without it, enforcer encounters are disabled, while
+stationary buyers and other drug features remain available.
+
+1. Install BeautyQuests, Citizens, Vault and your economy provider, then restart the server.
+2. Leave `enforcer.beautyquests-quest-id: -1` in `plugins/LumiDrugs/cartel.yml`
+   (this is also the default for existing configs without that setting).
+3. Test with `/cartel enforcer`. No quest import or ID lookup is needed.
+
+LumiDrugs creates `plugins/BeautyQuests/quests/lumidrugs-cartel.yml` automatically before
+BeautyQuests loads its quests. It chooses an unused ID starting at 9000 and reuses that
+file on future starts, preserving edits to its name, prerequisites and rewards. The selected
+ID is printed in the startup log; use `/quests edit <id>` to customize it. A setup error is
+logged clearly and disables encounters until fixed; existing quest files are never overwritten.
+
+For everyday tuning, change the quantity range, spawn chance, cooldown and delivery deadline
+in `cartel.yml`, then use `/cartel reload`. The defaults work without editing BeautyQuests.
+
+Advanced: to use a different quest, set `enforcer.beautyquests-quest-id` to its ID and run
+`/cartel reload`. The quest must be valid, repeatable and cancellable, with individual player
+progression, exactly one **Cartel delivery** regular stage, one branch and no ending stages.
+The [example quest](examples/beautyquests/9000.yml) remains available for manual setup.
+Set the ID back to `-1` and restart to return to automatic setup.
+
+Players may also start this quest from the BeautyQuests menu: it sends an enforcer with a
+random demand, subject to the normal enforcer cooldown, capacity and player eligibility.
+Failed spawning cancels the quest with an explanation. Automatic and admin-triggered
+encounters respect BeautyQuests start requirements, repeat timers and quest limits; the
+player needs `beautyquests.start` as well as `drugs.cartel.sell`.
+
+Use BeautyQuests to edit prerequisites and completion rewards. Drug-sale payments still
+come from Vault at the existing cartel prices, so extra quest rewards are optional. Avoid
+start/cancel rewards for this repeatable encounter: called-off or failed spawns can cancel
+it without a delivery. Stage validation requirements are checked at the end; if they fail,
+the sale remains paid but the quest is cancelled without a completion reward. Prefer start
+requirements for gating access to a demand.
+
+Expiry or rejection cancels the quest and keeps the existing refusal consequences. Death,
+quit, reload, failed approach, cancelled quest or unavailable economy calls off the encounter
+without counting a refusal. Successful partial sales remain paid. Temporary NPCs and delivery
+progress do not resume after a restart; an abandoned saved cartel quest is cancelled on login.
+Restart after adding/removing either plugin; runtime plugin hot-loading is unsupported.
+
 ### Roaming cartel enforcers
 
 Cartel enforcers can spawn on nearby walkable ground, walk toward a survival/adventure player, and demand a specific drug quantity. Each encounter chooses a **random priced drug and a random quantity (8–32 by default)**, with a 90-second deadline. The timer begins when the enforcer gets close enough to speak, with warnings every 15 seconds. Throw the requested drug within two blocks of your enforcer to deliver it at the configured cartel prices, including strain price overrides. Smaller deliveries accumulate toward the demand and are paid as accepted. Excess items remain on the ground; wrong drugs and other players' drops do not count. Partial deliveries already sold remain paid even if the encounter later expires or is called off. Ordinary buyer sales do not count toward this demand.
 
-Use `/cartel enforcer` to test a random demand on yourself, or `/cartel enforcer <player> <drug> <amount>` to choose the player, registered drug ID, and quantity. Both commands require `drugs.cartel.admin`. Manual encounters ignore the player's cooldown and the automatic-spawning toggle, but still require an eligible player, working economy, positive base price, safe spawn location, and no existing encounter for that player.
+Use `/cartel enforcer` to test a random demand on yourself, or `/cartel enforcer <player> <drug> <amount>` to choose the player, registered drug ID, and quantity. Both commands require `drugs.cartel.admin`. Manual encounters ignore the player's cooldown and the automatic-spawning toggle, but still require an eligible player, working economy, positive base price, safe spawn location, a startable configured BeautyQuests quest, and no existing encounter for that player.
 
 Configure the `enforcer` section in `cartel.yml`, then run `/cartel reload`. Automatic checks default to every 300 seconds, with a 25% chance per eligible player, a 30-minute per-player cooldown after each encounter, and at most eight active NPCs. `min-amount` and `max-amount` set the inclusive random quantity range (clamped to 1–2304). Drugs are chosen uniformly from registered drugs with positive, finite base prices; missing or disabled prices exclude them. The chosen drug and quantity stay fixed for that encounter. Legacy `enforcer.drug` and `enforcer.amount` entries are ignored. Explicit admin commands still accept a chosen drug and quantity. Set `enabled: false` to disable automatic encounters. Existing config files use the same defaults when the section is missing; copy the `enforcer` section from the bundled [cartel.yml](src/main/resources/cartel.yml) to expose all settings.
 

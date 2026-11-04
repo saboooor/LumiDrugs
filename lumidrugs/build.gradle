@@ -16,8 +16,20 @@ sourceSets {
     }
 }
 
+// Compile against the official release; the Maven repository has no published 2.0 API.
+repositories {
+    ivy {
+        url = 'https://github.com/SkytAsul/BeautyQuests/releases/download'
+        patternLayout { artifact '[revision]/[artifact]-[revision].[ext]' }
+        metadataSources { artifact() }
+        content { includeGroup 'fr.skytasul.release' }
+    }
+}
+
 dependencies {
     implementation project(':lumifollow')
+    compileOnly('fr.skytasul.release:beautyquests:2.0.0') { transitive = false }
+    testImplementation 'commons-lang:commons-lang:2.6'
     compileOnly 'com.github.MilkBowl:VaultAPI:1.7.1'
     compileOnly 'me.clip:placeholderapi:2.11.5'
 }

@@ -27,6 +27,7 @@ import java.util.random.RandomGenerator;
 public final class CartelEnforcer implements Listener {
     private final DrugsV2 plugin;
     private final CartelDealer dealer;
+    private final EnforcerQuests quests;
     private final NamespacedKey key;
     private final NamespacedKey refusalsKey;
     private final LongSupplier clock;
@@ -36,12 +37,14 @@ public final class CartelEnforcer implements Listener {
     private long nextCheck;
 
     public CartelEnforcer(DrugsV2 plugin, CartelDealer dealer) {
-        this(plugin, dealer, System::currentTimeMillis);
+        this(plugin, dealer, System::currentTimeMillis, EnforcerQuests.create(plugin, dealer));
     }
 
-    CartelEnforcer(DrugsV2 plugin, CartelDealer dealer, LongSupplier clock) {
+    CartelEnforcer(DrugsV2 plugin, CartelDealer dealer, LongSupplier clock, EnforcerQuests quests) {
         this.plugin = plugin;
         this.dealer = dealer;
+        this.quests = quests;
+        quests.bind(this);
         this.clock = clock;
         key = new NamespacedKey(plugin, "cartel_enforcer");
         refusalsKey = new NamespacedKey(plugin, "cartel_refusal_streak");
@@ -163,6 +166,8 @@ public final class CartelEnforcer implements Listener {
         if (npcs == null) return "Cartel NPC support is not initialized. Check the startup log.";
         String unavailable = npcs.unavailableReason();
         if (unavailable != null) return unavailable;
+        String questError = quests.unavailableReason(player);
+        if (questError != null) return questError;
         Location location = findSpawn(player);
         if (location == null) return "No safe nearby ground found in loaded chunks. Try an open, flat area.";
         CartelNpcs.Character npc = npcs.create(location, "enforcer");
@@ -171,10 +176,21 @@ public final class CartelEnforcer implements Listener {
             npc.destroy();
             return "The player NPC did not become ready for navigation. Check Citizens compatibility and the server console.";
         }
-        Encounter encounter = new Encounter(npc, drug, amount, now);
+        EnforcerQuests.Session quest = quests.begin(player, drug, amount);
+        if (quest == null) {
+            npc.destroy();
+            return "BeautyQuests could not start the cartel quest. Check its requirements and the server log.";
+        }
+        Encounter encounter = new Encounter(npc, drug, amount, now, quest);
         encounters.put(player.getUniqueId(), encounter);
         say(player, encounter, "arrival", "&8Someone from the cartel is heading your way.", 0);
         return null;
+    }
+
+    String startQuestEncounter(Player player) {
+        Demand demand = randomDemand(ThreadLocalRandom.current());
+        return demand == null ? "No drugs have a positive cartel price."
+                : startEncounter(player, demand.drug(), demand.amount(), false);
     }
 
     private Location findSpawn(Player player) {
@@ -190,7 +206,7 @@ public final class CartelEnforcer implements Listener {
         for (UUID id : new ArrayList<>(encounters.keySet())) {
             Encounter encounter = encounters.get(id);
             Player player = Bukkit.getPlayer(id);
-            if (player == null || !eligible(player) || !encounter.npc.valid()) {
+            if (player == null || !eligible(player) || !encounter.npc.valid() || !encounter.quest.active()) {
                 finish(id);
                 continue;
             }
@@ -319,6 +335,7 @@ public final class CartelEnforcer implements Listener {
         Encounter removed = encounters.remove(id);
         if (removed == null) return;
         removed.npc.destroy();
+        removed.quest.cancel();
         cooldowns.put(id, clock.getAsLong() + seconds("cooldown-seconds", 1800, 10, 86400) * 1000L);
     }
 
@@ -327,6 +344,11 @@ public final class CartelEnforcer implements Listener {
         Encounter encounter = encounters.get(player.getUniqueId());
         if (encounter == null || !encounter.npc.valid() || !encounter.npc.entity().getUniqueId().equals(entity.getUniqueId())) {
             player.sendMessage(ChatColor.GRAY + "The enforcer is here for someone else.");
+            return;
+        }
+        if (!encounter.quest.active()) {
+            finish(player.getUniqueId());
+            player.sendMessage(ChatColor.GRAY + "That cartel quest has already ended.");
             return;
         }
         if (!eligible(player) || player.getWorld() != encounter.npc.entity().getWorld()
@@ -353,7 +375,7 @@ public final class CartelEnforcer implements Listener {
             player.sendMessage(ChatColor.GRAY + "You have no active cartel demand to reject.");
             return;
         }
-        if (!encounter.npc.valid()) {
+        if (!encounter.npc.valid() || !encounter.quest.active()) {
             finish(player.getUniqueId());
             player.sendMessage(ChatColor.GRAY + "That cartel encounter has already ended.");
             return;
@@ -365,7 +387,7 @@ public final class CartelEnforcer implements Listener {
 
     boolean acceptDrop(Player player, Item item) {
         Encounter encounter = encounters.get(player.getUniqueId());
-        if (encounter == null || encounter.deadline == 0 || !eligible(player) || !item.isValid()
+        if (encounter == null || !encounter.quest.active() || encounter.deadline == 0 || !eligible(player) || !item.isValid()
                 || !encounter.npc.valid() || clock.getAsLong() >= encounter.deadline) return false;
         LivingEntity npc = encounter.npc.entity();
         if (item.getWorld() != npc.getWorld() || npc.getLocation().distanceSquared(item.getLocation()) > 4
@@ -380,7 +402,13 @@ public final class CartelEnforcer implements Listener {
         }
         int sold = dealer.sellDropped(player, item, encounter.amount - encounter.delivered, payments);
         encounter.delivered += sold;
+        if (sold > 0) encounter.quest.progress(encounter.delivered);
         if (encounter.delivered >= encounter.amount) {
+            if (!encounter.quest.complete()) {
+                player.sendMessage(ChatColor.GRAY + "Delivery paid, but the quest could not advance. Contact an administrator.");
+                finish(player.getUniqueId());
+                return true;
+            }
             player.getPersistentDataContainer().remove(refusalsKey);
             say(player, encounter, "success", "&2Cartel: &aGood. We can do business. You're clear.", 0);
             finish(player.getUniqueId());
@@ -410,11 +438,13 @@ public final class CartelEnforcer implements Listener {
         final String drug;
         final int amount;
         final long spawnedAt;
+        final EnforcerQuests.Session quest;
         int delivered;
         long deadline;
         long nextWarning;
-        Encounter(CartelNpcs.Character npc, String drug, int amount, long spawnedAt) {
+        Encounter(CartelNpcs.Character npc, String drug, int amount, long spawnedAt, EnforcerQuests.Session quest) {
             this.npc = npc;
+            this.quest = quest;
             this.drug = drug;
             this.amount = amount;
             this.spawnedAt = spawnedAt;

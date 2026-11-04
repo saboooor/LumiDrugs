@@ -36,6 +36,8 @@ class CartelEnforcerTest {
     private CartelNpcs.Character character;
     private CartelDealer dealer;
     private CartelEnforcer enforcer;
+    private EnforcerQuests quests;
+    private EnforcerQuests.Session quest;
     private YamlConfiguration config;
     private AtomicLong time;
     private World world;
@@ -112,7 +114,12 @@ class CartelEnforcerTest {
         when(character.entity()).thenReturn(npc);
         when(character.valid()).thenReturn(true);
         when(character.approach(player)).thenReturn(true);
-        enforcer = new CartelEnforcer(plugin, dealer, time::get);
+        quests = mock(EnforcerQuests.class);
+        quest = mock(EnforcerQuests.Session.class);
+        when(quests.begin(eq(player), anyString(), anyInt())).thenReturn(quest);
+        when(quest.active()).thenReturn(true);
+        when(quest.complete()).thenReturn(true);
+        enforcer = new CartelEnforcer(plugin, dealer, time::get, quests);
     }
 
     @AfterEach void cleanup() { registry.close(); bukkit.close(); guide.close(); }
@@ -288,12 +295,16 @@ class CartelEnforcerTest {
             assertTrue(enforcer.acceptDrop(player, first));
             verify(character, never()).destroy();
             verify(player).sendMessage(contains("Delivered 6/16"));
+            verify(quest).progress(6);
+            verify(quest, never()).complete();
             when(dealer.sellDropped(eq(player), eq(second), eq(10), any())).thenReturn(10);
             assertTrue(enforcer.acceptDrop(player, second));
             assertFalse(enforcer.acceptDrop(player, second));
             verify(character).destroy();
             verify(player).sendMessage(contains("You're clear"));
             assertEquals(0, enforcer.refusalStreak(player));
+            verify(quest).progress(16);
+            verify(quest).complete();
         }
     }
 
@@ -526,4 +537,59 @@ class CartelEnforcerTest {
         verify(character, times(1)).approach(player);
         verify(character, never()).stop();
     }
+    @Test void missingBeautyQuestsPreventsNpcSpawn() {
+        when(quests.unavailableReason(player)).thenReturn("Install BeautyQuests");
+        assertFalse(enforcer.spawn(player, "joint", 16, true));
+        verify(npcs, never()).create(any(), anyString());
+        verify(quests, never()).begin(any(), anyString(), anyInt());
+    }
+
+    @Test void failedQuestStartRemovesNpcWithoutIssuingDemand() {
+        when(quests.begin(player, "joint", 16)).thenReturn(null);
+        assertFalse(enforcer.spawn(player, "joint", 16, true));
+        verify(character).destroy();
+        verify(player, never()).sendMessage(contains("heading your way"));
+    }
+
+    @Test void cancelledQuestCallsOffEncounterWithoutRefusalOrSale() {
+        spawnAndApproach();
+        when(quest.active()).thenReturn(false);
+        assertFalse(enforcer.acceptDrop(player, delivery("joint")));
+        enforcer.tick();
+        verify(character).destroy();
+        verify(quest).cancel();
+        verify(quest, never()).complete();
+        assertEquals(0, enforcer.refusalStreak(player));
+    }
+
+    @Test void expiredEncounterCancelsQuestWithoutCompletingIt() {
+        spawnAndApproach();
+        time.addAndGet(11000);
+        enforcer.tick();
+        verify(quest).cancel();
+        verify(quest, never()).complete();
+    }
+
+    @Test void failedPaymentDoesNotAdvanceBeautyQuests() {
+        spawnAndApproach();
+        Item item = delivery("joint");
+        try (MockedStatic<CartelDealer> prices = mockStatic(CartelDealer.class);
+             MockedStatic<DrugItemMetadata> metadata = mockStatic(DrugItemMetadata.class)) {
+            prices.when(() -> CartelDealer.price(any(), any())).thenReturn(15.0);
+            metadata.when(() -> DrugItemMetadata.getDrugId(any(ItemMeta.class))).thenReturn("joint");
+            when(dealer.sellDropped(eq(player), eq(item), anyInt(), any())).thenReturn(0);
+            assertTrue(enforcer.acceptDrop(player, item));
+            verify(quest, never()).progress(anyInt());
+            verify(quest, never()).complete();
+        }
+    }
+
+    @Test void rejectingAfterQuestCancellationDoesNotCountARefusal() {
+        spawnAndApproach();
+        when(quest.active()).thenReturn(false);
+        enforcer.reject(player);
+        verify(character).destroy();
+        assertEquals(0, enforcer.refusalStreak(player));
+    }
+
 }
