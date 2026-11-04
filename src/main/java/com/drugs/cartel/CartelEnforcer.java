@@ -1,7 +1,7 @@
 package com.drugs.cartel;
 
 import com.drugs.DrugsV2;
-import io.github.saboooor.lumifollow.SafeLocations;
+import com.drugs.internal.pursuit.SafeLocations;
 import com.drugs.drug.DrugRegistry;
 import com.drugs.items.DrugItemMetadata;
 

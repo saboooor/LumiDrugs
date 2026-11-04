@@ -264,8 +264,8 @@ class CitizensCartelNpcsTest {
         verify(parameters).examiner(any(net.citizensnpcs.api.astar.pathfinder.DoorExaminer.class));
 
         // When stuckAction fires, enforcer teleports closer to target
-        try (MockedStatic<io.github.saboooor.lumifollow.SafeLocations> safe = mockStatic(io.github.saboooor.lumifollow.SafeLocations.class)) {
-            safe.when(() -> io.github.saboooor.lumifollow.SafeLocations.findNear(location, 4, 8)).thenReturn(location);
+        try (MockedStatic<com.drugs.internal.pursuit.SafeLocations> safe = mockStatic(com.drugs.internal.pursuit.SafeLocations.class)) {
+            safe.when(() -> com.drugs.internal.pursuit.SafeLocations.findNear(location, 4, 8)).thenReturn(location);
             assertTrue(stuck.getValue().run(npc, navigator));
         }
         verify(npc).teleport(any(Location.class), eq(org.bukkit.event.player.PlayerTeleportEvent.TeleportCause.PLUGIN));

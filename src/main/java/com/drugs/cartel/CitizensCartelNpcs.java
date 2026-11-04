@@ -1,7 +1,7 @@
 package com.drugs.cartel;
 
 import com.drugs.DrugsV2;
-import io.github.saboooor.lumifollow.*;
+import com.drugs.internal.pursuit.*;
 
 import net.citizensnpcs.api.CitizensAPI;
 import net.citizensnpcs.api.event.CitizensEnableEvent;

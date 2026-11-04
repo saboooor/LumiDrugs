@@ -18,4 +18,4 @@ jobs:
           name: LumiDrugs-and-LumiFollow
           path: |
             lumidrugs/build/libs/LumiDrugs.jar
-            lumifollow/build/libs/lumifollow-1.0.0.jar
+            lumifollow/build/libs/LumiFollow.jar
