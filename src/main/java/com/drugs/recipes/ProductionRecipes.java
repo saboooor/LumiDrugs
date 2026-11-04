@@ -94,7 +94,7 @@ public final class ProductionRecipes {
         previews.put(id, new Brew(base, ingredient, result));
     }
     public static void clear() {
-        for (NamespacedKey key : recipeKeys) Bukkit.removeRecipe(key, false);
+        for (NamespacedKey key : recipeKeys) RecipeUpdates.remove(key);
         for (NamespacedKey key : mixKeys) Bukkit.getPotionBrewer().removePotionMix(key);
         recipeKeys.clear();
         mixKeys.clear();
@@ -102,7 +102,7 @@ public final class ProductionRecipes {
     }
     public static void register() {
         clear();
-        for (String id : MANAGED) Bukkit.removeRecipe(key(id), false);
+        for (String id : MANAGED) RecipeUpdates.remove(key(id));
         ItemStack tobacco = DrugRegistry.getDrugItem("tobacco", 1);
         for (String id : List.of("cigarette", "cigar")) {
             ItemStack result = DrugRegistry.getDrugItem(id, 1);
