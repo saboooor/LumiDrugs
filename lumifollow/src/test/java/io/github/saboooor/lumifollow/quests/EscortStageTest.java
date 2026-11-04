@@ -36,13 +36,24 @@ class EscortStageTest {
         when(controller.hasStarted(quester)).thenReturn(true);
         World world = mock(World.class);
         when(world.getName()).thenReturn("world");
-        when(player.getLocation()).thenReturn(new Location(world, 0, 64, 0));
+        Location playerLocation = mock(Location.class);
+        when(playerLocation.getWorld()).thenReturn(world);
+        when(playerLocation.getX()).thenReturn(0d);
+        when(playerLocation.getY()).thenReturn(64d);
+        when(playerLocation.getZ()).thenReturn(0d);
+        when(player.getLocation()).thenReturn(playerLocation);
         profile = new EscortProfile(7, "world", 10, 64, 0, 4, FollowOptions.defaults());
         when(plugin.profile("route")).thenReturn(profile);
         npc = mock(NPC.class);
         when(npc.isSpawned()).thenReturn(true);
-        when(npc.getEntity()).thenReturn(mock(Player.class));
-        when(npc.getEntity().getLocation()).thenReturn(new Location(world, 10, 64, 0));
+        Player npcEntity = mock(Player.class);
+        Location npcLocation = mock(Location.class);
+        when(npcLocation.getWorld()).thenReturn(world);
+        when(npcLocation.getX()).thenReturn(10d);
+        when(npcLocation.getY()).thenReturn(64d);
+        when(npcLocation.getZ()).thenReturn(0d);
+        when(npc.getEntity()).thenReturn(npcEntity);
+        when(npcEntity.getLocation()).thenReturn(npcLocation);
     }
     @Test void followsOnlyDuringStageAndCancellationReleasesNpc() {
         var registry = mock(NPCRegistry.class);
@@ -63,7 +74,8 @@ class EscortStageTest {
     @Test void completesOnlyWhenPlayerAndNpcArriveAndReleasesBeforeAdvancing() {
         var registry = mock(NPCRegistry.class);
         when(registry.getById(7)).thenReturn(npc);
-        when(player.getLocation()).thenReturn(npc.getEntity().getLocation());
+        Location npcLocation = npcEntityLocation();
+        when(player.getLocation()).thenReturn(npcLocation);
         try (var citizens = mockStatic(CitizensAPI.class)) {
             citizens.when(CitizensAPI::getNPCRegistry).thenReturn(registry);
             var stage = new EscortStage(controller, plugin, "route");
@@ -76,6 +88,11 @@ class EscortStageTest {
             verify(controller, times(1)).finishStage(quester);
         }
     }
+
+    private Location npcEntityLocation() {
+        return npc.getEntity().getLocation();
+    }
+
     @Test void busyNpcIsNeverStolenAndWaitingPlayerCanRetry() {
         var registry = mock(NPCRegistry.class);
         when(registry.getById(7)).thenReturn(npc);
