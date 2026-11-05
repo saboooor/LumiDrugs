@@ -77,6 +77,8 @@ public final class EnforcerGuide implements Listener {
                 Dialogs.button("Learn to make this", "/drugs learn " + drug, false, Icon.BOOK,
                         "Start a learning quest without a deadline. The enforcer's delivery timer keeps running separately."),
                 Dialogs.button("Production journal", "/drugs journal", false, Icon.BOOK),
+                Dialogs.button("Cut out middleman (3x pay)", "/cartel locate", false, Icon.SHARED,
+                        "Locate the cartel's shaded hideout and deliver the goods directly for 3x the money."),
                 Dialogs.button("Reject demand", "/cartel reject", false, Icon.CLOSE,
                         "End this encounter now. Counts as a refusal, with the same consequences as letting time run out.")
         );

@@ -589,4 +589,50 @@ class CartelEnforcerTest {
         assertEquals(0, enforcer.refusalStreak(player));
     }
 
+    @Test void directHideoutDeliveryCutsOutMiddlemanForThreeTimesPayoutAndPrefersCaveOrShade() {
+        Block ceiling = mock(Block.class);
+        when(ceiling.getType()).thenReturn(Material.STONE);
+        when(ceiling.isSolid()).thenReturn(true);
+        Block floor = mock(Block.class);
+        when(floor.getType()).thenReturn(Material.STONE);
+        when(floor.isSolid()).thenReturn(true);
+        Block air = mock(Block.class);
+        when(air.getType()).thenReturn(Material.AIR);
+        when(air.isPassable()).thenReturn(true);
+        // Underground cave at y=52 (floor at 51, roof at 55) and open surface at y=64 (floor at 63)
+        when(world.getBlockAt(anyInt(), anyInt(), anyInt())).thenAnswer(call -> {
+            int y = call.getArgument(1);
+            if (y == 51 || y == 63) return floor;
+            if (y == 55) return ceiling;
+            return air;
+        });
+
+        spawnAndApproach();
+        Location hideout = enforcer.hideoutLocation(player);
+        assertNotNull(hideout);
+        // Should prefer the underground cave elevation (y=52) because it has a stone ceiling at y=55
+        assertEquals(52, hideout.getBlockY());
+
+        enforcer.locateHideout(player);
+        verify(player).setCompassTarget(hideout);
+        verify(player, atLeastOnce()).sendMessage(contains("3x the money"));
+
+        Item item = delivery("joint");
+        when(item.getLocation()).thenReturn(hideout.clone());
+        try (MockedStatic<CartelDealer> prices = mockStatic(CartelDealer.class);
+             MockedStatic<DrugItemMetadata> metadata = mockStatic(DrugItemMetadata.class)) {
+            prices.when(() -> CartelDealer.price(any(), any())).thenReturn(15.0);
+            metadata.when(() -> DrugItemMetadata.getDrugId(any(ItemMeta.class))).thenReturn("joint");
+            when(dealer.sellDropped(eq(player), eq(item), eq(16), any(), eq(3.0))).thenReturn(16);
+
+            assertTrue(enforcer.acceptDrop(player, item));
+            verify(dealer).sellDropped(eq(player), eq(item), eq(16), any(), eq(3.0));
+            verify(dealer, never()).sellDropped(eq(player), eq(item), anyInt(), any());
+            verify(quest).progress(16);
+            verify(quest).complete();
+            verify(character).destroy();
+            verify(player).sendMessage(contains("cutting out the middleman"));
+        }
+    }
+
 }

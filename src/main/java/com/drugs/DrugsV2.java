@@ -203,6 +203,7 @@ public class DrugsV2 extends JavaPlugin {
         manager.registerEvents(salviaEffectManager, this);
         sensoryEffectManager = new SensoryEffectManager(this);
         manager.registerEvents(sensoryEffectManager, this);
+        sensoryEffectManager.startHudTask();
         manager.registerEvents(new NativeAdvancements(), this);
         farmControllerListener = new FarmControllerListener(farmManager);
         manager.registerEvents(farmControllerListener, this);

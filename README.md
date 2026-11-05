@@ -100,6 +100,10 @@ Plugin enable initializes one phase per server tick; commands show an initializi
   Opens the interactive growing guide for all crops or a specific crop.
 - `/drugs purity`  
   Opens the interactive Purity & Refining guide detailing how growing conditions (hydration, light level, overhead grow lamps, nearby Composter/Moss Block, spacing) and cauldron refining increase purity up to 100%.
+- `/drugs hud`  
+  Toggles the live Actionbar HUD pulse showing heart rate (`BPM`), overdose limit alerts (`[Near OD]` / `[⚠ OD LIMIT]`), active high countdowns, and withdrawal timers.
+- `/cartel locate` (or `/cartel hideout`)  
+  Reveals the coordinates of your active Cartel Hideout (generated in a random cave or shaded location), points your compass there, and extends the travel timer so you can cut out the enforcer middleman and deliver the demanded drug directly for **3x the money**.
 
 ## Admin Commands
 

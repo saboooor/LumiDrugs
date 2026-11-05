@@ -73,6 +73,18 @@ public final class CartelDealer implements Listener, CommandExecutor, TabComplet
             }
             return true;
         }
+        if (args.length > 0 && (args[0].equalsIgnoreCase("locate") || args[0].equalsIgnoreCase("hideout"))) {
+            if (args.length != 1) {
+                sender.sendMessage("Usage: /cartel locate");
+            } else if (!(sender instanceof Player player)) {
+                sender.sendMessage("Only players can locate their cartel hideout.");
+            } else if (enforcer != null) {
+                enforcer.locateHideout(player);
+            } else {
+                sender.sendMessage(ChatColor.GRAY + "You have no active cartel demand.");
+            }
+            return true;
+        }
         if (!sender.hasPermission("drugs.cartel.admin")) {
             sender.sendMessage(ChatColor.RED + "You cannot manage cartel dealers.");
             return true;
@@ -115,8 +127,10 @@ public final class CartelDealer implements Listener, CommandExecutor, TabComplet
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         if (!sender.hasPermission("drugs.cartel.admin")) {
-            return sender instanceof Player && args.length == 1 && "reject".startsWith(args[0].toLowerCase(Locale.ROOT))
-                    ? List.of("reject") : List.of();
+            return sender instanceof Player && args.length == 1
+                    ? List.of("reject", "locate", "hideout").stream()
+                    .filter(s -> s.startsWith(args[0].toLowerCase(Locale.ROOT))).toList()
+                    : List.of();
         }
         if (args.length > 1 && args[0].equalsIgnoreCase("enforcer")) {
             List<String> options = switch (args.length) {
@@ -129,7 +143,7 @@ public final class CartelDealer implements Listener, CommandExecutor, TabComplet
                     .startsWith(args[args.length - 1].toLowerCase(Locale.ROOT))).toList();
         }
         if (args.length != 1) return List.of();
-        return List.of("create", "remove", "reload", "enforcer", "reject").stream()
+        return List.of("create", "remove", "reload", "enforcer", "reject", "locate", "hideout").stream()
                 .filter(s -> s.startsWith(args[0].toLowerCase(Locale.ROOT))).toList();
     }
 
@@ -218,13 +232,23 @@ public final class CartelDealer implements Listener, CommandExecutor, TabComplet
         return sellDropped(player, item, limit, payments, null);
     }
 
+    int sellDropped(Player player, Item item, int limit, Payments payments, double directMultiplier) {
+        if (!Double.isFinite(directMultiplier) || directMultiplier <= 0) return 0;
+        return sellDropped(player, item, limit, payments, null, directMultiplier);
+    }
+
     int sellDropped(Player player, Item item, int limit, Payments payments, DealerPreferences.Offer offer) {
+        return sellDropped(player, item, limit, payments, offer, 1.0);
+    }
+
+    private int sellDropped(Player player, Item item, int limit, Payments payments, DealerPreferences.Offer offer, double directMultiplier) {
         if (!item.isValid() || limit <= 0 || !sellingDrops.add(item.getUniqueId())) return 0;
         int pickupDelay = item.getPickupDelay();
         try {
             ItemStack original = item.getItemStack();
             double unit = price(original, config);
             if (unit > 0 && offer != null && offer.matches(original)) unit *= offer.multiplier();
+            if (unit > 0 && directMultiplier > 0 && Double.isFinite(directMultiplier)) unit *= directMultiplier;
             int count = Math.min(limit, original.getAmount());
             double total = unit * count;
             if (unit == 0 || count <= 0 || !Double.isFinite(total)) return 0;

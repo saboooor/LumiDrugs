@@ -199,6 +199,36 @@ public final class CartelEnforcer implements Listener {
         return CartelSpawnLocations.findNear(player.getLocation(), minRadius, maxRadius);
     }
 
+    private boolean directDeliveryEnabled() {
+        return config().getBoolean("enforcer.direct-delivery.enabled", true);
+    }
+
+    double directDeliveryMultiplier() {
+        double mult = config().getDouble("enforcer.direct-delivery.multiplier", 3.0);
+        return Double.isFinite(mult) && mult >= 1.0 ? mult : 3.0;
+    }
+
+    private double directDeliveryRadiusSquared() {
+        double radius = config().getDouble("enforcer.direct-delivery.radius", 4.0);
+        if (!Double.isFinite(radius) || radius < 1.0) radius = 4.0;
+        return radius * radius;
+    }
+
+    private Location getOrCreateHideout(Player player, Encounter encounter) {
+        if (encounter.hideout != null) return encounter.hideout;
+        if (!directDeliveryEnabled()) return null;
+        int minRadius = seconds("direct-delivery.min-distance", 60, 16, 1000);
+        int maxRadius = Math.max(minRadius, seconds("direct-delivery.max-distance", 200, 16, 2000));
+        encounter.hideout = CartelSpawnLocations.findShadedHideout(player.getLocation(), minRadius, maxRadius);
+        return encounter.hideout;
+    }
+
+    Location hideoutLocation(Player player) {
+        Encounter encounter = encounters.get(player.getUniqueId());
+        if (encounter == null) return null;
+        return getOrCreateHideout(player, encounter);
+    }
+
     void tick() {
         long now = clock.getAsLong();
         cooldowns.entrySet().removeIf(entry -> entry.getValue() <= now);
@@ -237,6 +267,11 @@ public final class CartelEnforcer implements Listener {
                     encounter.nextWarning = now + seconds("warning-interval-seconds", 15, 5, 300) * 1000L;
                 }
             }
+            if (encounter.hideout != null && player.getWorld().equals(encounter.hideout.getWorld())
+                    && player.getLocation().distanceSquared(encounter.hideout) <= 1296) {
+                player.spawnParticle(Particle.CAMPFIRE_COSY_SMOKE, encounter.hideout.clone().add(0, 0.5, 0), 4, 0.25, 0.3, 0.25, 0.01);
+                player.spawnParticle(Particle.SOUL_FIRE_FLAME, encounter.hideout.clone().add(0, 0.2, 0), 3, 0.3, 0.1, 0.3, 0.01);
+            }
         }
         if (now >= nextCheck) {
             nextCheck = now + seconds("check-interval-seconds", 300, 10, 86400) * 1000L;
@@ -264,6 +299,17 @@ public final class CartelEnforcer implements Listener {
         say(player, encounter, "demand",
                 "&4Cartel: &cSell me {amount} {drug} within {seconds}s, or you'll answer to the cartel. "
                         + "Throw the drugs near me. Smaller deliveries count, and you'll be paid.", duration);
+        if (directDeliveryEnabled()) {
+            Location hideout = getOrCreateHideout(player, encounter);
+            if (hideout != null) {
+                String mult = String.format(Locale.ROOT, "%.1fx", directDeliveryMultiplier()).replace(".0x", "x");
+                player.sendMessage(ChatColor.DARK_GRAY + "[" + ChatColor.GOLD + "Cartel Hideout" + ChatColor.DARK_GRAY + "] "
+                        + ChatColor.GRAY + "Cut out the middleman! Deliver directly to the shaded cartel hideout at "
+                        + ChatColor.YELLOW + hideout.getBlockX() + ", " + hideout.getBlockY() + ", " + hideout.getBlockZ()
+                        + ChatColor.GRAY + " for " + ChatColor.GREEN + ChatColor.BOLD + mult + " the money"
+                        + ChatColor.GRAY + " (" + ChatColor.YELLOW + "/cartel locate" + ChatColor.GRAY + ").");
+            }
+        }
     }
 
     private int remainingSeconds(Encounter encounter, long now) {
@@ -385,13 +431,74 @@ public final class CartelEnforcer implements Listener {
         player.sendMessage(ChatColor.GRAY + "You rejected the cartel's demand. The enforcer has left.");
     }
 
+    /** Reveals the shaded/cave cartel hideout coordinates, sets compass target, and grants travel time. */
+    void locateHideout(Player player) {
+        Encounter encounter = encounters.get(player.getUniqueId());
+        if (encounter == null) {
+            player.sendMessage(ChatColor.GRAY + "You have no active cartel demand.");
+            return;
+        }
+        if (!encounter.npc.valid() || !encounter.quest.active()) {
+            finish(player.getUniqueId());
+            player.sendMessage(ChatColor.GRAY + "That cartel encounter has already ended.");
+            return;
+        }
+        if (!directDeliveryEnabled()) {
+            player.sendMessage(ChatColor.RED + "Direct cartel deliveries are disabled on this server.");
+            return;
+        }
+        Location hideout = getOrCreateHideout(player, encounter);
+        if (hideout == null) {
+            player.sendMessage(ChatColor.RED + "Could not locate a safe cartel hideout nearby. Deliver to the enforcer instead.");
+            return;
+        }
+        long now = clock.getAsLong();
+        int travelSeconds = seconds("direct-delivery.deadline-seconds", 240, 30, 3600);
+        if (!encounter.travelExtended) {
+            encounter.travelExtended = true;
+            long travelDeadline = now + travelSeconds * 1000L;
+            if (encounter.deadline < travelDeadline) {
+                encounter.deadline = travelDeadline;
+                encounter.nextWarning = now + seconds("warning-interval-seconds", 15, 5, 300) * 1000L;
+            }
+        }
+        try {
+            player.setCompassTarget(hideout);
+        } catch (RuntimeException ignored) {
+        }
+        int dist = player.getWorld().equals(hideout.getWorld())
+                ? (int) Math.round(player.getLocation().distance(hideout)) : -1;
+        String mult = String.format(Locale.ROOT, "%.1fx", directDeliveryMultiplier()).replace(".0x", "x");
+        int remaining = encounter.amount - encounter.delivered;
+        player.sendMessage(ChatColor.DARK_GREEN + "Cartel Hideout: " + ChatColor.GREEN
+                + "Cut out the middleman! Bring " + ChatColor.WHITE + remaining + " " + encounter.drug
+                + ChatColor.GREEN + " directly to the shaded hideout at "
+                + ChatColor.YELLOW + hideout.getBlockX() + ", " + hideout.getBlockY() + ", " + hideout.getBlockZ()
+                + (dist >= 0 ? ChatColor.GRAY + " (" + dist + "m away)" : "")
+                + ChatColor.GREEN + " within " + ChatColor.WHITE + remainingSeconds(encounter, now) + "s"
+                + ChatColor.GREEN + " to get " + ChatColor.GOLD + ChatColor.BOLD + mult + " the money" + ChatColor.GREEN + "!");
+    }
+
+    private boolean isAtHideout(Encounter encounter, Item item) {
+        if (!directDeliveryEnabled() || encounter.hideout == null) return false;
+        return item.getWorld() == encounter.hideout.getWorld()
+                && encounter.hideout.distanceSquared(item.getLocation()) <= directDeliveryRadiusSquared();
+    }
+
     boolean acceptDrop(Player player, Item item) {
         Encounter encounter = encounters.get(player.getUniqueId());
-        if (encounter == null || !encounter.quest.active() || encounter.deadline == 0 || !eligible(player) || !item.isValid()
-                || !encounter.npc.valid() || clock.getAsLong() >= encounter.deadline) return false;
-        LivingEntity npc = encounter.npc.entity();
-        if (item.getWorld() != npc.getWorld() || npc.getLocation().distanceSquared(item.getLocation()) > 4
-                || !npc.hasLineOfSight(item)) return false;
+        if (encounter == null || !encounter.quest.active() || !eligible(player) || !item.isValid()
+                || !encounter.npc.valid()) return false;
+        long now = clock.getAsLong();
+        boolean directHideout = isAtHideout(encounter, item);
+        if (!directHideout) {
+            if (encounter.deadline == 0 || now >= encounter.deadline) return false;
+            LivingEntity npc = encounter.npc.entity();
+            if (item.getWorld() != npc.getWorld() || npc.getLocation().distanceSquared(item.getLocation()) > 4
+                    || !npc.hasLineOfSight(item)) return false;
+        } else if (encounter.deadline > 0 && now >= encounter.deadline) {
+            return false;
+        }
         if (CartelDealer.price(item.getItemStack(), config()) == 0
                 || !encounter.drug.equals(DrugItemMetadata.getDrugId(item.getItemStack().getItemMeta()))) return false;
         CartelDealer.Payments payments = dealer.payments();
@@ -400,7 +507,10 @@ public final class CartelEnforcer implements Listener {
             finish(player.getUniqueId());
             return true;
         }
-        int sold = dealer.sellDropped(player, item, encounter.amount - encounter.delivered, payments);
+        int remaining = encounter.amount - encounter.delivered;
+        int sold = directHideout
+                ? dealer.sellDropped(player, item, remaining, payments, directDeliveryMultiplier())
+                : dealer.sellDropped(player, item, remaining, payments);
         encounter.delivered += sold;
         if (sold > 0) encounter.quest.progress(encounter.delivered);
         if (encounter.delivered >= encounter.amount) {
@@ -410,12 +520,24 @@ public final class CartelEnforcer implements Listener {
                 return true;
             }
             player.getPersistentDataContainer().remove(refusalsKey);
-            say(player, encounter, "success", "&2Cartel: &aGood. We can do business. You're clear.", 0);
+            if (directHideout) {
+                String mult = String.format(Locale.ROOT, "%.1fx", directDeliveryMultiplier()).replace(".0x", "x");
+                say(player, encounter, "direct-success",
+                        "&2Cartel Boss: &aSmart move cutting out the middleman and bringing the {drug} straight to our hideout. Enjoy your " + mult + " payout.", 0);
+                com.drugs.achievements.AchievementManager.processTrigger(player, "cartel_cut_middleman");
+            } else {
+                say(player, encounter, "success", "&2Cartel: &aGood. We can do business. You're clear.", 0);
+            }
             com.drugs.achievements.AchievementManager.processTrigger(player, "cartel_enforcer_complete");
             finish(player.getUniqueId());
         } else if (sold > 0) {
-            player.sendMessage(ChatColor.GREEN + "Delivered " + encounter.delivered + "/" + encounter.amount + " "
-                    + encounter.drug + ". Throw " + (encounter.amount - encounter.delivered) + " more near me.");
+            if (directHideout) {
+                player.sendMessage(ChatColor.GREEN + "Direct Hideout Delivery: " + encounter.delivered + "/" + encounter.amount + " "
+                        + encounter.drug + ". Throw " + (encounter.amount - encounter.delivered) + " more at the hideout.");
+            } else {
+                player.sendMessage(ChatColor.GREEN + "Delivered " + encounter.delivered + "/" + encounter.amount + " "
+                        + encounter.drug + ". Throw " + (encounter.amount - encounter.delivered) + " more near me.");
+            }
         }
         return true;
     }
@@ -440,6 +562,8 @@ public final class CartelEnforcer implements Listener {
         final int amount;
         final long spawnedAt;
         final EnforcerQuests.Session quest;
+        Location hideout;
+        boolean travelExtended;
         int delivered;
         long deadline;
         long nextWarning;

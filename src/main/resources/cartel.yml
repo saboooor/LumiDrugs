@@ -62,6 +62,16 @@ enforcer:
   approach-timeout-seconds: 60  # No penalty if the enforcer cannot reach you.
   deadline-seconds: 90          # Starts once the enforcer approaches you.
   warning-interval-seconds: 15
+  # Direct cartel hideout delivery: players can bypass the enforcer middleman and
+  # travel to a random shaded/cave cartel hideout in the world (/cartel locate) to
+  # deliver their demanded drugs directly for 3x the money.
+  direct-delivery:
+    enabled: true
+    multiplier: 3.0
+    min-distance: 60
+    max-distance: 200
+    deadline-seconds: 240       # Extended travel window when heading to the hideout.
+    radius: 4.0                 # Drop radius (blocks) at the hideout coordinates.
   # Consecutive expired demands per player; completing a demand resets the streak.
   # Streaks survive reconnects/restarts. Called-off encounters do not count as refusals.
   aggravation:

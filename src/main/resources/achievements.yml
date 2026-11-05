@@ -189,6 +189,13 @@ cartel-associate:
   icon: "GRAY_DYE"
   completed_icon: "TOTEM_OF_UNDYING"
 
+cut-the-middleman:
+  title: "&6Cut Out the Middleman"
+  description: "&7Deliver an enforcer demand directly to the cartel's shaded hideout for 3x pay"
+  trigger: "cartel_cut_middleman"
+  icon: "GRAY_DYE"
+  completed_icon: "GOLD_BLOCK"
+
 contract-fulfilled:
   title: "&6Reliable Supplier"
   description: "&7Complete a cartel supply contract"

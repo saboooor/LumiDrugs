@@ -1,17 +1,30 @@
 package com.drugs.effects;
 
 import com.drugs.DrugsV2;
+import com.drugs.addiction.AddictionManager;
+import com.drugs.config.MechanicsConfig;
+import com.drugs.drug.DrugEffectProfile;
+import com.drugs.drug.DrugRegistry;
 import com.drugs.status.DrugStatusTracker;
+import com.drugs.tolerance.ToleranceConfigLoader;
+import com.drugs.tolerance.ToleranceTracker;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.BlockData;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Mob;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitTask;
@@ -25,24 +38,24 @@ import java.util.concurrent.ThreadLocalRandom;
  */
 public class SensoryEffectManager implements Listener {
 
-    private static final List<BlockData> PSYCHEDELIC_BLOCKS = List.of(
-            Material.MAGENTA_GLAZED_TERRACOTTA.createBlockData(),
-            Material.CYAN_GLAZED_TERRACOTTA.createBlockData(),
-            Material.PURPLE_GLAZED_TERRACOTTA.createBlockData(),
-            Material.LIME_GLAZED_TERRACOTTA.createBlockData(),
-            Material.AMETHYST_BLOCK.createBlockData(),
-            Material.SHROOMLIGHT.createBlockData(),
-            Material.SEA_LANTERN.createBlockData(),
-            Material.CRIMSON_NYLIUM.createBlockData(),
-            Material.WARPED_NYLIUM.createBlockData()
+    private static final List<Material> PSYCHEDELIC_BLOCKS = List.of(
+            Material.MAGENTA_GLAZED_TERRACOTTA,
+            Material.CYAN_GLAZED_TERRACOTTA,
+            Material.PURPLE_GLAZED_TERRACOTTA,
+            Material.LIME_GLAZED_TERRACOTTA,
+            Material.AMETHYST_BLOCK,
+            Material.SHROOMLIGHT,
+            Material.SEA_LANTERN,
+            Material.CRIMSON_NYLIUM,
+            Material.WARPED_NYLIUM
     );
 
-    private static final List<BlockData> SCHIZO_GLITCH_BLOCKS = List.of(
-            Material.CRYING_OBSIDIAN.createBlockData(),
-            Material.SCULK.createBlockData(),
-            Material.SOUL_SAND.createBlockData(),
-            Material.NETHER_WART_BLOCK.createBlockData(),
-            Material.COAL_BLOCK.createBlockData()
+    private static final List<Material> SCHIZO_GLITCH_BLOCKS = List.of(
+            Material.CRYING_OBSIDIAN,
+            Material.SCULK,
+            Material.SOUL_SAND,
+            Material.NETHER_WART_BLOCK,
+            Material.COAL_BLOCK
     );
 
     private static final List<String> SCHIZO_WHISPERS = List.of(
@@ -58,16 +71,29 @@ public class SensoryEffectManager implements Listener {
             "§8§oYou aren't alone down here."
     );
 
-    private static final Sound[] PARANOIA_SOUNDS = {
-            Sound.ENTITY_CREEPER_PRIMED,
-            Sound.ENTITY_ENDERMAN_STARE,
-            Sound.ENTITY_PHANTOM_SWOOP,
-            Sound.BLOCK_SCULK_SHRIEKER_SHRIEK,
-            Sound.BLOCK_WOODEN_DOOR_OPEN,
-            Sound.BLOCK_CHEST_OPEN,
-            Sound.ENTITY_WARDEN_NEARBY_CLOSER,
-            Sound.AMBIENT_CAVE
+    private static Sound[] paranoiaSounds() {
+        return new Sound[]{
+                Sound.ENTITY_CREEPER_PRIMED,
+                Sound.ENTITY_ENDERMAN_STARE,
+                Sound.ENTITY_PHANTOM_SWOOP,
+                Sound.BLOCK_SCULK_SHRIEKER_SHRIEK,
+                Sound.BLOCK_WOODEN_DOOR_OPEN,
+                Sound.BLOCK_CHEST_OPEN,
+                Sound.ENTITY_WARDEN_NEARBY_CLOSER,
+                Sound.AMBIENT_CAVE
+        };
+    }
+
+    private static final EntityType[] PHANTOM_MOB_TYPES = {
+            EntityType.CREEPER,
+            EntityType.ENDERMAN,
+            EntityType.CAVE_SPIDER,
+            EntityType.PHANTOM,
+            EntityType.WITHER_SKELETON
     };
+
+    private static final NamespacedKey HUD_DISABLED_KEY = new NamespacedKey("lumidrugs", "hud_disabled");
+    private static final NamespacedKey HALLUCINATION_KEY = new NamespacedKey("lumidrugs", "phantom_hallucination");
 
     private final DrugsV2 plugin;
     private final Map<UUID, List<BukkitTask>> drugTasks = new HashMap<>();
@@ -76,12 +102,20 @@ public class SensoryEffectManager implements Listener {
     private final Map<UUID, BukkitTask> edibleDelayTasks = new HashMap<>();
     private final Map<UUID, Integer> edibleActivationTicks = new HashMap<>();
     private final Map<UUID, Set<Location>> morphedBlocks = new HashMap<>();
+    private final Map<UUID, Set<Entity>> activeHallucinations = new HashMap<>();
+    private final Map<UUID, UUID> hallucinationOwners = new HashMap<>();
     private final Set<UUID> activeVignettes = new HashSet<>();
     private final Map<UUID, Integer> caffeineDoses = new HashMap<>();
     private final Map<UUID, Long> lastCaffeineMillis = new HashMap<>();
+    private BukkitTask hudTask;
 
     public SensoryEffectManager(DrugsV2 plugin) {
         this.plugin = plugin;
+    }
+
+    public void startHudTask() {
+        if (hudTask != null) hudTask.cancel();
+        hudTask = plugin.getServer().getScheduler().runTaskTimer(plugin, this::tickHud, 20L, 20L);
     }
 
     /**
@@ -99,7 +133,10 @@ public class SensoryEffectManager implements Listener {
         // 2. Drug-specific ongoing sensory effects
         int durationTicks = Math.max(100, (int) Math.round(400 * multiplier));
         switch (id) {
-            case "shrooms", "lsd" -> startPsychedelicVisuals(player, id.equals("lsd") ? 1200 : 800);
+            case "shrooms", "lsd", "dmt", "salvia" -> {
+                startPsychedelicVisuals(player, id.equals("lsd") ? 1200 : id.equals("dmt") ? 900 : 800);
+                startParanoia(player, durationTicks);
+            }
             case "meth" -> {
                 startHeartRacing(player, durationTicks, 1.6f);
                 startParanoia(player, durationTicks);
@@ -125,6 +162,13 @@ public class SensoryEffectManager implements Listener {
                 }
             }
             default -> {}
+        }
+
+        // High-tolerance paranoia: using any drug near or at the overdose limit can trigger phantom hallucinations
+        int level = ToleranceTracker.getToleranceLevel(player, id);
+        int max = ToleranceConfigLoader.getMaxTolerance(id);
+        if (level >= Math.max(1, max - 1)) {
+            spawnPhantomMobHallucination(player);
         }
     }
 
@@ -229,7 +273,7 @@ public class SensoryEffectManager implements Listener {
                 Block block = base.clone().add(rng.nextInt(-5, 6), rng.nextInt(-2, 3), rng.nextInt(-5, 6)).getBlock();
                 if (block.getType().isSolid() && block.getType() != Material.BEDROCK && block.getType() != Material.BARRIER) {
                     Location loc = block.getLocation();
-                    BlockData fake = PSYCHEDELIC_BLOCKS.get(rng.nextInt(PSYCHEDELIC_BLOCKS.size()));
+                    BlockData fake = PSYCHEDELIC_BLOCKS.get(rng.nextInt(PSYCHEDELIC_BLOCKS.size())).createBlockData();
                     player.sendBlockChange(loc, fake);
                     morphedBlocks.computeIfAbsent(uuid, k -> new HashSet<>()).add(loc);
                     scheduleDrugTask(uuid, plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
@@ -355,6 +399,9 @@ public class SensoryEffectManager implements Listener {
             ThreadLocalRandom rng = ThreadLocalRandom.current();
             if (rng.nextDouble() < 0.65) {
                 spawnShadowFigureBehind(player);
+            }
+            if (rng.nextDouble() < 0.55) {
+                spawnPhantomMobHallucination(player);
             }
         }, 40L, 60L);
         scheduleDrugTask(uuid, task);
@@ -493,6 +540,9 @@ public class SensoryEffectManager implements Listener {
 
             // 2. Shadow figure & paranoid footsteps/sounds right behind the player
             spawnShadowFigureBehind(online);
+            if (rng.nextDouble() < 0.60) {
+                spawnPhantomMobHallucination(online);
+            }
 
             // 3. Sudden head-turn twitch or camera jolt
             if (rng.nextDouble() < 0.35) {
@@ -505,7 +555,7 @@ public class SensoryEffectManager implements Listener {
                 Block block = base.clone().add(rng.nextInt(-4, 5), rng.nextInt(-1, 3), rng.nextInt(-4, 5)).getBlock();
                 if (block.getType().isSolid() && block.getType() != Material.BEDROCK) {
                     Location loc = block.getLocation();
-                    online.sendBlockChange(loc, SCHIZO_GLITCH_BLOCKS.get(rng.nextInt(SCHIZO_GLITCH_BLOCKS.size())));
+                    online.sendBlockChange(loc, SCHIZO_GLITCH_BLOCKS.get(rng.nextInt(SCHIZO_GLITCH_BLOCKS.size())).createBlockData());
                     morphedBlocks.computeIfAbsent(uuid, k -> new HashSet<>()).add(loc);
                     plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
                         if (online.isOnline()) online.sendBlockChange(loc, loc.getBlock().getBlockData());
@@ -552,7 +602,8 @@ public class SensoryEffectManager implements Listener {
         Location shadowLoc = player.getLocation().add(behind);
 
         // Play directional paranoia sound from the shadow figure's position
-        Sound sound = PARANOIA_SOUNDS[rng.nextInt(PARANOIA_SOUNDS.length)];
+        Sound[] sounds = paranoiaSounds();
+        Sound sound = sounds[rng.nextInt(sounds.length)];
         player.playSound(shadowLoc, sound, 0.85f, rng.nextFloat(0.6f, 1.3f));
 
         // Play rapid footsteps approaching from behind
@@ -571,6 +622,282 @@ public class SensoryEffectManager implements Listener {
             player.spawnParticle(Particle.SQUID_INK, shadowLoc.clone().add(0, y, 0), 3, 0.12, 0.12, 0.12, 0.0);
         }
         player.spawnParticle(Particle.SOUL, shadowLoc.clone().add(0, 1.6, 0), 2, 0.1, 0.1, 0.1, 0.01);
+    }
+
+    /**
+     * Spawns a client-visible-only phantom mob hallucination that stalks toward the player
+     * and vanishes into smoke and souls when attacked, clicked, or approached.
+     */
+    public Entity spawnPhantomMobHallucination(Player player) {
+        if (player == null || !player.isOnline() || player.isDead() || player.getWorld() == null) return null;
+        UUID uuid = player.getUniqueId();
+        Set<Entity> currentSet = activeHallucinations.computeIfAbsent(uuid, k -> new HashSet<>());
+        currentSet.removeIf(e -> e == null || !e.isValid());
+        if (currentSet.size() >= 2) return null;
+
+        ThreadLocalRandom rng = ThreadLocalRandom.current();
+        Location eye = player.getEyeLocation();
+        Vector offset = eye.getDirection().setY(0);
+        if (offset.lengthSquared() < 0.01) offset = new Vector(1, 0, 0);
+        offset.normalize().multiply(rng.nextDouble(3.2, 5.5));
+        offset.rotateAroundY(rng.nextDouble(-0.9, 0.9));
+        Location spawnLoc = player.getLocation().add(offset);
+        Vector toPlayer = player.getLocation().toVector().subtract(spawnLoc.toVector()).setY(0);
+        if (toPlayer.lengthSquared() > 0.01) spawnLoc.setDirection(toPlayer);
+
+        EntityType type = PHANTOM_MOB_TYPES[rng.nextInt(PHANTOM_MOB_TYPES.length)];
+        Entity spawned;
+        try {
+            spawned = player.getWorld().spawnEntity(spawnLoc, type);
+        } catch (Throwable ignored) {
+            return null;
+        }
+        if (spawned == null) return null;
+
+        try {
+            spawned.setVisibleByDefault(false);
+            player.showEntity(plugin, spawned);
+        } catch (Throwable ignored) {
+        }
+        spawned.setSilent(true);
+        spawned.setPersistent(false);
+        if (spawned instanceof Mob mob) {
+            mob.setAI(false);
+            mob.setAware(false);
+            mob.setCanPickupItems(false);
+            mob.setCollidable(false);
+            mob.setRemoveWhenFarAway(true);
+        }
+        if (spawned.getPersistentDataContainer() != null && uuid != null) {
+            spawned.getPersistentDataContainer().set(HALLUCINATION_KEY, PersistentDataType.STRING, uuid.toString());
+        }
+        currentSet.add(spawned);
+        if (spawned.getUniqueId() != null && uuid != null) {
+            hallucinationOwners.put(spawned.getUniqueId(), uuid);
+        }
+
+        try {
+            Sound cue = switch (type) {
+                case CREEPER -> Sound.ENTITY_CREEPER_PRIMED;
+                case ENDERMAN -> Sound.ENTITY_ENDERMAN_STARE;
+                case PHANTOM -> Sound.ENTITY_PHANTOM_SWOOP;
+                default -> Sound.ENTITY_WARDEN_NEARBY_CLOSER;
+            };
+            player.playSound(spawnLoc, cue, 0.85f, rng.nextFloat(0.65f, 1.25f));
+            player.spawnParticle(Particle.LARGE_SMOKE, spawnLoc.clone().add(0, 1.0, 0), 8, 0.25, 0.4, 0.25, 0.01);
+        } catch (Throwable ignored) {
+        }
+
+        final int[] ticks = {0};
+        final BukkitTask[] stalkTask = new BukkitTask[1];
+        stalkTask[0] = plugin.getServer().getScheduler().runTaskTimer(plugin, () -> {
+            ticks[0] += 4;
+            if (!player.isOnline() || player.isDead() || !spawned.isValid() || ticks[0] >= 80) {
+                if (stalkTask[0] != null) stalkTask[0].cancel();
+                vanishHallucination(player, spawned, false);
+                return;
+            }
+            if (!player.getWorld().equals(spawned.getWorld())) {
+                if (stalkTask[0] != null) stalkTask[0].cancel();
+                vanishHallucination(player, spawned, false);
+                return;
+            }
+            Location mobLoc = spawned.getLocation();
+            Location targetLoc = player.getLocation();
+            if (mobLoc.distanceSquared(targetLoc) <= 2.56) {
+                if (stalkTask[0] != null) stalkTask[0].cancel();
+                vanishHallucination(player, spawned, true);
+                return;
+            }
+            Vector step = targetLoc.toVector().subtract(mobLoc.toVector());
+            if (step.lengthSquared() > 0.01) {
+                Vector dir = step.clone().normalize();
+                Location next = mobLoc.clone().add(dir.clone().multiply(0.32));
+                next.setDirection(dir.setY(0));
+                spawned.teleport(next);
+            }
+            player.spawnParticle(Particle.SMOKE, spawned.getLocation().add(0, 1.0, 0), 2, 0.15, 0.3, 0.15, 0.0);
+        }, 4L, 4L);
+        if (stalkTask[0] != null && uuid != null) {
+            scheduleDrugTask(uuid, stalkTask[0]);
+        }
+        return spawned;
+    }
+
+    public boolean isHallucination(Entity entity) {
+        if (entity == null) return false;
+        if (entity.getUniqueId() != null && hallucinationOwners.containsKey(entity.getUniqueId())) return true;
+        return entity.getPersistentDataContainer() != null
+                && entity.getPersistentDataContainer().has(HALLUCINATION_KEY, PersistentDataType.STRING);
+    }
+
+    public void vanishHallucination(Player player, Entity entity, boolean whisper) {
+        if (entity == null) return;
+        UUID entityId = entity.getUniqueId();
+        UUID ownerId = entityId != null ? hallucinationOwners.remove(entityId) : null;
+        if (ownerId == null && player != null) ownerId = player.getUniqueId();
+        if (ownerId != null) {
+            Set<Entity> set = activeHallucinations.get(ownerId);
+            if (set != null) set.remove(entity);
+        }
+        Location loc = entity.getLocation();
+        if (entity.isValid()) {
+            entity.remove();
+        }
+        if (player != null && player.isOnline() && loc != null) {
+            try {
+                player.spawnParticle(Particle.LARGE_SMOKE, loc.clone().add(0, 1.0, 0), 16, 0.3, 0.5, 0.3, 0.03);
+                player.spawnParticle(Particle.SOUL, loc.clone().add(0, 1.0, 0), 6, 0.25, 0.4, 0.25, 0.02);
+                player.playSound(loc, Sound.ENTITY_ILLUSIONER_MIRROR_MOVE, 0.85f, 0.7f);
+            } catch (Throwable ignored) {
+            }
+            if (whisper) {
+                player.spigot().sendMessage(ChatMessageType.ACTION_BAR,
+                        TextComponent.fromLegacyText("§8§oThe hallucination dissolves into smoke... it wasn't real."));
+            }
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onHallucinationDamage(EntityDamageByEntityEvent event) {
+        Entity entity = event.getEntity();
+        if (isHallucination(entity)) {
+            event.setCancelled(true);
+            Player attacker = event.getDamager() instanceof Player p ? p : null;
+            vanishHallucination(attacker, entity, true);
+            return;
+        }
+        if (isHallucination(event.getDamager())) {
+            event.setCancelled(true);
+            vanishHallucination(null, event.getDamager(), false);
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onHallucinationInteract(PlayerInteractEntityEvent event) {
+        if (isHallucination(event.getRightClicked())) {
+            event.setCancelled(true);
+            vanishHallucination(event.getPlayer(), event.getRightClicked(), true);
+        }
+    }
+
+    /**
+     * Toggles the player's personal Actionbar HUD pulse on or off.
+     *
+     * @return true if HUD is now enabled for the player, false if disabled
+     */
+    public static boolean toggleHud(Player player) {
+        if (player == null || player.getPersistentDataContainer() == null) return false;
+        var pdc = player.getPersistentDataContainer();
+        if (pdc.has(HUD_DISABLED_KEY, PersistentDataType.BYTE)) {
+            pdc.remove(HUD_DISABLED_KEY);
+            return true;
+        }
+        pdc.set(HUD_DISABLED_KEY, PersistentDataType.BYTE, (byte) 1);
+        return false;
+    }
+
+    public static boolean isHudEnabledFor(Player player) {
+        if (player == null || !MechanicsConfig.isHudEnabled()) return false;
+        var pdc = player.getPersistentDataContainer();
+        return pdc == null || !pdc.has(HUD_DISABLED_KEY, PersistentDataType.BYTE);
+    }
+
+    void tickHud() {
+        if (!MechanicsConfig.isHudEnabled()) return;
+        for (Player player : plugin.getServer().getOnlinePlayers()) {
+            if (player == null || !player.isOnline() || player.isDead() || !isHudEnabledFor(player)) continue;
+            String hud = buildHudActionbar(player);
+            if (hud != null && !hud.isEmpty()) {
+                player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(hud));
+            }
+        }
+    }
+
+    public String buildHudActionbar(Player player) {
+        if (player == null) return null;
+        Map<String, DrugStatusTracker.Status> status = DrugStatusTracker.getStatus(player);
+        List<String> activeHighs = new ArrayList<>();
+        List<String> withdrawals = new ArrayList<>();
+        Set<String> activeDrugIds = new LinkedHashSet<>();
+
+        for (var entry : status.entrySet()) {
+            String key = entry.getKey();
+            if (key.startsWith(DrugStatusTracker.UNKNOWN_PREFIX)) continue;
+            var details = entry.getValue();
+            if (key.startsWith(DrugStatusTracker.WITHDRAWAL_PREFIX)) {
+                String drugId = key.substring(DrugStatusTracker.WITHDRAWAL_PREFIX.length());
+                DrugEffectProfile profile = DrugRegistry.getProfileById(drugId);
+                String name = profile != null ? ChatColor.stripColor(ChatColor.translateAlternateColorCodes('&', profile.getDisplayName())) : drugId;
+                String timer = details.remainingTicks() < 0 ? "active" : formatCompactTicks(details.remainingTicks());
+                withdrawals.add("§c☠ Withdrawal: " + name + " §7(" + timer + ")");
+            } else {
+                activeDrugIds.add(key.toLowerCase(Locale.ROOT));
+                DrugEffectProfile profile = DrugRegistry.getProfileById(key);
+                String name = profile != null ? ChatColor.translateAlternateColorCodes('&', profile.getDisplayName()) : "§e" + key;
+                String timer = details.delayTicks() > 0
+                        ? "onset " + formatCompactTicks(details.delayTicks())
+                        : formatCompactTicks(details.remainingTicks());
+                activeHighs.add("§d✦ " + name + " §7(" + timer + ")");
+            }
+        }
+
+        if (activeHighs.isEmpty() && withdrawals.isEmpty()) {
+            return null;
+        }
+
+        int bpm = computeHeartRateBpm(player, activeDrugIds, !withdrawals.isEmpty());
+        String bpmColor = bpm >= 165 ? "§4§l" : bpm >= 125 ? "§c" : bpm <= 58 ? "§9" : "§a";
+        String odBadge = "";
+        for (String drugId : activeDrugIds) {
+            if (!DrugRegistry.isDrugRegistered(drugId)) continue;
+            int level = ToleranceTracker.getToleranceLevel(player, drugId);
+            int max = ToleranceConfigLoader.getMaxTolerance(drugId);
+            if (level >= max) {
+                odBadge = " §4§l[⚠ OD LIMIT]";
+                break;
+            } else if (level >= Math.max(1, max - 1) && odBadge.isEmpty()) {
+                odBadge = " §6[Near OD]";
+            }
+        }
+
+        List<String> segments = new ArrayList<>();
+        segments.add(bpmColor + "❤ " + bpm + " BPM" + odBadge);
+        if (!activeHighs.isEmpty()) {
+            segments.add(String.join(" §8| ", activeHighs.subList(0, Math.min(2, activeHighs.size()))));
+        }
+        if (!withdrawals.isEmpty()) {
+            segments.add(withdrawals.getFirst());
+        }
+        return String.join(" §8• ", segments);
+    }
+
+    private int computeHeartRateBpm(Player player, Set<String> activeDrugs, boolean inWithdrawal) {
+        int bpm = 72;
+        for (String drug : activeDrugs) {
+            switch (drug) {
+                case "cocaine", "meth" -> bpm += 55;
+                case "molly", "caffeine", "energy_drink" -> bpm += 38;
+                case "nicotine", "vape", "cigarette", "cigar", "chewing_tobacco", "tobacco" -> bpm += 16;
+                case "lsd", "shrooms", "dmt", "salvia", "schizophrenia" -> bpm += 24;
+                case "heroin", "fent" -> bpm -= 22;
+                case "joint", "blunt", "edible", "cart" -> bpm += 10;
+                default -> bpm += 8;
+            }
+        }
+        if (inWithdrawal) bpm += 22;
+        UUID uuid = player.getUniqueId();
+        if (uuid != null && caffeineDoses.containsKey(uuid)) {
+            bpm += caffeineDoses.get(uuid) * 15;
+        }
+        return Math.clamp(bpm, 42, 220);
+    }
+
+    private static String formatCompactTicks(int ticks) {
+        int seconds = Math.max(0, (ticks + 19) / 20);
+        int mins = seconds / 60;
+        int secs = seconds % 60;
+        return mins > 0 ? mins + "m " + secs + "s" : secs + "s";
     }
 
     private void nudgePlayer(Player player, double strength) {
@@ -625,6 +952,15 @@ public class SensoryEffectManager implements Listener {
         edibleActivationTicks.remove(uuid);
         caffeineDoses.remove(uuid);
         lastCaffeineMillis.remove(uuid);
+        Set<Entity> hallucinations = activeHallucinations.remove(uuid);
+        if (hallucinations != null) {
+            for (Entity entity : hallucinations) {
+                if (entity != null) {
+                    if (entity.getUniqueId() != null) hallucinationOwners.remove(entity.getUniqueId());
+                    if (entity.isValid()) entity.remove();
+                }
+            }
+        }
         stopSchizophrenia(uuid);
         Player player = plugin.getServer().getPlayer(uuid);
         if (player != null && player.isOnline()) {
@@ -637,15 +973,21 @@ public class SensoryEffectManager implements Listener {
     }
 
     public void cleanupAll() {
+        if (hudTask != null) {
+            hudTask.cancel();
+            hudTask = null;
+        }
         Set<UUID> all = new HashSet<>();
         all.addAll(drugTasks.keySet());
         all.addAll(schizoTasks.keySet());
         all.addAll(edibleDelayTasks.keySet());
         all.addAll(morphedBlocks.keySet());
+        all.addAll(activeHallucinations.keySet());
         all.addAll(activeVignettes);
         for (UUID uuid : all) {
             cleanupPlayer(uuid);
         }
+        hallucinationOwners.clear();
     }
 
     @EventHandler

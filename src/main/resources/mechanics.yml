@@ -104,3 +104,9 @@ flavors:
 # Defaults to enabled in existing configs too; /drugs reload applies changes.
 chat-effects:
   enabled: true
+
+# Actionbar pulse HUD showing active high timers, heart rate (BPM), overdose risk,
+# and withdrawal countdowns while under the influence. Players can toggle their
+# personal HUD anytime with /drugs hud.
+hud:
+  enabled: true

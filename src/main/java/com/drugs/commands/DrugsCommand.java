@@ -105,9 +105,22 @@ public class DrugsCommand implements CommandExecutor {
         if (args[0].equalsIgnoreCase("status")) {
             if (args.length != 1) {
                 sender.sendMessage(ChatColor.RED + "Usage: /drugs status");
+            } else {
+                return DrugStatusCommand.show(sender);
+            }
+            return true;
+        }
+
+        if (args[0].equalsIgnoreCase("hud")) {
+            if (!(sender instanceof Player player)) {
+                sender.sendMessage(ChatColor.RED + "Only players can toggle their drug HUD.");
                 return true;
             }
-            return DrugStatusCommand.show(sender);
+            boolean enabled = com.drugs.effects.SensoryEffectManager.toggleHud(player);
+            player.sendMessage(enabled
+                    ? ChatColor.GREEN + "Drug Actionbar HUD enabled."
+                    : ChatColor.YELLOW + "Drug Actionbar HUD disabled.");
+            return true;
         }
 
         // Easter egg: /drugs schizo <player> [seconds|off]
@@ -241,6 +254,7 @@ public class DrugsCommand implements CommandExecutor {
             }
             sender.sendMessage(ChatColor.YELLOW + "/drugs growing" + ChatColor.GRAY + " - Learn how to grow crafting ingredients");
             sender.sendMessage(ChatColor.YELLOW + "/drugs purity" + ChatColor.GRAY + " - Learn how growing conditions and cauldron refining increase purity");
+            sender.sendMessage(ChatColor.YELLOW + "/drugs hud" + ChatColor.GRAY + " - Toggle the live heart rate & high timer actionbar HUD");
             sender.sendMessage(ChatColor.YELLOW + "/drugs help" + ChatColor.GRAY + " - Show this help menu");
             sender.sendMessage("");
             sender.sendMessage(ChatColor.DARK_RED + "⚠ Using drugs too often causes tolerance. Max tolerance = no effects!");

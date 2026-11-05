@@ -273,4 +273,16 @@ class CartelDealerTest {
         verify(journal).sold(player, "joint", 3);
     }
 
+    @Test void directMultiplierScalesDroppedSalePayoutByThreeTimes() {
+        CartelDealer dealer = new CartelDealer(plugin);
+        Player player = mock(Player.class);
+        Item item = dropped(drug("joint", "joint", null));
+        CartelDealer.Payments payments = mock(CartelDealer.Payments.class);
+        // 3 items * $15 base price * 3.0x direct cartel multiplier = $135
+        when(payments.deposit(player, 135.0)).thenReturn(true);
+        assertEquals(3, dealer.sellDropped(player, item, 16, payments, 3.0));
+        verify(payments).deposit(player, 135.0);
+        verify(item).remove();
+    }
+
 }
