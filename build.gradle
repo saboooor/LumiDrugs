@@ -1,44 +1,100 @@
 plugins {
-    id 'base'
-    id 'com.gradleup.shadow' version '9.6.1' apply false
+    id 'java-library'
+    id 'com.gradleup.shadow' version '9.6.1'
 }
 
-subprojects {
-    apply plugin: 'java-library'
+repositories {
+    mavenCentral()
+    maven { url = 'https://maven.citizensnpcs.co/repo' }
+    maven { url = 'https://repo.papermc.io/repository/maven-public/' }
+    maven { url = 'https://jitpack.io' }
+    maven { url = 'https://repo.extendedclip.com/content/repositories/placeholderapi/' }
+}
 
-    repositories {
-        mavenCentral()
-        maven { url = 'https://maven.citizensnpcs.co/repo' }
-        maven { url = 'https://repo.papermc.io/repository/maven-public/' }
-        maven { url = 'https://jitpack.io' }
-        maven { url = 'https://repo.extendedclip.com/content/repositories/placeholderapi/' }
-    }
+java {
+    toolchain.languageVersion = JavaLanguageVersion.of(21)
+}
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.release = 21
+}
 
-    java {
-        toolchain.languageVersion = JavaLanguageVersion.of(21)
-    }
-    tasks.withType(JavaCompile).configureEach {
-        options.encoding = 'UTF-8'
-        options.release = 21
-    }
+configurations {
+    mockitoAgent
+    testImplementation.extendsFrom compileOnly
+}
+dependencies {
+    compileOnly('net.citizensnpcs:citizens-main:2.0.35-SNAPSHOT') { transitive = false }
+    compileOnly 'io.papermc.paper:paper-api:1.21.10-R0.1-SNAPSHOT'
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.11.4'
+    testImplementation 'org.mockito:mockito-core:5.23.0'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    mockitoAgent('org.mockito:mockito-core:5.23.0') { transitive = false }
+}
+tasks.withType(Test).configureEach {
+    useJUnitPlatform()
+    jvmArgs "-javaagent:${configurations.mockitoAgent.singleFile}"
+}
+group = 'com.drugs'
+version = '2.0.0'
 
-    configurations {
-        mockitoAgent
-        testImplementation.extendsFrom compileOnly
-    }
-    dependencies {
-        compileOnly('net.citizensnpcs:citizens-main:2.0.35-SNAPSHOT') { transitive = false }
-        compileOnly 'io.papermc.paper:paper-api:1.21.10-R0.1-SNAPSHOT'
-        testImplementation 'org.junit.jupiter:junit-jupiter:5.11.4'
-        testImplementation 'org.mockito:mockito-core:5.23.0'
-        testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-        mockitoAgent('org.mockito:mockito-core:5.23.0') { transitive = false }
-    }
-    tasks.withType(Test).configureEach {
-        useJUnitPlatform()
-        jvmArgs "-javaagent:${configurations.mockitoAgent.singleFile}"
+// Compile against the official release; the Maven repository has no published 2.0 API.
+repositories {
+    ivy {
+        url = 'https://github.com/SkytAsul/BeautyQuests/releases/download'
+        patternLayout { artifact '[revision]/[artifact]-[revision].[ext]' }
+        metadataSources { artifact() }
+        content { includeGroup 'fr.skytasul.release' }
     }
 }
 
-tasks.named('build') { dependsOn subprojects.collect { it.tasks.named('build') } }
-tasks.named('clean') { dependsOn subprojects.collect { it.tasks.named('clean') } }
+dependencies {
+    compileOnly('fr.skytasul.release:beautyquests:2.0.0') { transitive = false }
+    testImplementation 'commons-lang:commons-lang:2.6'
+    compileOnly 'com.github.MilkBowl:VaultAPI:1.7.1'
+    compileOnly 'me.clip:placeholderapi:2.11.5'
+}
+
+tasks.named('processResources') {
+    inputs.property('version', project.version)
+    filesMatching('plugin.yml') {
+        filter { line -> line.replace('${project.version}', project.version.toString()) }
+    }
+}
+
+tasks.named('jar') { archiveClassifier = 'plain' }
+tasks.named('shadowJar') {
+    archiveFileName = 'LumiDrugs.jar'
+}
+tasks.named('assemble') { dependsOn tasks.named('shadowJar') }
+
+// Validate the deployable artifact as well as the compiled classes used by tests.
+def verifyPluginJar = tasks.register('verifyPluginJar') {
+    dependsOn tasks.named('shadowJar')
+    inputs.file(tasks.named('shadowJar').flatMap { it.archiveFile })
+    inputs.files(sourceSets.main.output.classesDirs)
+    doLast {
+        def archive = tasks.named('shadowJar').get().archiveFile.get().asFile
+        new java.util.zip.ZipFile(archive).withCloseable { zip ->
+            def missing = []
+            sourceSets.main.output.classesDirs.each { directory ->
+                fileTree(directory).matching { include '**/*.class' }.each { compiled ->
+                    def entry = directory.toPath().relativize(compiled.toPath()).toString().replace('\\', '/')
+                    if (zip.getEntry(entry) == null) missing.add(entry)
+                }
+            }
+            ['plugin.yml', 'com/drugs/DrugsV2.class', 'com/drugs/recipes/RecipeUpdates.class',
+             'com/drugs/recipes/BrewingRecipes.class', 'com/drugs/recipes/FlavorInfusionListener.class'].each { entry ->
+                if (zip.getEntry(entry) == null) missing.add(entry)
+            }
+            def bundledFollowing = zip.entries().findAll { entry ->
+                entry.name.startsWith('com/drugs/internal/pursuit/') ||
+                        entry.name.startsWith('io/github/saboooor/lumifollow/')
+            }
+            if (!bundledFollowing.isEmpty()) throw new GradleException('LumiDrugs must not bundle LumiFollow movement classes')
+            if (!missing.isEmpty()) throw new GradleException("Incomplete plugin JAR: ${missing.unique().join(', ')}")
+            logger.lifecycle("Verified all plugin classes are packaged in ${archive.name}")
+        }
+    }
+}
+tasks.named('check') { dependsOn verifyPluginJar }

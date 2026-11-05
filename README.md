@@ -1,5 +1,8 @@
 # LumiDrugs Plugin
 
+Build LumiDrugs with `./gradlew clean build`; the plugin JAR is `build/libs/LumiDrugs.jar`.
+LumiFollow is maintained and built independently at https://github.com/saboooor/LumiFollow.
+
 LumiDrugs Plugin is a heavily expanded survival/PvP gameplay system built around **powerful consumables**, **tolerance**, **addiction**, **withdrawal**, **overdose risk**, **cures**, **cannabis strains**, **bong/cart durability**, and **player achievements**.
 
 ---
@@ -327,7 +330,7 @@ in `cartel.yml`, then use `/cartel reload`. Movement is controlled by the quest 
 standalone LumiFollow plugin for following, climbing and recovery. LumiDrugs only supplies
 the NPC entity UUID as quest data and has no LumiFollow code or plugin dependency. Old
 `enforcer.wall-climbing` and `enforcer.open-doors` keys in `cartel.yml` are ignored; move any
-custom settings into the quest option. See [LumiFollow setup](lumifollow/README.md).
+custom settings into the quest option. See [LumiFollow setup](https://github.com/saboooor/LumiFollow#readme).
 
 Advanced: to use a different quest, set `enforcer.beautyquests-quest-id` to its ID and run
 `/cartel reload`. The quest must be valid, repeatable and cancellable, with individual player
@@ -391,8 +394,8 @@ Production code lives in `src/main/java/com/drugs`, grouped by feature: `farm`, 
 
 ## Quest-controlled NPC following
 
-Cartel enforcer movement is owned by the independent [LumiFollow](lumifollow/README.md)
+Cartel enforcer movement is owned by the independent [LumiFollow](https://github.com/saboooor/LumiFollow#readme)
 BeautyQuests option configured in the quest YAML. LumiDrugs manages the delivery objective
 and publishes its NPC entity UUID; it does not bundle or depend on LumiFollow. Install
-`lumifollow/build/libs/LumiFollow.jar` to enable movement for quests using that option.
+`LumiFollow.jar` from the [LumiFollow repository](https://github.com/saboooor/LumiFollow) to enable movement for quests using that option.
 LumiFollow depends on Citizens and BeautyQuests and can be used without LumiDrugs.
