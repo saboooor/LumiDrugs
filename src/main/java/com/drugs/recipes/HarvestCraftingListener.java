@@ -18,6 +18,9 @@ public final class HarvestCraftingListener implements Listener {
         if (!(recipe instanceof org.bukkit.Keyed keyed)
             || !keyed.getKey().getNamespace().equals(DrugsV2.getInstance().getName().toLowerCase(java.util.Locale.ROOT))) return true;
         String id = keyed.getKey().getKey();
+        for (ItemStack item : matrix) {
+            if (item != null && item.hasItemMeta() && DrugItemMetadata.getLacedDrug(item.getItemMeta()) != null) return false;
+        }
         if (id.equals("vape")) return containsOnlyRequired(matrix, "vape_liquid", false);
         if (id.equals("cart") || id.startsWith("cart_strain_"))
             return containsOnlyRequired(matrix, "cannabis_extract", false);

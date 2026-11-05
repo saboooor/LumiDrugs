@@ -25,6 +25,7 @@ public final class DrugLacing {
         ItemStack result = base.clone();
         var meta = result.getItemMeta();
         DrugItemMetadata.setLacedDrug(meta, additive.getId(), DrugItemMetadata.getStrainId(ingredient));
+        DrugPurity.storeLacing(meta, ingredient);
         result.setItemMeta(meta);
         return result;
     }
@@ -37,7 +38,9 @@ public final class DrugLacing {
         String id = DrugItemMetadata.getLacedDrug(meta);
         if (id == null || id.equalsIgnoreCase(DrugItemMetadata.getDrugId(meta))) return null;
         if (DrugRegistry.getProfileById(id) == null) return null;
-        return DrugRegistry.getDrugItem(id, 1, DrugItemMetadata.getLacedStrain(meta));
+        var dose = DrugRegistry.getDrugItem(id, 1, DrugItemMetadata.getLacedStrain(meta));
+        DrugPurity.restoreLacing(meta, dose);
+        return dose;
     }
 
     /** Multi-use items expend the added dose on their next puff. */

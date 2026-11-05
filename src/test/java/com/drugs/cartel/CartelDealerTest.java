@@ -156,6 +156,19 @@ class CartelDealerTest {
         verify(payment).deposit(player, 45);
     }
 
+    @Test void purityScalesStrainPriceBeforeDealerPreferenceBonus() {
+        var joint = drug("joint", "joint", "reggie");
+        when(joint.getItemMeta().getPersistentDataContainer().get(new NamespacedKey(plugin, "purity"), PersistentDataType.INTEGER)).thenReturn(100);
+        prices.set("strain-prices.joint.reggie", 18.0);
+        assertEquals(20.0, CartelDealer.price(joint, prices), 0.00001);
+        var player = mock(Player.class);
+        var payment = mock(CartelDealer.Payments.class);
+        when(payment.deposit(player, 75)).thenReturn(true);
+        var offer = new DealerPreferences.Offer("joint", null, 1.5, Long.MAX_VALUE);
+        assertEquals(3, new CartelDealer(plugin).sellDropped(player, dropped(joint), 3, payment, offer));
+        verify(payment).deposit(player, 75);
+    }
+
     @Test void nearbyBuyerUsesItsOwnPreferenceWhenCollectingDrops() {
         var dealer = spy(new CartelDealer(plugin));
         var payment = mock(CartelDealer.Payments.class);

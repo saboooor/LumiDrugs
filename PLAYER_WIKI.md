@@ -360,3 +360,24 @@ added drug's own strain, tolerance, addiction and overdose behavior. On a vape o
 cartridge, that added dose applies on the next puff only; later puffs remain normal.
 One item can carry one additional drug, and already-laced items cannot be laced again
 or used as lacing ingredients. Flavoring a product keeps its hidden lacing data.
+
+
+### Purity and refining
+
+Ordinary production starts at **90% purity**, which preserves the previous effect
+durations and prices. Older items without a purity tag also count as 90%.
+
+Hold one drug in your main hand and vanilla quartz in your offhand, then
+sneak-right-click an empty or water cauldron. Each quartz raises its purity by
+**5 points**, up to **100%**. The purity appears in its lore. Refining keeps its
+flavor, strain, remaining uses, and hidden lacing.
+
+Duration and sale value scale by `purity / 90`: 95% gives about **5.6%** more,
+and 100% gives about **11.1%** more. Dealer preference bonuses apply afterward.
+Crafting and processing carry ingredient quality forward. For example, refined
+95% nicotine makes 95% vape liquid, which makes a 95% vape. Equal-grade products
+stack normally. No extra random quality roll occurs when reopening a recipe.
+
+Lacing keeps the added dose's own quality separately; its identity stays hidden.
+Laced products cannot be processed into a different product that would erase
+that added dose. Flavoring and refining them preserve it.

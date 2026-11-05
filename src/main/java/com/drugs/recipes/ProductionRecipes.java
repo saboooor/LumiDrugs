@@ -44,6 +44,7 @@ public final class ProductionRecipes {
             DrugItemMetadata.setStrainId(meta, strain);
             DrugItemMetadata.applyStrainLore(meta, StrainConfigLoader.getStrain(strain));
         }
+        com.drugs.drug.DrugPurity.set(meta, com.drugs.drug.DrugPurity.BASELINE);
         item.setItemMeta(meta);
         return item;
     }
@@ -137,7 +138,8 @@ public final class ProductionRecipes {
             if (id.equals("cigarette")) recipe.shape(" PT", "   ", "   ");
             else recipe.shape("TTT", "LLL", "   ").setIngredient('L', Material.LEAF_LITTER);
             if (id.equals("cigarette")) recipe.setIngredient('P', Material.PAPER);
-            recipe.setIngredient('T', new RecipeChoice.ExactChoice(tobacco));
+            // Metadata-sensitive validation runs in HarvestCraftingListener.
+            recipe.setIngredient('T', tobacco.getType());
             add(id, recipe);
         }
         ItemStack nicotine = DrugRegistry.getDrugItem("nicotine", 1);
@@ -148,7 +150,7 @@ public final class ProductionRecipes {
             ShapedRecipe recipe = new ShapedRecipe(key("vape"), vape).shape(" G ", "RSB", " C ")
                     .setIngredient('G', Material.GLASS).setIngredient('R', Material.REDSTONE)
                     .setIngredient('B', Material.STONE_BUTTON).setIngredient('C', Material.COPPER_INGOT)
-                    .setIngredient('S', new RecipeChoice.ExactChoice(intermediate("vape_liquid", null)));
+                    .setIngredient('S', Material.POTION);
             add("vape", recipe);
         }
         ItemStack caffeine = DrugRegistry.getDrugItem("caffeine", 1);

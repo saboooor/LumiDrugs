@@ -40,6 +40,7 @@ class DrugLacingTest {
                 when(profile.getId()).thenReturn(id);
                 when(profile.matches(any())).thenReturn(true);
                 registry.when(() -> DrugRegistry.getProfileById(id)).thenReturn(profile);
+                registry.when(() -> DrugRegistry.isDrugRegistered(id)).thenReturn(true);
             }
         }
     }
@@ -71,10 +72,13 @@ class DrugLacingTest {
         when(meta.getLore()).thenReturn(List.of("Flavor: Mint", "Durability: 7/32"));
         when(data.get(any(), eq(PersistentDataType.STRING))).thenAnswer(call -> values.get(call.getArgument(0)));
         when(data.get(any(), eq(PersistentDataType.BYTE))).thenAnswer(call -> values.get(call.getArgument(0)));
+        when(data.get(any(), eq(PersistentDataType.INTEGER))).thenAnswer(call -> values.get(call.getArgument(0)));
         doAnswer(call -> { values.put(call.getArgument(0), call.getArgument(2)); return null; })
                 .when(data).set(any(), eq(PersistentDataType.STRING), anyString());
         doAnswer(call -> { values.put(call.getArgument(0), call.getArgument(2)); return null; })
                 .when(data).set(any(), eq(PersistentDataType.BYTE), anyByte());
+        doAnswer(call -> { values.put(call.getArgument(0), call.getArgument(2)); return null; })
+                .when(data).set(any(), eq(PersistentDataType.INTEGER), anyInt());
         doAnswer(call -> { values.remove(call.getArgument(0)); return null; }).when(data).remove(any());
         when(item.clone()).thenAnswer(call -> sample(new HashMap<>(values), amount.get()).item());
         return new Sample(item, meta, values);
@@ -138,5 +142,65 @@ class DrugLacingTest {
         assertNull(DrugLacing.additionalDose(host.item()));
         DrugItemMetadata.setLacedDrug(host.meta(), "vape", null);
         assertNull(DrugLacing.additionalDose(host.item()));
+    }
+
+    @Test void purityRefiningKeepsLacingFlavorAndDurabilityWhileClampingAtOneHundred() {
+        var host = drug("vape", 1);
+        DrugItemMetadata.setLacedDrug(host.meta(), "meth", null);
+        host.data().put(key("flavor"), "mint");
+        host.data().put(key("cart_durability"), 7);
+        assertEquals(90, DrugPurity.get(host.item()));
+        var refined = DrugPurity.refine(host.item());
+        assertNotNull(refined);
+        assertEquals(95, DrugPurity.get(refined));
+        assertEquals(90, DrugPurity.get(host.item()));
+        assertEquals("meth", DrugItemMetadata.getLacedDrug(refined.getItemMeta()));
+        assertEquals("mint", refined.getItemMeta().getPersistentDataContainer().get(key("flavor"), PersistentDataType.STRING));
+        assertEquals(7, refined.getItemMeta().getPersistentDataContainer().get(key("cart_durability"), PersistentDataType.INTEGER));
+        var pure = DrugPurity.refine(refined);
+        assertEquals(100, DrugPurity.get(pure));
+        assertNull(DrugPurity.refine(pure));
+        assertNull(DrugPurity.refine(drug("joint", 2).item()));
+        assertNull(DrugPurity.refine(drug(null, 1).item()));
+    }
+
+    @Test void purityCombinesConsumedIngredientsRatherThanEntireStackAmounts() {
+        var high = drug("joint", 64);
+        var low = drug("meth", 1);
+        high.data().put(key("purity"), 100);
+        low.data().put(key("purity"), 80);
+        assertEquals(90, DrugPurity.combined(high.item(), low.item(), drug(null, 1).item()));
+        var result = DrugPurity.propagate(drug("vape", 1).item(), high.item());
+        assertEquals(100, DrugPurity.get(result));
+        assertEquals(100 / 90.0, DrugPurity.multiplier(result));
+        assertEquals(90, DrugPurity.get(drug("joint", 1).item()));
+        low.data().put(key("purity"), -20);
+        assertEquals(1, DrugPurity.get(low.item()));
+        high.data().put(key("purity"), 200);
+        assertEquals(100, DrugPurity.get(high.item()));
+    }
+
+    @Test void lacingRetainsIndependentHiddenDosePurity() {
+        var host = drug("vape", 1);
+        var donor = drug("meth", 1);
+        host.data().put(key("purity"), 95);
+        donor.data().put(key("purity"), 75);
+        var laced = DrugLacing.lace(host.item(), donor.item());
+        assertEquals(95, DrugPurity.get(laced));
+        var dose = drug("meth", 1).item();
+        registry.when(() -> DrugRegistry.getDrugItem("meth", 1, null)).thenReturn(dose);
+        assertEquals(75, DrugPurity.get(DrugLacing.additionalDose(laced)));
+        assertEquals(95, DrugPurity.get(laced));
+        verify(laced.getItemMeta(), never()).setLore(any());
+    }
+
+    @Test void disablingPurityKeepsEffectsAndSaleMultipliersNeutral() {
+        var item = drug("joint", 1).item();
+        try (var mechanics = mockStatic(com.drugs.config.MechanicsConfig.class)) {
+            mechanics.when(com.drugs.config.MechanicsConfig::isPurityEnabled).thenReturn(false);
+            assertEquals(1, DrugPurity.multiplier(item));
+            assertNull(DrugPurity.refine(item));
+            assertSame(item, DrugPurity.propagate(item, item));
+        }
     }
 }

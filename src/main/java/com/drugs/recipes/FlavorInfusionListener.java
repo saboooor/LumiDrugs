@@ -35,6 +35,21 @@ public final class FlavorInfusionListener implements Listener {
             return;
         }
         var ingredient = inventory.getItemInOffHand();
+        if (com.drugs.config.MechanicsConfig.isPurityEnabled() && ingredient != null
+                && ingredient.getType() == com.drugs.config.MechanicsConfig.getPurityRefiningIngredient()
+                && !ingredient.hasItemMeta()) {
+            var result = com.drugs.drug.DrugPurity.refine(product);
+            if (result == null) {
+                player.sendMessage("§eThis product cannot be refined further.");
+                return;
+            }
+            var remaining = ingredient.clone();
+            remaining.setAmount(ingredient.getAmount() - 1);
+            inventory.setItemInOffHand(remaining.getAmount() == 0 ? null : remaining);
+            inventory.setItemInMainHand(result);
+            player.sendMessage("§aPurity: " + com.drugs.drug.DrugPurity.get(result) + "%.");
+            return;
+        }
         if (ingredient != null && ingredient.hasItemMeta()
                 && com.drugs.items.DrugItemMetadata.getDrugId(ingredient.getItemMeta()) != null) {
             var result = com.drugs.drug.DrugLacing.lace(product, ingredient);

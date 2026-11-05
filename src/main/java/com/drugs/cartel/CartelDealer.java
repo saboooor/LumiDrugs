@@ -185,6 +185,7 @@ public final class CartelDealer implements Listener, CommandExecutor, TabComplet
         double value = prices.getDouble("prices." + drug, 0);
         String strain = DrugItemMetadata.getStrainId(meta);
         if (strain != null) value = prices.getDouble("strain-prices." + drug + "." + strain, value);
+        value *= com.drugs.drug.DrugPurity.multiplier(item);
         return Double.isFinite(value) && value > 0 ? value : 0;
     }
 
