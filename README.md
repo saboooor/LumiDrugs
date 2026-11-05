@@ -213,7 +213,7 @@ Drug milestones appear in the Drugs tab of Minecraft’s native Advancements scr
 
 The `notifications.chat_message` setting controls vanilla chat announcements, and `notifications.sound` controls native unlock toasts (including their sound). Legacy fireworks and unlock prefixes are no longer used.
 
-Supported trigger styles include first use, all drugs used, max tolerance behavior, crafting-based triggers, use-count triggers, and overdose outcomes.
+Supported trigger styles include first use, all drugs used, max tolerance behavior, overdose outcomes, using addiction cures, hitting bongs, planting and harvesting crops (including harvesting all crop types), mutating and harvesting rare cannabis strains, automating farms (placing controllers and assigning workers), crafting drugs, refining purity (including reaching 100% purity), infusing flavors, lacing drugs, and cartel activities (street sales, fulfilling enforcer demands, and completing supply contracts).
 
 ---
 

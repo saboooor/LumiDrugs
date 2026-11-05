@@ -121,4 +121,22 @@ class ProductionRecipesTest {
             }
         }
     }
+
+    @Test void nicotineCannotFallBackToVanillaMundanePotion() {
+        ItemStack water = item(Material.POTION, null, null, true);
+        when(((PotionMeta) water.getItemMeta()).getBasePotionType()).thenReturn(PotionType.WATER);
+        ItemStack nicotine = item(Material.SUGAR, "drug", null, false);
+        when(nicotine.getItemMeta().getPersistentDataContainer().get(
+                new NamespacedKey(plugin, "drug_id"), PersistentDataType.STRING)).thenReturn("nicotine");
+        var inventory = mock(BrewerInventory.class);
+        when(inventory.getIngredient()).thenReturn(nicotine);
+        when(inventory.getItem(0)).thenReturn(water);
+        var event = mock(BrewEvent.class);
+        when(event.getContents()).thenReturn(inventory);
+        when(event.getResults()).thenReturn(new ArrayList<>(List.of(mock(ItemStack.class))));
+
+        new ProductionBrewingListener().onBrew(event);
+
+        verify(event).setCancelled(true);
+    }
 }

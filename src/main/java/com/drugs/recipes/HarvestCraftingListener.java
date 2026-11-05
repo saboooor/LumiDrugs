@@ -1,6 +1,7 @@
 package com.drugs.recipes;
 
 import com.drugs.DrugsV2;
+import com.drugs.achievements.AchievementManager;
 import com.drugs.drug.DrugRegistry;
 import com.drugs.growing.DrugGrowing;
 import com.drugs.items.DrugItemMetadata;
@@ -72,6 +73,18 @@ public final class HarvestCraftingListener implements Listener {
     }
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void craft(CraftItemEvent event) {
-        if (!valid(event.getInventory())) { event.setCancelled(true); event.getInventory().setResult(null); }
+        if (!valid(event.getInventory())) { event.setCancelled(true); event.getInventory().setResult(null); return; }
+        if (!(event.getWhoClicked() instanceof org.bukkit.entity.Player player)) return;
+        if (!(event.getRecipe() instanceof org.bukkit.Keyed keyed)
+                || !keyed.getKey().getNamespace().equals(DrugsV2.getInstance().getName().toLowerCase(java.util.Locale.ROOT))) return;
+        String key = keyed.getKey().getKey();
+        int strainIdx = key.indexOf("_strain_");
+        String drugId = strainIdx > 0 ? key.substring(0, strainIdx) : key;
+        if (DrugRegistry.isDrugRegistered(drugId)) {
+            java.util.Map<String, Object> context = AchievementManager.createContext();
+            context.put("drug_id", drugId);
+            AchievementManager.processTrigger(player, "craft_drug", context);
+            AchievementManager.processTrigger(player, "craft_specific", context);
+        }
     }
 }

@@ -13,6 +13,9 @@ public class CustomAchievement {
     private final String trigger;
     private final Material icon;
     private final Material completedIcon;
+    private final String drugId;
+    private final String cropId;
+    private final int count;
     
     /**
      * Creates a new custom achievement
@@ -26,12 +29,21 @@ public class CustomAchievement {
      */
     public CustomAchievement(String id, String defaultTitle, String defaultDescription, 
                             String trigger, Material icon, Material completedIcon) {
+        this(id, defaultTitle, defaultDescription, trigger, icon, completedIcon, null, null, 0);
+    }
+
+    public CustomAchievement(String id, String defaultTitle, String defaultDescription,
+                            String trigger, Material icon, Material completedIcon,
+                            String drugId, String cropId, int count) {
         this.id = id;
         this.defaultTitle = defaultTitle;
         this.defaultDescription = defaultDescription;
         this.trigger = trigger;
         this.icon = icon;
         this.completedIcon = completedIcon;
+        this.drugId = drugId;
+        this.cropId = cropId;
+        this.count = count;
     }
     
     /**
@@ -74,6 +86,18 @@ public class CustomAchievement {
      */
     public Material getCompletedIcon() {
         return completedIcon;
+    }
+
+    public String getDrugId() {
+        return drugId;
+    }
+
+    public String getCropId() {
+        return cropId;
+    }
+
+    public int getCount() {
+        return count;
     }
     
     /**

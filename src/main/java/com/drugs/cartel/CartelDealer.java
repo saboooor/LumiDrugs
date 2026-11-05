@@ -181,7 +181,10 @@ public final class CartelDealer implements Listener, CommandExecutor, TabComplet
                     String product = DrugItemMetadata.getDrugId(item.getItemStack().getItemMeta());
                     int sold = sellDropped(player, item, item.getItemStack().getAmount(), payments, offer(entity));
                     var journal = plugin.getProductionJournal();
-                    if (sold > 0 && journal != null) journal.sold(player, product, sold);
+                    if (sold > 0) {
+                        if (journal != null) journal.sold(player, product, sold);
+                        com.drugs.achievements.AchievementManager.processTrigger(player, "cartel_sale");
+                    }
                 }
                 return true;
             }

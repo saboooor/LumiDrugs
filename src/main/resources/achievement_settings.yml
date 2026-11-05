@@ -36,4 +36,89 @@ achievements:
   clean-slate:
     enabled: true
     title: "&eClean Slate"
-    description: "&7Let a maxed drug's tolerance decay to 0" 
+    description: "&7Let a maxed drug's tolerance decay to 0"
+
+  green-thumb:
+    enabled: true
+    title: "&aGreen Thumb"
+    description: "&7Plant your first drug crop on hydrated farmland"
+
+  first-harvest:
+    enabled: true
+    title: "&2First Harvest"
+    description: "&7Harvest a mature drug crop"
+
+  master-botanist:
+    enabled: true
+    title: "&aMaster Botanist"
+    description: "&7Harvest every type of drug crop at least once"
+
+  strain-mutator:
+    enabled: true
+    title: "&dGeneticist"
+    description: "&7Harvest a mutated cannabis strain from a mature plant"
+
+  rare-strain:
+    enabled: true
+    title: "&5Exotic Cultivator"
+    description: "&7Harvest or mutate a rare, epic, or legendary cannabis strain"
+
+  industrial-grower:
+    enabled: true
+    title: "&6Industrial Grower"
+    description: "&7Place a Farm Controller to automate crop production"
+
+  hired-help:
+    enabled: true
+    title: "&eHired Help"
+    description: "&7Assign a villager worker to a farm using a Work Contract"
+
+  home-chemist:
+    enabled: true
+    title: "&bHome Chemist"
+    description: "&7Craft a drug item for the first time"
+
+  pure-product:
+    enabled: true
+    title: "&bCrystal Clear"
+    description: "&7Refine a drug to increase its purity at a cauldron"
+
+  master-refiner:
+    enabled: true
+    title: "&9Heisenberg"
+    description: "&7Refine a drug to 100% purity"
+
+  flavor-infuser:
+    enabled: true
+    title: "&dConfections & Terpenes"
+    description: "&7Infuse a product with a flavor variant at a cauldron"
+
+  secret-ingredient:
+    enabled: true
+    title: "&8Secret Ingredient"
+    description: "&7Lace one drug with another at a cauldron"
+
+  bong-rip:
+    enabled: true
+    title: "&3Bong Rip"
+    description: "&7Take a hit from a placed glass bong"
+
+  road-to-recovery:
+    enabled: true
+    title: "&aRoad to Recovery"
+    description: "&7Treat withdrawal using a cure item or rest"
+
+  street-dealer:
+    enabled: true
+    title: "&2Street Dealer"
+    description: "&7Sell drugs to a cartel buyer"
+
+  cartel-associate:
+    enabled: true
+    title: "&4Cartel Associate"
+    description: "&7Fulfill a cartel enforcer's delivery demand"
+
+  contract-fulfilled:
+    enabled: true
+    title: "&6Reliable Supplier"
+    description: "&7Complete a cartel supply contract"

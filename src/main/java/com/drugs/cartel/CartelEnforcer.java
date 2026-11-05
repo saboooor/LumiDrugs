@@ -411,6 +411,7 @@ public final class CartelEnforcer implements Listener {
             }
             player.getPersistentDataContainer().remove(refusalsKey);
             say(player, encounter, "success", "&2Cartel: &aGood. We can do business. You're clear.", 0);
+            com.drugs.achievements.AchievementManager.processTrigger(player, "cartel_enforcer_complete");
             finish(player.getUniqueId());
         } else if (sold > 0) {
             player.sendMessage(ChatColor.GREEN + "Delivered " + encounter.delivered + "/" + encounter.amount + " "

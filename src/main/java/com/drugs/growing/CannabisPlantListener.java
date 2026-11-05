@@ -1,6 +1,8 @@
 package com.drugs.growing;
 
 import com.drugs.DrugsV2;
+import com.drugs.achievements.AchievementManager;
+import com.drugs.achievements.NativeAdvancements;
 import com.drugs.items.DrugItemMetadata;
 import com.drugs.strains.StrainConfigLoader;
 import com.drugs.strains.StrainProfile;
@@ -80,7 +82,13 @@ public class CannabisPlantListener implements Listener {
     @EventHandler(priority = org.bukkit.event.EventPriority.MONITOR, ignoreCancelled = true)
     public void onPlace(BlockPlaceEvent event) {
         if (event.getItemInHand().getType() == Material.FERN
-                && applyPlacedCannabis(event.getBlockPlaced(), event.getItemInHand())) growing.trackCannabis(event.getBlockPlaced());
+                && applyPlacedCannabis(event.getBlockPlaced(), event.getItemInHand())) {
+            growing.trackCannabis(event.getBlockPlaced());
+            java.util.Map<String, Object> context = AchievementManager.createContext();
+            context.put("crop_id", "cannabis");
+            AchievementManager.processTrigger(event.getPlayer(), "plant_crop", context);
+            AchievementManager.processTrigger(event.getPlayer(), "plant_specific_crop", context);
+        }
     }
 
     @EventHandler(priority = org.bukkit.event.EventPriority.HIGHEST, ignoreCancelled = true)
@@ -99,6 +107,31 @@ public class CannabisPlantListener implements Listener {
             Item droppedItem = result.getRootBlock().getWorld().dropItemNaturally(result.getRootBlock().getLocation().add(0.5, 0.2, 0.5), drop);
             droppedItem.setPickupDelay(10);
         }
+
+        if (event.getPlayer() != null && result.getDrops().size() >= 2) {
+            String childStrain = DrugItemMetadata.getStrainId(result.getDrops().get(0));
+            String parentStrain = DrugItemMetadata.getStrainId(result.getDrops().get(1));
+            java.util.Map<String, Object> context = AchievementManager.createContext();
+            context.put("crop_id", "cannabis");
+            AchievementManager.processTrigger(event.getPlayer(), "harvest_crop", context);
+            AchievementManager.processTrigger(event.getPlayer(), "harvest_specific_crop", context);
+            NativeAdvancements.trackCrop(event.getPlayer(), "cannabis");
+
+            if (childStrain != null && parentStrain != null && !childStrain.equalsIgnoreCase(parentStrain)) {
+                AchievementManager.processTrigger(event.getPlayer(), "mutate_strain", context);
+            }
+            if (isRareOrHigher(parentStrain) || isRareOrHigher(childStrain)) {
+                AchievementManager.processTrigger(event.getPlayer(), "harvest_rare_strain", context);
+            }
+        }
+    }
+
+    private static boolean isRareOrHigher(String strainId) {
+        if (strainId == null) return false;
+        StrainProfile strain = StrainConfigLoader.getStrain(strainId);
+        if (strain == null || strain.getRarity() == null) return false;
+        String rarity = strain.getRarity().toLowerCase(java.util.Locale.ROOT);
+        return rarity.equals("rare") || rarity.equals("epic") || rarity.equals("legendary");
     }
 
     @EventHandler

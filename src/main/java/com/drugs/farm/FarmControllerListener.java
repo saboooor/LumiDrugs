@@ -2,6 +2,7 @@ package com.drugs.farm;
 
 import com.drugs.ui.DialogView;
 
+import com.drugs.achievements.AchievementManager;
 import com.drugs.items.DrugItemMetadata;
 import com.drugs.DrugsV2;
 import com.drugs.ui.Dialogs;
@@ -81,6 +82,7 @@ public class FarmControllerListener implements Listener {
         }
         manager.save();
         event.getPlayer().sendMessage(ChatColor.GREEN + "Farm controller created (ID " + farm.getFarmId() + ").");
+        AchievementManager.processTrigger(event.getPlayer(), "place_farm_controller");
     }
 
     @EventHandler(ignoreCancelled = true)
@@ -304,6 +306,7 @@ public class FarmControllerListener implements Listener {
 
         decrementHeld(event.getPlayer());
         event.getPlayer().sendMessage(ChatColor.LIGHT_PURPLE + "Villager assigned to farm " + farm.getFarmId() + ".");
+        AchievementManager.processTrigger(event.getPlayer(), "assign_farm_worker");
         event.setCancelled(true);
     }
 

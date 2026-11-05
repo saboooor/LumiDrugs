@@ -156,6 +156,7 @@ public class BongListener implements Listener {
 
         cooldowns.put(player.getUniqueId().toString(), System.currentTimeMillis());
         player.playSound(player.getLocation(), Sound.BLOCK_BUBBLE_COLUMN_BUBBLE_POP, 1.0f, 1.25f);
+        com.drugs.achievements.AchievementManager.processTrigger(player, "bong_hit");
         StrainProfile strain = StrainConfigLoader.getStrain(strainId);
         String strainName = strain != null ? strain.getDisplayName() : strainId;
         spawnCampfireSmoke(data);

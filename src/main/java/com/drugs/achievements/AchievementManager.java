@@ -81,7 +81,8 @@ public class AchievementManager {
      * @param context Additional context data (optional)
      */
     public static void processTrigger(Player player, String trigger, Map<String, Object> context) {
-        if (!isEnabled()) return;
+        if (player == null || !isEnabled()) return;
+        Map<String, Object> safeContext = context != null ? context : Collections.emptyMap();
         
         List<CustomAchievement> matchingAchievements = CustomAchievementLoader.getAchievementsByTrigger(trigger);
         
@@ -91,18 +92,28 @@ public class AchievementManager {
             
             // Check for specific drug requirements
             if (trigger.equals("use_specific_drug") || trigger.equals("craft_specific")) {
-                String drugId = (String) context.getOrDefault("drug_id", "");
-                String requiredDrugId = achievement.getId(); // Simplified for now
+                String drugId = String.valueOf(safeContext.getOrDefault("drug_id", ""));
+                String requiredDrugId = achievement.getDrugId() != null ? achievement.getDrugId() : achievement.getId();
                 
                 if (!drugId.equalsIgnoreCase(requiredDrugId)) {
                     continue; // Skip if not the right drug
                 }
             }
+
+            // Check for specific crop requirements
+            if (trigger.equals("plant_specific_crop") || trigger.equals("harvest_specific_crop")) {
+                String cropId = String.valueOf(safeContext.getOrDefault("crop_id", ""));
+                String requiredCropId = achievement.getCropId() != null ? achievement.getCropId() : achievement.getId();
+
+                if (!cropId.equalsIgnoreCase(requiredCropId)) {
+                    continue;
+                }
+            }
             
             // Check for count requirements
-            if (trigger.equals("use_count")) {
-                int count = (int) context.getOrDefault("count", 0);
-                int requiredCount = 100; // Default, should be loaded from config
+            if (trigger.equals("use_count") || trigger.equals("harvest_count")) {
+                int count = safeContext.get("count") instanceof Number n ? n.intValue() : 0;
+                int requiredCount = achievement.getCount() > 0 ? achievement.getCount() : 100;
                 
                 if (count < requiredCount) {
                     continue; // Skip if count not reached
@@ -112,6 +123,10 @@ public class AchievementManager {
             // Grant the achievement
             grant(player, achievement.getId());
         }
+    }
+
+    public static void processTrigger(Player player, String trigger) {
+        processTrigger(player, trigger, Collections.emptyMap());
     }
     
     /**

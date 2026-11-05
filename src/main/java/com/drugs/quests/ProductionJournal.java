@@ -91,6 +91,7 @@ public final class ProductionJournal implements org.bukkit.event.Listener {
         if (!contract.complete() || !quests.begin(player, SUPPLY) || !quests.finish(player, SUPPLY)) return false;
         store.contracts.remove(player.getUniqueId()); publishedContracts.remove(player.getUniqueId()); save();
         player.sendMessage("§aSupply contract complete! Your deliveries were paid at the normal buyer prices.");
+        com.drugs.achievements.AchievementManager.processTrigger(player, "supply_contract_complete");
         return true;
     }
 

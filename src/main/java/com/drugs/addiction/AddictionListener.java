@@ -29,6 +29,7 @@ public class AddictionListener implements Listener {
         if (!applied) return;
 
         event.setCancelled(true);
+        com.drugs.achievements.AchievementManager.processTrigger(player, "use_cure");
 
         if (player.getGameMode() != GameMode.CREATIVE) {
             int newAmount = item.getAmount() - 1;
@@ -47,7 +48,9 @@ public class AddictionListener implements Listener {
         CureProfile sleepCure = AddictionConfigLoader.getCureProfile("sleep");
         if (sleepCure == null || !sleepCure.isEnabled()) return;
 
-        AddictionManager.applyCure(event.getPlayer(), sleepCure);
+        if (AddictionManager.applyCure(event.getPlayer(), sleepCure)) {
+            com.drugs.achievements.AchievementManager.processTrigger(event.getPlayer(), "use_cure");
+        }
     }
 
     @EventHandler

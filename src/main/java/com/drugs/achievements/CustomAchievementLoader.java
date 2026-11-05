@@ -66,15 +66,19 @@ public class CustomAchievementLoader {
                 }
                 
                 try {
-                    String completedIconStr = section.getString("completed_icon", "BOOK");
+                    String completedIconStr = section.getString("completed_icon", icon.name());
                     completedIcon = Material.valueOf(completedIconStr.toUpperCase());
                 } catch (IllegalArgumentException e) {
                     Bukkit.getLogger().warning("[LumiDrugs] Invalid completed_icon material for achievement: " + key);
                 }
+
+                String drugId = section.getString("drug_id", null);
+                String cropId = section.getString("crop_id", null);
+                int count = section.getInt("count", 0);
                 
                 // Create the achievement
                 CustomAchievement achievement = new CustomAchievement(
-                    key, title, description, trigger, icon, completedIcon
+                    key, title, description, trigger, icon, completedIcon, drugId, cropId, count
                 );
                 
                 // Register the achievement

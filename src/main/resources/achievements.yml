@@ -15,7 +15,26 @@
 #   - use_specific_drug: Triggered when a player uses a specific drug (requires drug_id parameter)
 #   - craft_drug: Triggered when a player crafts any drug
 #   - craft_specific: Triggered when a player crafts a specific drug (requires drug_id parameter)
+#   - plant_crop: Triggered when a player plants any drug crop on hydrated farmland
+#   - plant_specific_crop: Triggered when a player plants a specific crop (requires crop_id parameter)
+#   - harvest_crop: Triggered when a player harvests a mature drug crop
+#   - harvest_specific_crop: Triggered when a player harvests a specific mature crop (requires crop_id parameter)
+#   - all_crops_harvested: Triggered when a player has harvested every drug crop at least once
+#   - mutate_strain: Triggered when a player shears a mature cannabis plant that mutates into a child strain
+#   - harvest_rare_strain: Triggered when a player harvests or mutates a rare, epic, or legendary cannabis strain
+#   - place_farm_controller: Triggered when a player places a Farm Controller
+#   - assign_farm_worker: Triggered when a player assigns a villager worker to a farm using a Work Contract
+#   - refine_purity: Triggered when a player refines a drug's purity at a cauldron
+#   - max_purity: Triggered when a player refines a drug to 100% purity
+#   - infuse_flavor: Triggered when a player infuses a product with a flavor variant at a cauldron
+#   - lace_drug: Triggered when a player laces one drug with another at a cauldron
+#   - bong_hit: Triggered when a player takes a hit from a placed glass bong
+#   - use_cure: Triggered when a player treats withdrawal using a cure item or rest
+#   - cartel_sale: Triggered when a player sells drugs to a cartel buyer
+#   - cartel_enforcer_complete: Triggered when a player fulfills a cartel enforcer's delivery demand
+#   - supply_contract_complete: Triggered when a player completes a cartel supply contract
 #   - overdose_survive: Triggered when a player survives an overdose
+#   - overdose_death: Triggered when a player dies from an overdose
 #   - use_count: Triggered when a player uses drugs a certain number of times (requires count parameter)
 
 # Default achievements
@@ -53,6 +72,129 @@ clean-slate:
   trigger: "decay_full"
   icon: "GRAY_DYE"
   completed_icon: "PAPER"
+
+# Growing & Strains achievements
+green-thumb:
+  title: "&aGreen Thumb"
+  description: "&7Plant your first drug crop on hydrated farmland"
+  trigger: "plant_crop"
+  icon: "GRAY_DYE"
+  completed_icon: "WHEAT_SEEDS"
+
+first-harvest:
+  title: "&2First Harvest"
+  description: "&7Harvest a mature drug crop"
+  trigger: "harvest_crop"
+  icon: "GRAY_DYE"
+  completed_icon: "SHEARS"
+
+master-botanist:
+  title: "&aMaster Botanist"
+  description: "&7Harvest every type of drug crop at least once"
+  trigger: "all_crops_harvested"
+  icon: "GRAY_DYE"
+  completed_icon: "SPORE_BLOSSOM"
+
+strain-mutator:
+  title: "&dGeneticist"
+  description: "&7Harvest a mutated cannabis strain from a mature plant"
+  trigger: "mutate_strain"
+  icon: "GRAY_DYE"
+  completed_icon: "LARGE_FERN"
+
+rare-strain:
+  title: "&5Exotic Cultivator"
+  description: "&7Harvest or mutate a rare, epic, or legendary cannabis strain"
+  trigger: "harvest_rare_strain"
+  icon: "GRAY_DYE"
+  completed_icon: "AMETHYST_SHARD"
+
+# Farm Automation achievements
+industrial-grower:
+  title: "&6Industrial Grower"
+  description: "&7Place a Farm Controller to automate crop production"
+  trigger: "place_farm_controller"
+  icon: "GRAY_DYE"
+  completed_icon: "BARREL"
+
+hired-help:
+  title: "&eHired Help"
+  description: "&7Assign a villager worker to a farm using a Work Contract"
+  trigger: "assign_farm_worker"
+  icon: "GRAY_DYE"
+  completed_icon: "EMERALD"
+
+# Production, Chemistry & Infusions achievements
+home-chemist:
+  title: "&bHome Chemist"
+  description: "&7Craft a drug item for the first time"
+  trigger: "craft_drug"
+  icon: "GRAY_DYE"
+  completed_icon: "CRAFTING_TABLE"
+
+pure-product:
+  title: "&bCrystal Clear"
+  description: "&7Refine a drug to increase its purity at a cauldron"
+  trigger: "refine_purity"
+  icon: "GRAY_DYE"
+  completed_icon: "QUARTZ"
+
+master-refiner:
+  title: "&9Heisenberg"
+  description: "&7Refine a drug to 100% purity"
+  trigger: "max_purity"
+  icon: "GRAY_DYE"
+  completed_icon: "DIAMOND"
+
+flavor-infuser:
+  title: "&dConfections & Terpenes"
+  description: "&7Infuse a product with a flavor variant at a cauldron"
+  trigger: "infuse_flavor"
+  icon: "GRAY_DYE"
+  completed_icon: "SWEET_BERRIES"
+
+secret-ingredient:
+  title: "&8Secret Ingredient"
+  description: "&7Lace one drug with another at a cauldron"
+  trigger: "lace_drug"
+  icon: "GRAY_DYE"
+  completed_icon: "FERMENTED_SPIDER_EYE"
+
+# Consumption, Recovery & Cartel achievements
+bong-rip:
+  title: "&3Bong Rip"
+  description: "&7Take a hit from a placed glass bong"
+  trigger: "bong_hit"
+  icon: "GRAY_DYE"
+  completed_icon: "GLASS_BOTTLE"
+
+road-to-recovery:
+  title: "&aRoad to Recovery"
+  description: "&7Treat withdrawal using a cure item or rest"
+  trigger: "use_cure"
+  icon: "GRAY_DYE"
+  completed_icon: "GOLDEN_CARROT"
+
+street-dealer:
+  title: "&2Street Dealer"
+  description: "&7Sell drugs to a cartel buyer"
+  trigger: "cartel_sale"
+  icon: "GRAY_DYE"
+  completed_icon: "EMERALD_BLOCK"
+
+cartel-associate:
+  title: "&4Cartel Associate"
+  description: "&7Fulfill a cartel enforcer's delivery demand"
+  trigger: "cartel_enforcer_complete"
+  icon: "GRAY_DYE"
+  completed_icon: "TOTEM_OF_UNDYING"
+
+contract-fulfilled:
+  title: "&6Reliable Supplier"
+  description: "&7Complete a cartel supply contract"
+  trigger: "supply_contract_complete"
+  icon: "GRAY_DYE"
+  completed_icon: "WRITABLE_BOOK"
 
 # Example custom achievements (uncomment and modify as needed)
 #crystal-chef:

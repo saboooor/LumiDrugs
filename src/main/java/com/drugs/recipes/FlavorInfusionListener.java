@@ -47,7 +47,12 @@ public final class FlavorInfusionListener implements Listener {
             remaining.setAmount(ingredient.getAmount() - 1);
             inventory.setItemInOffHand(remaining.getAmount() == 0 ? null : remaining);
             inventory.setItemInMainHand(result);
-            player.sendMessage("§aPurity: " + com.drugs.drug.DrugPurity.get(result) + "%.");
+            int purity = com.drugs.drug.DrugPurity.get(result);
+            player.sendMessage("§aPurity: " + purity + "%.");
+            com.drugs.achievements.AchievementManager.processTrigger(player, "refine_purity");
+            if (purity >= 100) {
+                com.drugs.achievements.AchievementManager.processTrigger(player, "max_purity");
+            }
             return;
         }
         if (ingredient != null && ingredient.hasItemMeta()
@@ -62,6 +67,7 @@ public final class FlavorInfusionListener implements Listener {
             inventory.setItemInOffHand(remaining.getAmount() == 0 ? null : remaining);
             inventory.setItemInMainHand(result);
             player.sendMessage("§aItems combined.");
+            com.drugs.achievements.AchievementManager.processTrigger(player, "lace_drug");
             return;
         }
         var flavor = FlavorVariants.matchingFlavor(product, ingredient);
@@ -76,5 +82,6 @@ public final class FlavorInfusionListener implements Listener {
         inventory.setItemInOffHand(remaining.getAmount() == 0 ? null : remaining);
         inventory.setItemInMainHand(result);
         player.sendMessage("§aFlavor infused. Strain and remaining uses preserved.");
+        com.drugs.achievements.AchievementManager.processTrigger(player, "infuse_flavor");
     }
 }

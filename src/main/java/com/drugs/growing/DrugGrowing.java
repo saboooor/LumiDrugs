@@ -1,6 +1,8 @@
 package com.drugs.growing;
 
 import com.drugs.DrugsV2;
+import com.drugs.achievements.AchievementManager;
+import com.drugs.achievements.NativeAdvancements;
 import com.drugs.items.DrugItemMetadata;
 import com.drugs.recipes.RecipeUpdates;
 import com.drugs.strains.StrainConfigLoader;
@@ -286,9 +288,14 @@ public final class DrugGrowing implements Listener {
             replaced.update(true, false);
             return;
         }
-        plants.put(key(block), new Plant(type.substring(5), 0));
+        String cropId = type.substring(5);
+        plants.put(key(block), new Plant(cropId, 0));
         if (event.getPlayer().getGameMode() != GameMode.CREATIVE) event.getItem().setAmount(event.getItem().getAmount() - 1);
         save();
+        Map<String, Object> context = AchievementManager.createContext();
+        context.put("crop_id", cropId);
+        AchievementManager.processTrigger(event.getPlayer(), "plant_crop", context);
+        AchievementManager.processTrigger(event.getPlayer(), "plant_specific_crop", context);
     }
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void harvest(BlockBreakEvent event) {
@@ -303,9 +310,14 @@ public final class DrugGrowing implements Listener {
             Block block = root;
             boolean mature = plant.elapsed() >= crops.get(plant.crop()).seconds();
             block.getWorld().dropItemNaturally(block.getLocation(), seed(plant.crop()).asQuantity(mature ? harvestSeedCount() : 1));
-            if (mature)
+            if (mature) {
                 block.getWorld().dropItemNaturally(block.getLocation(), harvest(plant.crop(), null).asQuantity(2));
-            else event.getPlayer().sendMessage("§eThis crop was not mature. Only its seed was recovered.");
+                Map<String, Object> context = AchievementManager.createContext();
+                context.put("crop_id", plant.crop());
+                AchievementManager.processTrigger(event.getPlayer(), "harvest_crop", context);
+                AchievementManager.processTrigger(event.getPlayer(), "harvest_specific_crop", context);
+                NativeAdvancements.trackCrop(event.getPlayer(), plant.crop());
+            } else event.getPlayer().sendMessage("§eThis crop was not mature. Only its seed was recovered.");
         }
         clearModel(root);
         save();

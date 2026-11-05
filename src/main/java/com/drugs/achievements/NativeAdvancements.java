@@ -2,6 +2,7 @@ package com.drugs.achievements;
 
 import com.drugs.DrugsV2;
 import com.drugs.drug.DrugRegistry;
+import com.drugs.growing.DrugGrowing;
 
 import com.google.gson.JsonObject;
 import org.bukkit.Bukkit;
@@ -27,9 +28,18 @@ public final class NativeAdvancements implements Listener {
     private static BukkitTask registrationTask;
     private static final Map<UUID, Set<String>> pendingAwards = new HashMap<>();
     private static final Map<UUID, Set<String>> pendingDrugs = new HashMap<>();
+    private static final Map<UUID, Set<String>> pendingCrops = new HashMap<>();
 
     private static NamespacedKey key(String id) {
         return new NamespacedKey("lumidrugs", "achievements/" + id);
+    }
+
+    private static Advancement getAdvancementSafe(NamespacedKey key) {
+        try {
+            return Bukkit.getAdvancement(key);
+        } catch (NullPointerException ignored) {
+            return null;
+        }
     }
 
     public static void reload() {
@@ -38,6 +48,7 @@ public final class NativeAdvancements implements Listener {
         if (!AchievementSettingsLoader.isEnabled()) {
             pendingAwards.clear();
             pendingDrugs.clear();
+            pendingCrops.clear();
             return;
         }
         // Registration may rebuild advancement trees and resend player data. Never do it
@@ -57,6 +68,14 @@ public final class NativeAdvancements implements Listener {
                         criteria.add("used_" + drug, criterion);
                     }
                     json.add("criteria", criteria);
+                } else if (achievement.getTrigger().equals("all_crops_harvested") && !DrugGrowing.cropIds().isEmpty()) {
+                    JsonObject criteria = new JsonObject();
+                    for (String crop : DrugGrowing.cropIds()) {
+                        JsonObject criterion = new JsonObject();
+                        criterion.addProperty("trigger", "minecraft:impossible");
+                        criteria.add("harvested_" + crop, criterion);
+                    }
+                    json.add("criteria", criteria);
                 }
                 definitions.put(key(achievement.getId()), json);
             } catch (IllegalArgumentException exception) {
@@ -68,7 +87,7 @@ public final class NativeAdvancements implements Listener {
         registrationTask = Bukkit.getScheduler().runTaskTimer(DrugsV2.getInstance(), () -> {
             while (!queue.isEmpty()) {
                 var entry = queue.remove();
-                if (Bukkit.getAdvancement(entry.getKey()) != null) continue;
+                if (getAdvancementSafe(entry.getKey()) != null) continue;
                 try {
                     register(entry.getKey(), entry.getValue());
                 } catch (RuntimeException exception) {
@@ -84,9 +103,11 @@ public final class NativeAdvancements implements Listener {
                     prepare(player);
                     for (String id : pendingAwards.getOrDefault(player.getUniqueId(), Set.of())) award(player, id);
                     for (String drug : pendingDrugs.getOrDefault(player.getUniqueId(), Set.of())) trackDrug(player, drug);
+                    for (String crop : pendingCrops.getOrDefault(player.getUniqueId(), Set.of())) trackCrop(player, crop);
                 }
                 pendingAwards.clear();
                 pendingDrugs.clear();
+                pendingCrops.clear();
             }
         }, 1L, 1L);
     }
@@ -96,6 +117,7 @@ public final class NativeAdvancements implements Listener {
         registrationTask = null;
         pendingAwards.clear();
         pendingDrugs.clear();
+        pendingCrops.clear();
     }
 
     @SuppressWarnings("deprecation")
@@ -132,7 +154,8 @@ public final class NativeAdvancements implements Listener {
     }
 
     public static void award(Player player, String id) {
-        Advancement advancement = Bukkit.getAdvancement(key(id));
+        if (player == null) return;
+        Advancement advancement = getAdvancementSafe(key(id));
         if (advancement == null) {
             if (registrationTask != null) {
                 pendingAwards.computeIfAbsent(player.getUniqueId(), ignored -> new HashSet<>()).add(id);
@@ -140,24 +163,44 @@ public final class NativeAdvancements implements Listener {
             return;
         }
         AdvancementProgress progress = player.getAdvancementProgress(advancement);
+        if (progress == null) return;
         for (String criterion : progress.getRemainingCriteria()) progress.awardCriteria(criterion);
     }
 
     public static boolean has(Player player, String id) {
-        Advancement advancement = Bukkit.getAdvancement(key(id));
-        return advancement != null && player.getAdvancementProgress(advancement).isDone();
+        if (player == null) return false;
+        Advancement advancement = getAdvancementSafe(key(id));
+        if (advancement == null) return false;
+        AdvancementProgress progress = player.getAdvancementProgress(advancement);
+        return progress != null && progress.isDone();
     }
 
     public static void trackDrug(Player player, String drug) {
-        if (!AchievementSettingsLoader.isEnabled()) return;
+        if (player == null || !AchievementSettingsLoader.isEnabled()) return;
         if (registrationTask != null) {
             pendingDrugs.computeIfAbsent(player.getUniqueId(), ignored -> new HashSet<>()).add(drug);
         }
         for (CustomAchievement achievement : CustomAchievementLoader.getAchievementsByTrigger("all_drugs_used")) {
             if (!achievement.isEnabled()) continue;
-            Advancement advancement = Bukkit.getAdvancement(key(achievement.getId()));
+            Advancement advancement = getAdvancementSafe(key(achievement.getId()));
             if (advancement != null && advancement.getCriteria().contains("used_" + drug)) {
-                player.getAdvancementProgress(advancement).awardCriteria("used_" + drug);
+                AdvancementProgress progress = player.getAdvancementProgress(advancement);
+                if (progress != null) progress.awardCriteria("used_" + drug);
+            }
+        }
+    }
+
+    public static void trackCrop(Player player, String crop) {
+        if (player == null || !AchievementSettingsLoader.isEnabled()) return;
+        if (registrationTask != null) {
+            pendingCrops.computeIfAbsent(player.getUniqueId(), ignored -> new HashSet<>()).add(crop);
+        }
+        for (CustomAchievement achievement : CustomAchievementLoader.getAchievementsByTrigger("all_crops_harvested")) {
+            if (!achievement.isEnabled()) continue;
+            Advancement advancement = getAdvancementSafe(key(achievement.getId()));
+            if (advancement != null && advancement.getCriteria().contains("harvested_" + crop)) {
+                AdvancementProgress progress = player.getAdvancementProgress(advancement);
+                if (progress != null) progress.awardCriteria("harvested_" + crop);
             }
         }
     }
