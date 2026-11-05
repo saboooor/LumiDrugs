@@ -70,6 +70,7 @@ public class DrugEffectProfile {
      * Applies the drug effects to the player, scaling with tolerance.
      */
     public void applyEffects(Player player, ItemStack sourceItem) {
+        com.drugs.overdose.OverdoseWarnings.beforeUse(player, id);
         int toleranceLevel = ToleranceTracker.getToleranceLevel(player, id);
         int max = ToleranceConfigLoader.getMaxTolerance(id);
         double multiplier = ToleranceTracker.getEffectivenessMultiplier(player, id) * DrugPurity.multiplier(sourceItem);
@@ -128,6 +129,7 @@ public class DrugEffectProfile {
 
         ToleranceTracker.onDrugUse(player, id);
         AddictionManager.onDrugUse(player, id);
+        com.drugs.overdose.OverdoseWarnings.check(player);
     }
 
 

@@ -16,6 +16,8 @@ public final class MechanicsConfig {
     private static int maxHarvestPerCycle = 8;
     private static int maxPlantPerCycle = 8;
     private static boolean purityEnabled = true;
+    private static boolean overdoseWarningsEnabled = true;
+    private static int overdoseWarningSeconds = 60;
     private static int purityRefiningPoints = 5;
     private static org.bukkit.Material purityRefiningIngredient = org.bukkit.Material.QUARTZ;
 
@@ -29,6 +31,8 @@ public final class MechanicsConfig {
         }
 
         YamlConfiguration yaml = YamlConfiguration.loadConfiguration(file);
+        overdoseWarningsEnabled = yaml.getBoolean("overdose-warnings.enabled", true);
+        overdoseWarningSeconds = Math.clamp(yaml.getInt("overdose-warnings.reminder-seconds", 60), 5, 3600);
         purityEnabled = yaml.getBoolean("purity.enabled", true);
         purityRefiningPoints = Math.clamp(yaml.getInt("purity.refining-points", 5), 1, 25);
         var ingredient = org.bukkit.Material.matchMaterial(yaml.getString("purity.refining-ingredient", "QUARTZ"));
@@ -50,6 +54,8 @@ public final class MechanicsConfig {
     }
 
     public static boolean isPurityEnabled() { return purityEnabled; }
+    public static boolean isOverdoseWarningsEnabled() { return overdoseWarningsEnabled; }
+    public static int getOverdoseWarningSeconds() { return overdoseWarningSeconds; }
     public static int getPurityRefiningPoints() { return purityRefiningPoints; }
     public static org.bukkit.Material getPurityRefiningIngredient() { return purityRefiningIngredient; }
 

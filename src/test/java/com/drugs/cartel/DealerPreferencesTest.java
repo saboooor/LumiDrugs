@@ -65,7 +65,12 @@ class DealerPreferencesTest {
              var metadata = mockStatic(DrugItemMetadata.class)) {
             registry.when(DrugRegistry::getRegisteredDrugNames).thenReturn(Set.of("joint"));
             strains.when(() -> StrainConfigLoader.isCannabisDrug("joint")).thenReturn(true);
-            strains.when(() -> StrainConfigLoader.getStrain("blue")).thenReturn(mock(StrainProfile.class));
+            var blue = mock(StrainProfile.class);
+            when(blue.getId()).thenReturn("blue");
+            strains.when(() -> StrainConfigLoader.getStrain("blue")).thenReturn(blue);
+            var fallback = mock(StrainProfile.class);
+            when(fallback.getId()).thenReturn("reggie");
+            strains.when(() -> StrainConfigLoader.getStrain("missing")).thenReturn(fallback);
             var offer = DealerPreferences.current(config, UUID.randomUUID(), 0);
             assertEquals("blue", offer.strain());
             metadata.when(() -> DrugItemMetadata.getDrugId(meta)).thenReturn("joint");
