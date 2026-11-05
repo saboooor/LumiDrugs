@@ -20,6 +20,8 @@ public final class ProductionRecipes {
     private static final Set<NamespacedKey> mixKeys = new HashSet<>();
     public record Brew(ItemStack base, ItemStack ingredient, ItemStack result) {}
     private static final Map<String, Brew> previews = new HashMap<>();
+    private record ActiveBrew(PotionType base, java.util.function.Predicate<ItemStack> ingredient, ItemStack result) {}
+    private static final Map<String, ActiveBrew> activeBrews = new LinkedHashMap<>();
     private ProductionRecipes() {}
 
     public static boolean manages(String id) { return MANAGED.contains(id); }
@@ -84,7 +86,7 @@ public final class ProductionRecipes {
         recipeKeys.add(key);
         RecipeUpdates.replace(key, recipe);
     }
-    private static void brew(String id, ItemStack base, ItemStack ingredient, ItemStack result,
+    static void brew(String id, ItemStack base, ItemStack ingredient, ItemStack result,
                              java.util.function.Predicate<ItemStack> acceptsIngredient) {
         NamespacedKey key = key(id);
         PotionType baseType = ((PotionMeta) base.getItemMeta()).getBasePotionType();
@@ -92,7 +94,15 @@ public final class ProductionRecipes {
                 PotionMix.createPredicateChoice(item -> plainPotion(item, baseType)),
                 PotionMix.createPredicateChoice(acceptsIngredient)));
         mixKeys.add(key);
+        activeBrews.put(id, new ActiveBrew(baseType, acceptsIngredient, result.clone()));
         previews.put(id, new Brew(base, ingredient, result));
+    }
+    static ItemStack brewingResult(ItemStack input, ItemStack ingredient) {
+        if (input == null || ingredient == null) return null;
+        for (ActiveBrew brew : activeBrews.values()) {
+            if (plainPotion(input, brew.base()) && brew.ingredient().test(ingredient)) return brew.result().clone();
+        }
+        return null;
     }
     public static void clear() {
         RecipeUpdates.begin();
@@ -103,6 +113,7 @@ public final class ProductionRecipes {
             recipeKeys.clear();
             mixKeys.clear();
             previews.clear();
+            activeBrews.clear();
         } finally {
             RecipeUpdates.end();
         }

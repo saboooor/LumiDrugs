@@ -18,7 +18,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Generates a paginated GUI showing all available drugs.
+ * Generates a category index and paginated product menus.
  */
 public class DrugMenuGUI {
 
@@ -29,9 +29,18 @@ public class DrugMenuGUI {
      * Opens the drug selection menu for a player.
      *
      * @param player The player to open the menu for
-     * @param page   The page number (0-based)
+     * @param page   Retained for command compatibility; the category index has one page
      */
     public static void open(Player player, int page) {
+        Inventory gui = Bukkit.createInventory(null, GUI_SIZE, ChatColor.DARK_GREEN + "Drugs Menu");
+        for (DrugCategory category : DrugCategory.values()) {
+            gui.setItem(category.ordinal(), MenuUtils.createButtonItem("§a" + category.title(), category.icon()));
+        }
+        gui.setItem(31, MenuUtils.createButtonItem("§cClose", org.bukkit.Material.BARRIER));
+        player.openInventory(gui);
+    }
+
+    public static void openCategory(Player player, DrugCategory category, int page) {
         List<ItemStack> menuItems = new ArrayList<>();
         List<String> drugIds = new ArrayList<>(DrugRegistry.getRegisteredDrugNames());
         List<String> cureIds = new ArrayList<>(CureRegistry.getRegisteredCureNames());
@@ -40,7 +49,7 @@ public class DrugMenuGUI {
 
         for (String drugId : drugIds) {
             DrugEffectProfile profile = DrugRegistry.getProfileById(drugId);
-            if (profile != null) {
+            if (profile != null && DrugCategory.forItem(drugId) == category) {
                 ItemStack item = profile.createItem(1);
                 if (com.drugs.recipes.FlavorVariants.hasFlavors(drugId)) {
                     var meta = item.getItemMeta();
@@ -55,19 +64,21 @@ public class DrugMenuGUI {
 
         for (String cureId : cureIds) {
             CureProfile profile = CureRegistry.getProfileById(cureId);
-            if (profile != null && profile.isEnabled() && profile.isItemEnabled()) {
+            if (profile != null && profile.isEnabled() && profile.isItemEnabled()
+                    && (cureId.equals("cbd") ? DrugCategory.CANNABIS : DrugCategory.CURES) == category) {
                 menuItems.add(profile.createItem(1));
             }
         }
 
         for (String intermediateId : com.drugs.recipes.ProductionRecipes.intermediates()) {
-            menuItems.add(com.drugs.recipes.ProductionRecipes.intermediate(intermediateId, null));
+            if (DrugCategory.forItem(intermediateId) == category)
+                menuItems.add(com.drugs.recipes.ProductionRecipes.intermediate(intermediateId, null));
         }
 
-        if (BongConfigLoader.isEnabled()) {
+        if (category == DrugCategory.CANNABIS && BongConfigLoader.isEnabled()) {
             menuItems.add(BongItemFactory.createBongItem(1));
         }
-        menuItems.add(FarmItems.createControllerItem());
+        if (category == DrugCategory.EQUIPMENT) menuItems.add(FarmItems.createControllerItem());
 
         int maxPage = Math.max(1, (int) Math.ceil(menuItems.size() / (double) ITEMS_PER_PAGE));
 
@@ -75,7 +86,7 @@ public class DrugMenuGUI {
         if (page < 0) page = 0;
         if (page >= maxPage) page = maxPage - 1;
 
-        Inventory gui = Bukkit.createInventory(null, GUI_SIZE, ChatColor.DARK_GREEN + "Drugs Menu (Page " + (page + 1) + ")");
+        Inventory gui = Bukkit.createInventory(null, GUI_SIZE, ChatColor.DARK_GREEN + "Drugs Menu: " + category.title() + " (Page " + (page + 1) + ")");
 
         // Add drug items for current page
         int start = page * ITEMS_PER_PAGE;
@@ -93,8 +104,9 @@ public class DrugMenuGUI {
             gui.setItem(35, MenuUtils.createButtonItem("§eNext Page", org.bukkit.Material.ARROW));
         }
 
-        // Close button in the center
-        gui.setItem(31, MenuUtils.createButtonItem("§cClose", org.bukkit.Material.BARRIER));
+        // Return to the category index or close the menu
+        gui.setItem(31, MenuUtils.createButtonItem("§eBack to Categories", org.bukkit.Material.ARROW));
+        gui.setItem(33, MenuUtils.createButtonItem("§cClose", org.bukkit.Material.BARRIER));
 
         player.openInventory(gui);
     }
@@ -118,8 +130,14 @@ public class DrugMenuGUI {
             base.setItemMeta(meta);
             gui.setItem(30, base);
         }
-        gui.setItem(31, MenuUtils.createButtonItem("§eBack to Drugs", org.bukkit.Material.ARROW));
+        gui.setItem(31, MenuUtils.createButtonItem("§eBack to " + DrugCategory.forItem(product).title(), org.bukkit.Material.ARROW));
         player.openInventory(gui);
+    }
+
+    public static void openRecipeCategory(Player player, String recipe) {
+        DrugCategory category = DrugCategory.forItem(recipe);
+        if (category == DrugCategory.OTHER && CureRegistry.getProfileById(recipe) != null) category = DrugCategory.CURES;
+        openCategory(player, category, 0);
     }
 
 }

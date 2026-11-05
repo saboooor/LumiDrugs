@@ -4,11 +4,15 @@ import com.drugs.DrugsV2;
 import com.drugs.growing.DrugGrowing;
 import org.bukkit.*;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.BrewerInventory;
+import org.bukkit.event.inventory.BrewEvent;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.persistence.*;
 import org.bukkit.potion.PotionType;
 import org.junit.jupiter.api.*;
+import java.util.ArrayList;
+import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -64,5 +68,57 @@ class ProductionRecipesTest {
         assertTrue(ProductionRecipes.drug(nicotine, "nicotine"));
         assertFalse(ProductionRecipes.drug(item(Material.SUGAR, null, null, false), "nicotine"));
         assertFalse(ProductionRecipes.drug(item(Material.DRIED_KELP, "harvest_tobacco", null, false), "nicotine"));
+    }
+
+    @Test void completedBrewOverridesMundaneOnlyForWaterAndRealNicotine() {
+        ItemStack water = item(Material.POTION, null, null, true);
+        when(((PotionMeta) water.getItemMeta()).getBasePotionType()).thenReturn(PotionType.WATER);
+        ItemStack awkward = item(Material.POTION, null, null, true);
+        when(((PotionMeta) awkward.getItemMeta()).getBasePotionType()).thenReturn(PotionType.AWKWARD);
+        ItemStack liquid = item(Material.POTION, "vape_liquid", null, true);
+        when(((PotionMeta) liquid.getItemMeta()).getBasePotionType()).thenReturn(PotionType.WATER);
+        ItemStack nicotine = item(Material.SUGAR, "drug", null, false);
+        when(nicotine.getItemMeta().getPersistentDataContainer().get(
+                new NamespacedKey(plugin, "drug_id"), PersistentDataType.STRING)).thenReturn("nicotine");
+        ItemStack template = mock(ItemStack.class);
+        ItemStack stored = mock(ItemStack.class);
+        when(template.clone()).thenReturn(stored);
+        when(stored.clone()).thenAnswer(ignored -> mock(ItemStack.class));
+        try (var brewing = mockStatic(BrewingRecipes.class);
+             var updates = mockStatic(RecipeUpdates.class);
+             var flavors = mockStatic(FlavorVariants.class)) {
+            ProductionRecipes.brew("vape_liquid", water, nicotine, template,
+                    ingredient -> ProductionRecipes.drug(ingredient, "nicotine"));
+            var inventory = mock(BrewerInventory.class);
+            when(inventory.getIngredient()).thenReturn(nicotine);
+            when(inventory.getItem(0)).thenReturn(water);
+            when(inventory.getItem(1)).thenReturn(water);
+            when(inventory.getItem(2)).thenReturn(awkward);
+            var mundane = mock(ItemStack.class);
+            var unchanged = mock(ItemStack.class);
+            var results = new ArrayList<>(List.of(mundane, mundane, unchanged));
+            var event = mock(BrewEvent.class);
+            when(event.getContents()).thenReturn(inventory);
+            when(event.getResults()).thenReturn(results);
+            new ProductionBrewingListener().onBrew(event);
+            assertNotSame(mundane, results.get(0));
+            assertNotSame(template, results.get(0));
+            assertNotSame(stored, results.get(0));
+            assertNotSame(results.get(0), results.get(1));
+            assertSame(unchanged, results.get(2));
+            verify(inventory, never()).setIngredient(any());
+            assertNull(ProductionRecipes.brewingResult(water, item(Material.SUGAR, null, null, false)));
+            assertNull(ProductionRecipes.brewingResult(liquid, nicotine));
+            assertNull(ProductionRecipes.brewingResult(null, nicotine));
+            assertNull(ProductionRecipes.brewingResult(water, null));
+            ProductionRecipes.clear();
+            assertNull(ProductionRecipes.brewingResult(water, nicotine));
+        } finally {
+            try (var brewing = mockStatic(BrewingRecipes.class);
+                 var updates = mockStatic(RecipeUpdates.class);
+                 var flavors = mockStatic(FlavorVariants.class)) {
+                ProductionRecipes.clear();
+            }
+        }
     }
 }

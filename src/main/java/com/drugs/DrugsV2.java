@@ -179,6 +179,7 @@ public class DrugsV2 extends JavaPlugin {
         manager.registerEvents(new DrugMenuListener(), this);
         manager.registerEvents(new DrugUseListener(), this);
         manager.registerEvents(new com.drugs.recipes.FlavorInfusionListener(), this);
+        manager.registerEvents(new com.drugs.recipes.ProductionBrewingListener(), this);
         manager.registerEvents(new AddictionListener(), this);
         manager.registerEvents(new CannabisPlantListener(drugGrowing), this);
         manager.registerEvents(new StrainCraftingListener(), this);
