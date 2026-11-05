@@ -6,7 +6,8 @@ settings:
   # We'll re-apply withdrawal effects right after milk is consumed.
   milk_clears_withdrawal: false
 
-  # Duration we use to represent "infinite" potion effects
+  # Legacy compatibility setting. Withdrawal now uses actual recovery time, or a
+  # true infinite effect for drugs with no natural addiction decay (until treated).
   infinite_duration_ticks: 99999
 
   # How often we run the addiction heartbeat (withdrawal checks, re-apply effects, decay)

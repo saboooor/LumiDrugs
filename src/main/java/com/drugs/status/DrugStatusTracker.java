@@ -56,6 +56,14 @@ public final class DrugStatusTracker implements Listener {
                     List.of(name + " " + (effect.getAmplifier() + 1))));
         }
         status.putAll(potionStatus(player.getPersistentDataContainer(), activeKeys));
+        // Withdrawal is an addiction state, not the periodically refreshed lifetime
+        // of one potion effect. It can remain active even while effects are absent.
+        for (var entry : com.drugs.addiction.AddictionManager.getWithdrawalTimers(player).entrySet()) {
+            String id = WITHDRAWAL_PREFIX + entry.getKey();
+            var previous = status.get(id);
+            status.put(id, new Status(entry.getValue(), 0,
+                    previous == null ? List.of("withdrawal symptoms") : previous.effects()));
+        }
         DrugsV2 plugin = DrugsV2.getInstance();
         if (plugin != null) {
             LsdEffectManager lsd = plugin.getLsdEffectManager();

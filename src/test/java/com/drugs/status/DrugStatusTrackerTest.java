@@ -28,6 +28,7 @@ class DrugStatusTrackerTest {
         field.setAccessible(true);
         field.set(null, null);
         player = mock(Player.class);
+        when(player.getUniqueId()).thenReturn(UUID.randomUUID());
         data = mock(PersistentDataContainer.class);
         when(player.getPersistentDataContainer()).thenReturn(data);
         when(player.getActivePotionEffects()).thenReturn(List.of());
@@ -50,6 +51,19 @@ class DrugStatusTrackerTest {
         stored.put(statusKey, "withdrawal/cocaine");
         assertEquals(Map.of("withdrawal/cocaine", active),
                 DrugStatusTracker.potionStatus(data, Map.of(statusKey, active)));
+    }
+
+    @Test void withdrawalStatusUsesRecoveryCountdownEvenWithoutLivePotionEffects() {
+        try (var addiction = mockStatic(com.drugs.addiction.AddictionManager.class)) {
+            addiction.when(() -> com.drugs.addiction.AddictionManager.getWithdrawalTimers(player))
+                    .thenReturn(Map.of("cocaine", 2400), Map.of("cocaine", 1200), Map.of());
+            var first = DrugStatusTracker.getStatus(player).get("withdrawal/cocaine");
+            var later = DrugStatusTracker.getStatus(player).get("withdrawal/cocaine");
+            assertEquals(2400, first.remainingTicks());
+            assertEquals(1200, later.remainingTicks());
+            assertEquals(List.of("withdrawal symptoms"), later.effects());
+            assertTrue(DrugStatusTracker.getStatus(player).isEmpty());
+        }
     }
 
     @Test void trackedAndUntrackedEffectsAppearTogetherWithoutDuplicates() {

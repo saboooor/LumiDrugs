@@ -392,3 +392,14 @@ default; escalating risk warns immediately. Messages do not name hidden added dr
 Withdrawals warn that temporary relief from another dose is not proof that further use
 is safe. The existing overdose calculation is unchanged. Use `/drugstatus` for current
 effects. Configure `mechanics.yml` → `overdose-warnings.enabled` and `reminder-seconds`.
+
+
+### Withdrawal recovery timers
+
+Withdrawal countdowns now show the actual time until addiction naturally falls below
+the configured threshold. They decrease as time passes and are not restarted by the
+withdrawal heartbeat or milk reapplication. Naturally decaying withdrawal ends once
+that threshold is crossed. Drugs with `decay.enabled: false` (or no positive decay
+rate) instead display **until treated (no natural recovery)**; their potion effects
+use a true infinite duration. The old `infinite_duration_ticks` setting no longer
+creates a repeatedly resetting fake countdown. Existing cure/decay rules are unchanged.

@@ -75,7 +75,7 @@ class DrugStatusCommandTest {
                     Map.of("withdrawal/cocaine", new DrugStatusTracker.Status(-1, 0, List.of("weakness 1"))));
             DrugStatusCommand.show(player);
             verify(player).sendMessage(contains("Withdrawal: cocaine"));
-            verify(player).sendMessage(contains("indefinite"));
+            verify(player).sendMessage(contains("until treated (no natural recovery)"));
             verify(player, never()).sendMessage(contains("fully sober"));
         }
     }

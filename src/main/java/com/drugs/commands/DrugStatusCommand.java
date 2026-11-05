@@ -48,7 +48,9 @@ public final class DrugStatusCommand implements CommandExecutor {
                 if (unknown) name = "Potion effect (source unknown)";
                 else if (withdrawal) name = "Withdrawal: " + name;
                 var details = entry.getValue();
-                String timing = details.delayTicks() > 0
+                String timing = withdrawal && details.remainingTicks() < 0
+                        ? "until treated (no natural recovery)"
+                        : details.delayTicks() > 0
                         ? "kicks in: " + formatDuration(details.delayTicks()) + "; duration: " + formatDuration(details.remainingTicks())
                         : "remaining: " + formatDuration(details.remainingTicks());
                 player.sendMessage(ChatColor.YELLOW + "- " + ChatColor.translateAlternateColorCodes('&', name)
