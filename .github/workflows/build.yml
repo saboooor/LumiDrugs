@@ -15,7 +15,6 @@ jobs:
       - run: ./gradlew --no-daemon clean build
       - uses: actions/upload-artifact@v4
         with:
-          name: LumiDrugs-and-LumiFollow
-          path: |
-            lumidrugs/build/libs/LumiDrugs.jar
-            lumifollow/build/libs/LumiFollow.jar
+          name: LumiFollow
+          path: build/libs/LumiFollow.jar
+          if-no-files-found: error
