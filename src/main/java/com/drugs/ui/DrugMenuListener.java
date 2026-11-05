@@ -91,7 +91,11 @@ public class DrugMenuListener implements Listener {
         DrugCategory category = DrugCategory.fromTitle(title);
         int menuSlot = event.getRawSlot();
         if (category == null) {
-            if (menuSlot == 31) player.closeInventory();
+            if (menuSlot == 29) {
+                var journal = DrugsV2.getInstance().getProductionJournal();
+                if (journal != null) Bukkit.getScheduler().runTask(DrugsV2.getInstance(), () -> journal.open(player));
+            }
+            else if (menuSlot == 31) player.closeInventory();
             else if (menuSlot >= 0 && menuSlot < DrugCategory.values().length)
                 DrugMenuGUI.openCategory(player, DrugCategory.values()[menuSlot], 0);
             return;

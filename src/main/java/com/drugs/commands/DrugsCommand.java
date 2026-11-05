@@ -65,6 +65,22 @@ public class DrugsCommand implements CommandExecutor {
             return true;
         }
 
+        if (java.util.Set.of("learn", "journal", "contracts").contains(args[0].toLowerCase(java.util.Locale.ROOT))) {
+            if (!(sender instanceof Player player)) { sender.sendMessage("Run this command in game."); return true; }
+            var journal = DrugsV2.getInstance().getProductionJournal();
+            if (journal == null) { player.sendMessage("§eThe production journal is unavailable. Check server startup logs."); return true; }
+            switch (args[0].toLowerCase(java.util.Locale.ROOT)) {
+                case "learn" -> { if (args.length == 2) journal.learn(player, args[1]); else journal.open(player); }
+                case "contracts" -> { if (args.length == 2) journal.accept(player, args[1].toLowerCase(java.util.Locale.ROOT)); else journal.contracts(player); }
+                case "journal" -> {
+                    if (args.length == 2 && args[1].equalsIgnoreCase("abandon-learning")) journal.abandon(player, com.drugs.quests.ProgressQuests.Kind.LEARNING);
+                    else if (args.length == 2 && args[1].equalsIgnoreCase("abandon-supply")) journal.abandon(player, com.drugs.quests.ProgressQuests.Kind.SUPPLY);
+                    else journal.open(player);
+                }
+            }
+            return true;
+        }
+
         // /drugs guide <drug> [page]
         if (args[0].equalsIgnoreCase("guide")) {
             if (!(sender instanceof Player player)) {
@@ -173,6 +189,11 @@ public class DrugsCommand implements CommandExecutor {
         if (args[0].equalsIgnoreCase("help")) {
             sender.sendMessage(ChatColor.GOLD + "-----[ LumiDrugs Help ]-----");
             sender.sendMessage(ChatColor.YELLOW + "/drugs" + ChatColor.GRAY + " - Open the drug selection GUI");
+            if (sender.hasPermission("drugs.quests")) {
+                sender.sendMessage("§e/drugs journal §7- Resume production quests or choose a supply contract");
+                sender.sendMessage("§e/drugs learn <product> §7- Learn a production chain without a deadline");
+                sender.sendMessage("§e/drugs contracts §7- Choose a voluntary supply contract");
+            }
             if (sender.hasPermission("drugs.give")) {
                 sender.sendMessage(ChatColor.YELLOW + "/drugs give <player> <drug|cure|bong|farm-controller|all> [amount]" + ChatColor.GRAY + " - Give drugs/cures to someone");
             }

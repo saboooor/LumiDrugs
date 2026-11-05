@@ -86,3 +86,11 @@ enforcer:
     furious-demand: "&4Cartel: &c&lEnough! &r&cYou've refused us {refusals} times in a row. Sell me {amount} {drug} in {seconds}s. Throw it near me. You'll be paid. No more excuses."
     furious-warning: "&4Cartel: &c&lI'm done waiting! &r&c{remaining} more {drug}. {seconds}s left. Move!"
     furious-failure: "&4Cartel: &c&lAgain?! &r&c{refusals} refusals in a row. You've made an enemy of the cartel. This isn't over."
+
+# Optional player-selected deliveries, independent of short enforcer demands.
+# Requires BeautyQuests. Sales at any stationary buyer count after acceptance;
+# normal prices/preferences apply. No extra payout and no refusal penalties.
+supply-contracts:
+  enabled: true
+  amount: 16
+  deadline-hours: 24           # 1–168 real hours; continues while offline.

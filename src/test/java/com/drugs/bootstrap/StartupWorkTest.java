@@ -27,7 +27,8 @@ class StartupWorkTest {
         when(plugin.getCommand(anyString())).thenReturn(mock(org.bukkit.command.PluginCommand.class));
         when(plugin.getLogger()).thenReturn(java.util.logging.Logger.getAnonymousLogger());
         doCallRealMethod().when(plugin).onEnable();
-        try (var dealers = mockConstruction(com.drugs.cartel.CartelDealer.class);
+        try (var progress = mockStatic(com.drugs.quests.ProgressQuests.class);
+             var dealers = mockConstruction(com.drugs.cartel.CartelDealer.class);
              var enforcers = mockConstruction(com.drugs.cartel.CartelEnforcer.class);
              var startup = mockConstruction(PluginStartup.class, (created, context) -> {
                  assertEquals(1, dealers.constructed().size());
@@ -35,6 +36,7 @@ class StartupWorkTest {
              })) {
             plugin.onEnable();
             verify(dealers.constructed().getFirst()).setEnforcer(enforcers.constructed().getFirst());
+            progress.verify(() -> com.drugs.quests.ProgressQuests.create(plugin));
             verify(startup.constructed().getFirst()).start();
             verify(enforcers.constructed().getFirst(), never()).start();
         } catch (Exception exception) {

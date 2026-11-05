@@ -126,7 +126,7 @@ public class DrugRecipeViewer {
             for (int column = 0; column < shape[row].length(); column++) {
                 RecipeChoice choice = ingredients.get(shape[row].charAt(column));
                 if (choice == null) continue;
-                ItemStack ingredient = choice.getItemStack();
+                ItemStack ingredient = com.drugs.recipes.ProductionRecipes.previewIngredient(drugId, choice);
                 if (choice instanceof RecipeChoice.MaterialChoice && crop != null && ingredient.getType() == DrugGrowing.material(crop))
                     ingredient = DrugGrowing.harvest(crop, "cannabis".equals(crop) ? DrugItemMetadata.DEFAULT_STRAIN_ID : null);
                 gui.setItem(row * 9 + column + 1, decorateIngredient(ingredient));

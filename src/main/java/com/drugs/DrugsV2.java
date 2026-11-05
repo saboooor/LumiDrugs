@@ -85,6 +85,9 @@ public class DrugsV2 extends JavaPlugin {
     private boolean bongsLoaded;
     private boolean farmsLoaded;
     private boolean addictionLoaded;
+    private com.drugs.quests.ProgressQuests progressQuests;
+    private com.drugs.quests.ProductionJournal productionJournal;
+    public com.drugs.quests.ProductionJournal getProductionJournal() { return productionJournal; }
     private CartelDealer cartelDealer;
     private CartelEnforcer cartelEnforcer;
     private CartelNpcs cartelNpcs;
@@ -109,6 +112,7 @@ public class DrugsV2 extends JavaPlugin {
         }
         // BeautyQuests loads saved quests on its first scheduled tick. Register our
         // stage and prepare its file synchronously, before deferred startup begins.
+        progressQuests = com.drugs.quests.ProgressQuests.create(this);
         cartelDealer = new CartelDealer(this);
         cartelEnforcer = new CartelEnforcer(this, cartelDealer);
         cartelDealer.setEnforcer(cartelEnforcer);
@@ -206,6 +210,13 @@ public class DrugsV2 extends JavaPlugin {
                 MechanicsConfig.getWorkerTickInterval(), MechanicsConfig.getWorkerTickInterval());
         getServer().getScheduler().runTask(this, () -> BongRegistry.respawnMissing(bongListener));
 
+        try {
+            productionJournal = new com.drugs.quests.ProductionJournal(this, cartelDealer, progressQuests);
+            manager.registerEvents(productionJournal, this);
+        } catch (Exception error) {
+            getLogger().log(Level.SEVERE, "Production journal unavailable; saved progress was not overwritten", error);
+        }
+
         // Register commands
         getServer().getPluginManager().registerEvents(cartelDealer, this);
         getCommand("cartel").setExecutor(cartelDealer);
@@ -257,6 +268,7 @@ public class DrugsV2 extends JavaPlugin {
         // Discard an unfinished startup batch before publishing shutdown removals.
         RecipeUpdates.reset();
         savePhase("removing production recipes", com.drugs.recipes.ProductionRecipes::clear);
+        if (productionJournal != null) savePhase("saving production journal", productionJournal::shutdown);
         if (cartelDroppedSales != null) savePhase("stopping cartel sales", cartelDroppedSales::shutdown);
         if (overdoseWarnings != null) savePhase("stopping overdose warnings", overdoseWarnings::shutdown);
         if (cartelEnforcer != null) savePhase("stopping cartel encounters", cartelEnforcer::shutdown);

@@ -34,8 +34,9 @@ public class DrugMenuGUI {
     public static void open(Player player, int page) {
         Inventory gui = Bukkit.createInventory(null, GUI_SIZE, ChatColor.DARK_GREEN + "Drugs Menu");
         for (DrugCategory category : DrugCategory.values()) {
-            gui.setItem(category.ordinal(), MenuUtils.createButtonItem("§a" + category.title(), category.icon()));
+            gui.setItem(category.ordinal(), MenuUtils.createCategoryButton(category));
         }
+        gui.setItem(29, MenuUtils.createButtonItem("§aProduction Journal", org.bukkit.Material.BOOK));
         gui.setItem(31, MenuUtils.createButtonItem("§cClose", org.bukkit.Material.BARRIER));
         player.openInventory(gui);
     }

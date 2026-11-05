@@ -4,26 +4,28 @@ import org.bukkit.Material;
 
 /** Shared grouping for products, production ingredients and recipe navigation. */
 public enum DrugCategory {
-    CANNABIS("Cannabis", Material.FERN),
-    NICOTINE("Nicotine", Material.DRIED_KELP),
-    CAFFEINE("Caffeine", Material.COCOA_BEANS),
-    OPIOIDS("Opioids", Material.POPPY),
-    COCAINE("Cocaine", Material.SUGAR),
-    METH("Meth", Material.AMETHYST_SHARD),
-    MDMA("MDMA", Material.PINK_DYE),
-    MUSHROOMS("Mushrooms", Material.RED_MUSHROOM),
-    LSD("LSD", Material.PAPER),
-    SALVIA("Salvia", Material.SHORT_GRASS),
-    INHALANTS("Inhalants", Material.SLIME_BALL),
-    CURES("Cures", Material.HONEY_BOTTLE),
-    EQUIPMENT("Equipment", Material.BREWING_STAND),
-    OTHER("Other", Material.CHEST);
+    CANNABIS("Cannabis", Material.FERN, "cannabis_plant"),
+    NICOTINE("Nicotine", Material.DRIED_KELP, "vape"),
+    CAFFEINE("Caffeine", Material.COCOA_BEANS, "caffeine"),
+    OPIOIDS("Opioids", Material.POPPY, "heroin"),
+    COCAINE("Cocaine", Material.SUGAR, "cocaine"),
+    METH("Meth", Material.AMETHYST_SHARD, "meth"),
+    MDMA("MDMA", Material.PINK_DYE, "molly"),
+    MUSHROOMS("Mushrooms", Material.RED_MUSHROOM, "shrooms"),
+    LSD("LSD", Material.PAPER, "lsd"),
+    SALVIA("Salvia", Material.SHORT_GRASS, "salvia"),
+    INHALANTS("Inhalants", Material.SLIME_BALL, "glue"),
+    CURES("Cures", Material.HONEY_BOTTLE, "suboxone"),
+    EQUIPMENT("Equipment", Material.BREWING_STAND, "farm_controller"),
+    OTHER("Other", Material.CHEST, "farm_work_contract");
 
     private final String title;
     private final Material icon;
-    DrugCategory(String title, Material icon) { this.title = title; this.icon = icon; }
+    private final String model;
+    DrugCategory(String title, Material icon, String model) { this.title = title; this.icon = icon; this.model = model; }
     public String title() { return title; }
     public Material icon() { return icon; }
+    public String model() { return model; }
 
     public static DrugCategory forItem(String id) {
         id = id.replaceFirst("_(flavor|strain)_.*$", "");

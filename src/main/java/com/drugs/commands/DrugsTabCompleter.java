@@ -26,6 +26,7 @@ public class DrugsTabCompleter implements TabCompleter {
             if (sender.hasPermission("drugs.status")) options.add("status");
             options.add("growing");
             options.add("recipe");
+            if (sender.hasPermission("drugs.quests")) options.addAll(List.of("learn", "journal", "contracts"));
             options.add("list");
             options.add("purge");
             options.add("reload");
@@ -61,6 +62,13 @@ public class DrugsTabCompleter implements TabCompleter {
                 return partialMatch(args[2], playerNames);
             }
             return Collections.emptyList();
+        }
+
+        if (args.length == 2 && sender.hasPermission("drugs.quests")) {
+            if (args[0].equalsIgnoreCase("journal")) return partialMatch(args[1], List.of("abandon-learning", "abandon-supply"));
+            var journal = com.drugs.DrugsV2.getInstance().getProductionJournal();
+            if (journal != null && (args[0].equalsIgnoreCase("learn") || args[0].equalsIgnoreCase("contracts")))
+                return partialMatch(args[1], journal.products());
         }
 
         if (args.length == 2 && args[0].equalsIgnoreCase("recipe")) {

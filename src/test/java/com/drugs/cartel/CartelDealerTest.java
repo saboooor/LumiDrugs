@@ -245,4 +245,32 @@ class CartelDealerTest {
         assertEquals(0, new CartelDealer(plugin).sellDropped(player, item, 16, payments));
         verifyNoInteractions(payments);
     }
+    @Test void stationaryBuyerCreditsContractOnlyAfterASuccessfulSale() {
+        CartelDealer dealer = spy(new CartelDealer(plugin));
+        CartelNpcs npcs = mock(CartelNpcs.class);
+        dealer.setNpcs(npcs);
+        var buyer = mock(org.bukkit.entity.LivingEntity.class);
+        var character = mock(CartelNpcs.Character.class);
+        when(npcs.find(buyer, "buyer")).thenReturn(character);
+        var player = mock(Player.class);
+        when(player.hasPermission("drugs.cartel.sell")).thenReturn(true);
+        var stack = drug("joint", "joint", null);
+        var item = dropped(stack);
+        when(item.getNearbyEntities(2, 2, 2)).thenReturn(java.util.List.of(buyer));
+        when(buyer.hasLineOfSight(item)).thenReturn(true);
+        var world = mock(org.bukkit.World.class);
+        when(buyer.getLocation()).thenReturn(new org.bukkit.Location(world, 0, 0, 0));
+        when(item.getLocation()).thenReturn(new org.bukkit.Location(world, 0, 0, 0));
+        var payments = mock(CartelDealer.Payments.class);
+        doReturn(payments).when(dealer).payments();
+        var journal = mock(com.drugs.quests.ProductionJournal.class);
+        when(plugin.getProductionJournal()).thenReturn(journal);
+        when(payments.deposit(player, 45)).thenReturn(false);
+        assertTrue(dealer.acceptDrop(player, item));
+        verifyNoInteractions(journal);
+        when(payments.deposit(player, 45)).thenReturn(true);
+        assertTrue(dealer.acceptDrop(player, item));
+        verify(journal).sold(player, "joint", 3);
+    }
+
 }

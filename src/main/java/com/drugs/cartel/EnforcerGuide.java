@@ -74,6 +74,9 @@ public final class EnforcerGuide implements Listener {
         List<ActionButton> actions = List.of(
                 Dialogs.button("Crafting recipe", "/drugs guide " + drug + " recipe", false, Icon.CRAFTING_TABLE, "View the crafting recipe for " + drug + "."),
                 Dialogs.button("How to grow", "/drugs guide " + drug + " growing", false, Icon.SEEDS, "Learn how to grow the required ingredient."),
+                Dialogs.button("Learn to make this", "/drugs learn " + drug, false, Icon.BOOK,
+                        "Start a learning quest without a deadline. The enforcer's delivery timer keeps running separately."),
+                Dialogs.button("Production journal", "/drugs journal", false, Icon.BOOK),
                 Dialogs.button("Reject demand", "/cartel reject", false, Icon.CLOSE,
                         "End this encounter now. Counts as a refusal, with the same consequences as letting time run out.")
         );
@@ -147,7 +150,7 @@ public final class EnforcerGuide implements Listener {
             for (int row = 0; row < shape.length; row++) {
                 for (int column = 0; column < shape[row].length(); column++) {
                     RecipeChoice choice = ingredients.get(shape[row].charAt(column));
-                    ItemStack ingredient = choice == null ? null : choice.getItemStack();
+                    ItemStack ingredient = com.drugs.recipes.ProductionRecipes.previewIngredient(drug, choice);
                     if (choice instanceof RecipeChoice.MaterialChoice && ingredient != null && crop != null && DrugGrowing.material(crop) == ingredient.getType()) {
                         ingredient = DrugGrowing.harvest(crop, null);
                     }

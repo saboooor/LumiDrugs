@@ -48,6 +48,15 @@ public final class ProductionRecipes {
         item.setItemMeta(meta);
         return item;
     }
+    /** Material-only server matching is validated separately; previews show the required custom input. */
+    public static ItemStack previewIngredient(String recipe, RecipeChoice choice) {
+        if (choice == null) return null;
+        ItemStack item = choice.getItemStack();
+        if (recipe.equals("vape") && choice instanceof RecipeChoice.MaterialChoice
+                && item.getType() == Material.POTION) return intermediate("vape_liquid", null);
+        return item;
+    }
+
     public static boolean tagged(ItemStack item, String type) {
         return item != null && item.hasItemMeta() && type.equals(DrugItemMetadata.getItemType(item.getItemMeta()));
     }

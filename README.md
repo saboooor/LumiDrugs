@@ -427,3 +427,55 @@ that threshold is crossed. Drugs with `decay.enabled: false` (or no positive dec
 rate) instead display **until treated (no natural recovery)**; their potion effects
 use a true infinite duration. The old `infinite_duration_ticks` setting no longer
 creates a repeatedly resetting fake countdown. Existing cure/decay rules are unchanged.
+
+
+## Production learning quests and voluntary supply contracts
+
+With BeautyQuests 2.0+ installed, choose **Learn to make this** in an enforcer's dialogue,
+use `/drugs learn <product>`, or open the **Production Journal** in `/drugs`. The journal
+is also available through `/drugs journal`.
+
+Each player can keep one learning quest and one supply contract at a time. Learning
+quests follow the product's planting stock, harvest, processing, brewing, and assembly
+chain. The journal offers the next recipe and growing guide. Progress checks the custom
+items in the player's inventory, so existing supplies skip earlier steps. Tutorials
+never consume items and have no deadline or extra item/currency rewards.
+
+For example, the vape learning chain is Tobacco Seeds → Tobacco Leaves → Nicotine →
+Nicotine Vape Liquid → Vape. Cannabis starts by crafting a cannabis plant from one
+wheat seed and one fern; the journal links its recipe and growing instructions.
+
+Learning quests are independent of an enforcer encounter: starting one does **not** pause
+or extend an active enforcer's deadline. They remain available after that encounter ends,
+after death, and across reconnects and restarts. Abandon a lesson in the journal without
+adding to the cartel refusal streak. Cancelling it in BeautyQuests also clears the journal entry.
+
+Right-click a stationary buyer and choose **Choose supply contract**, or use
+`/drugs contracts`. Pick a registered drug with an enabled positive base price. The
+bundled defaults require **16 items within 24 real hours**, allowing time for growing
+and production. Deliver by throwing the selected product near any stationary buyer.
+Only successful paid sales made after acceptance count; failed payments, other products,
+and enforcer deliveries do not count. Partial sales accumulate, and extra items sell normally.
+The normal sale prices, purity scaling, and applicable buyer preferences still apply;
+there is no separate contract bonus. Existing stock is allowed.
+
+The supply deadline keeps running while offline. Expiry and abandonment carry no refusal
+penalty and do not undo paid sales. `/drugs journal` shows progress, time remaining, and
+abandon buttons. The journal persists in `production-journal.yml`; it is separate from
+temporary enforcer NPC state. Permission `drugs.quests` defaults to true; supply contracts
+also require `drugs.cartel.sell`.
+
+LumiDrugs registers the `lumidrugs-production-learning` and `lumidrugs-supply-contract`
+stage types before BeautyQuests loads its saved quests. It automatically creates
+`plugins/BeautyQuests/quests/lumidrugs-learning.yml` and `lumidrugs-supply.yml`, choosing
+unused IDs starting at 9100. Existing quest files and admin edits are preserved. Both
+quests require individual progression, repeatable/cancellable settings, and their original
+single stage. BeautyQuests start limits and stage requirements are respected. Fully restart
+after installing the update; plugin hot reloads do not register saved quest types reliably.
+Without BeautyQuests, the journal can display choices but starting a quest explains the
+missing dependency; ordinary drug and buyer features remain usable.
+
+Configure `cartel.yml` → `supply-contracts.enabled`, `amount` (1–2304), and
+`deadline-hours` (1–168); `/cartel reload` applies changes to new contracts. Accepted
+contracts keep their original amount and deadline. Turning off new contracts does not
+cancel accepted ones.
