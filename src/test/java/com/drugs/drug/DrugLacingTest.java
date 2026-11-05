@@ -60,7 +60,8 @@ class DrugLacingTest {
         var meta = mock(ItemMeta.class);
         var data = mock(PersistentDataContainer.class);
         var amount = new AtomicInteger(count);
-        when(item.getType()).thenReturn(Material.SUGAR);
+        // Paper's Material.isAir() requires initialized server registries.
+        when(item.getType()).thenReturn(mock(Material.class));
         when(item.getAmount()).thenAnswer(call -> amount.get());
         doAnswer(call -> { amount.set(call.getArgument(0)); return null; }).when(item).setAmount(anyInt());
         when(item.hasItemMeta()).thenReturn(true);
