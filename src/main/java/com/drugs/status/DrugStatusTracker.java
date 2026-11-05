@@ -41,9 +41,24 @@ public final class DrugStatusTracker implements Listener {
     }
 
     public static void applyEffect(Player player, String drugId, PotionEffect effect) {
+        if (drugId.startsWith(WITHDRAWAL_PREFIX)) {
+            PotionEffect current = player.getPotionEffect(effect.getType());
+            if (current != null && needsWithdrawalRefresh(
+                    player.getPersistentDataContainer().get(key(effect.getType()), PersistentDataType.STRING),
+                    drugId, current.getDuration(), effect.getDuration())) {
+                // Bukkit normally keeps the longer existing effect. Replace only our
+                // own oversized withdrawal timer, including legacy 99,999-tick effects.
+                player.removePotionEffect(effect.getType());
+            }
+        }
         if (player.addPotionEffect(effect) && player.getPotionEffect(effect.getType()) != null) {
             player.getPersistentDataContainer().set(key(effect.getType()), PersistentDataType.STRING, drugId);
         }
+    }
+
+    static boolean needsWithdrawalRefresh(String previousSource, String source, int currentTicks, int nextTicks) {
+        return source.startsWith(WITHDRAWAL_PREFIX) && source.equals(previousSource)
+                && nextTicks >= 0 && (currentTicks < 0 || currentTicks > nextTicks + 20L);
     }
 
     /** Reports all live effects, preserving known drug sources and unknown sources. */

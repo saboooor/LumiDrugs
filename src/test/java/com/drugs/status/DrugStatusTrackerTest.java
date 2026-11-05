@@ -53,6 +53,15 @@ class DrugStatusTrackerTest {
                 DrugStatusTracker.potionStatus(data, Map.of(statusKey, active)));
     }
 
+    @Test void oversizedLegacyWithdrawalTimersAreReplacedWithoutOverwritingOtherSources() {
+        assertTrue(DrugStatusTracker.needsWithdrawalRefresh("withdrawal/cocaine", "withdrawal/cocaine", 99999, 1200));
+        assertTrue(DrugStatusTracker.needsWithdrawalRefresh("withdrawal/cocaine", "withdrawal/cocaine", -1, 1200));
+        assertFalse(DrugStatusTracker.needsWithdrawalRefresh("withdrawal/cocaine", "withdrawal/cocaine", 1220, 1200));
+        assertFalse(DrugStatusTracker.needsWithdrawalRefresh("cocaine", "withdrawal/cocaine", 99999, 1200));
+        assertFalse(DrugStatusTracker.needsWithdrawalRefresh("withdrawal/meth", "withdrawal/cocaine", 99999, 1200));
+        assertFalse(DrugStatusTracker.needsWithdrawalRefresh("withdrawal/cocaine", "withdrawal/cocaine", 1200, -1));
+    }
+
     @Test void withdrawalStatusUsesRecoveryCountdownEvenWithoutLivePotionEffects() {
         try (var addiction = mockStatic(com.drugs.addiction.AddictionManager.class)) {
             addiction.when(() -> com.drugs.addiction.AddictionManager.getWithdrawalTimers(player))
