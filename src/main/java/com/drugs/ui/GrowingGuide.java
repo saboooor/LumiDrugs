@@ -29,10 +29,16 @@ public final class GrowingGuide {
         DrugsV2.getInstance().showDialog(player, createDialog(crop, recipe));
     }
 
+    public static void openPurity(Player player) {
+        DrugsV2.getInstance().showDialog(player, createPurityDialog());
+    }
+
     private record StepStyle(String label, DialogView.Icon icon, NamedTextColor color) {}
 
     private static StepStyle stepStyle(String instruction) {
         String text = instruction.toLowerCase(java.util.Locale.ROOT);
+        if (text.startsWith("purity") || text.startsWith("maximize purity") || text.startsWith("refine"))
+            return new StepStyle("Purity & Refining", DialogView.Icon.BREWING_STAND, NamedTextColor.AQUA);
         if (text.startsWith("bone meal") || text.startsWith("if harvesting"))
             return new StepStyle("Remember", DialogView.Icon.INFO, NamedTextColor.YELLOW);
         if (text.startsWith("wait")) return new StepStyle("Growth time", DialogView.Icon.CLOCK, NamedTextColor.AQUA);
@@ -72,7 +78,27 @@ public final class GrowingGuide {
                         new DialogView.TextComponent(plain.toString(), null, rich), 350)));
     }
 
+    public static DialogView.MultiActionDialog createPurityDialog() {
+        String refiningItem = com.drugs.config.MechanicsConfig.getPurityRefiningIngredient()
+                .name().toLowerCase(java.util.Locale.ROOT).replace('_', ' ');
+        int points = com.drugs.config.MechanicsConfig.getPurityRefiningPoints();
+        List<String> steps = List.of(
+                "Purity (65%–100%) scales drug effect duration and cartel sale value (90% is baseline).",
+                "Plant on fully hydrated farmland (moisture 7/7, water within 4 blocks) for +5% purity (+2% at moisture 4–6).",
+                "Keep light level at 14–15 for +10% purity (+5% at light level 12–13).",
+                "Keep an overhead grow lamp (Sea Lantern, Glowstone, Shroomlight, Froglight, Lantern, Redstone Lamp, End Rod, or Beacon) 1–4 blocks above the crop for +5% purity.",
+                "Place a Composter, Moss Block, Mud, or Podzol within 2 blocks horizontally for +5% purity, and leave at least 2 cardinal sides open to avoid overcrowding (-5%).",
+                "Right-click any planted crop with an empty hand to see its live Purity % and tips on what condition to improve next.",
+                "Refine finished drugs at a Cauldron: hold 1 drug in your main hand and " + refiningItem + " in your offhand, then sneak-right-click a Cauldron for +" + points + "% purity per step (up to 100%).");
+        var actions = List.of(
+                Dialogs.button("All crops", "/drugs growing", false, DialogView.Icon.SEEDS));
+        return Dialogs.menu(formattedBase("How to increase purity", steps), actions);
+    }
+
     public static DialogView.MultiActionDialog createDialog(String crop, String recipe) {
+        if ("purity".equalsIgnoreCase(crop)) {
+            return createPurityDialog();
+        }
         if (crop == null) {
             var actions = new ArrayList<DialogView.ActionButton>();
             for (String id : DrugGrowing.cropIds()) {
@@ -80,15 +106,19 @@ public final class GrowingGuide {
                 actions.add(Dialogs.button(definition.name(), "/drugs growing " + id, false,
                         DialogView.Icon.SEEDS, "Planting, growing conditions, harvests, and replanting."));
             }
+            actions.add(Dialogs.button("How to increase purity", "/drugs purity", false,
+                    DialogView.Icon.BREWING_STAND, "Learn how growing conditions and cauldron refining increase purity."));
             return Dialogs.menu(formattedBase("How to grow ingredients", List.of(
                     "Choose a crop for planting and harvesting instructions.",
                     "Click harvested ingredients in a crafting recipe to open their growing guide.",
-                    "Recipes need custom harvested ingredients, not ordinary materials or planting stock.")), actions);
+                    "Recipes need custom harvested ingredients, not ordinary materials or planting stock.",
+                    "Purity depends on soil hydration, light level, overhead grow lamps, nearby Composter/Moss, plant spacing, and cauldron refining.")), actions);
         }
         List<String> steps = EnforcerGuide.growingSteps(crop);
         var actions = new ArrayList<DialogView.ActionButton>();
         if (recipe != null) actions.add(Dialogs.button("Back to recipe", "/drugs recipe " + recipe, false, DialogView.Icon.CRAFTING_TABLE));
         actions.add(Dialogs.button("All crops", "/drugs growing", false, DialogView.Icon.SEEDS));
+        actions.add(Dialogs.button("How to increase purity", "/drugs purity", false, DialogView.Icon.BREWING_STAND));
         var definition = DrugGrowing.crop(crop);
         String name = definition == null ? crop : definition.name();
         return Dialogs.menu(formattedBase("How to grow: " + name, steps), actions);

@@ -25,6 +25,7 @@ public class DrugsTabCompleter implements TabCompleter {
             options.add("help");
             if (sender.hasPermission("drugs.status")) options.add("status");
             options.add("growing");
+            options.add("purity");
             options.add("recipe");
             if (sender.hasPermission("drugs.quests")) options.addAll(List.of("learn", "journal", "contracts"));
             options.add("list");

@@ -179,11 +179,11 @@ public final class ProductionRecipes {
             String doughId = "infused_dough" + suffix;
             ShapelessRecipe doughRecipe = new ShapelessRecipe(key(doughId), dough)
                     .addIngredient(Material.WHEAT).addIngredient(Material.SUGAR)
-                    .addIngredient(new RecipeChoice.ExactChoice(buds));
+                    .addIngredient(com.drugs.drug.DrugPurity.exactChoice(buds));
             add(doughId, doughRecipe);
             ItemStack edible = DrugRegistry.getDrugItem("edible", 1, strain);
             if (edible != null) add("edible" + suffix, new SmokingRecipe(key("edible" + suffix), edible,
-                    new RecipeChoice.ExactChoice(dough), 0.1f, 200));
+                    com.drugs.drug.DrugPurity.exactChoice(dough), 0.1f, 200));
             String extractId = "cannabis_extract" + suffix;
             ItemStack extract = intermediate("cannabis_extract", strain);
             java.util.function.Predicate<ItemStack> acceptsBuds = item -> acceptsBuds(item, strain);
@@ -203,7 +203,7 @@ public final class ProductionRecipes {
                 ShapedRecipe recipe = new ShapedRecipe(key(cartId), cart).shape(" G ", "RFB", " C ")
                         .setIngredient('G', Material.GLASS).setIngredient('R', Material.REDSTONE)
                         .setIngredient('B', Material.STONE_BUTTON).setIngredient('C', Material.COPPER_INGOT)
-                        .setIngredient('F', new RecipeChoice.ExactChoice(extract));
+                        .setIngredient('F', com.drugs.drug.DrugPurity.exactChoice(extract));
                 add(cartId, recipe);
             }
         }

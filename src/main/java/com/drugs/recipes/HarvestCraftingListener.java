@@ -65,7 +65,7 @@ public final class HarvestCraftingListener implements Listener {
             strain = next;
         }
         ItemStack result = DrugRegistry.getDrugItem(event.getRecipe().getKey().getKey(), event.getResult().getAmount(), strain);
-        if (result != null) event.setResult(result);
+        if (result != null) event.setResult(com.drugs.drug.DrugPurity.propagate(result, matrix));
     }
     @EventHandler(priority = EventPriority.HIGHEST)
     public void prepare(PrepareItemCraftEvent event) {

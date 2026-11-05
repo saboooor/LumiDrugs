@@ -107,12 +107,111 @@ public final class DrugGrowing implements Listener {
 
     public static Set<String> cropIds() { return Collections.unmodifiableSet(crops.keySet()); }
     public static String requirement(String drug) { return requirements.get(drug.toLowerCase(Locale.ROOT)); }
+    public record GrowingQuality(int purity, int lightLevel, int moisture,
+                                 boolean hasGrowLamp, boolean hasRichSoil, boolean overcrowded,
+                                 List<String> tips) {}
+
+    private static final Set<Material> GROW_LAMP_MATERIALS = Set.of(
+            Material.SEA_LANTERN, Material.GLOWSTONE, Material.SHROOMLIGHT,
+            Material.OCHRE_FROGLIGHT, Material.VERDANT_FROGLIGHT, Material.PEARLESCENT_FROGLIGHT,
+            Material.END_ROD, Material.REDSTONE_LAMP, Material.LANTERN, Material.SOUL_LANTERN, Material.BEACON);
+
+    private static final Set<Material> RICH_SOIL_MATERIALS = Set.of(
+            Material.COMPOSTER, Material.MOSS_BLOCK, Material.MUD, Material.PODZOL);
+
+    public static GrowingQuality evaluateGrowingQuality(Block block) {
+        if (block == null || !com.drugs.config.MechanicsConfig.isPurityEnabled()) {
+            return new GrowingQuality(com.drugs.drug.DrugPurity.BASELINE, 15, 7, false, false, false, List.of());
+        }
+        Block soil = block.getRelative(0, -1, 0);
+        if (soil == null || !(soil.getBlockData() instanceof org.bukkit.block.data.type.Farmland farmland)) {
+            return new GrowingQuality(com.drugs.drug.DrugPurity.BASELINE, 15, 7, false, false, false, List.of());
+        }
+        int purity = 75;
+        List<String> tips = new ArrayList<>();
+
+        int moisture = farmland.getMoisture();
+        if (moisture >= 7) {
+            purity += 5;
+        } else if (moisture >= 4) {
+            purity += 2;
+            tips.add("Hydrate farmland to 7/7 with water within 4 blocks (+3% purity)");
+        } else {
+            tips.add("Hydrate farmland to 7/7 with water within 4 blocks (+5% purity)");
+        }
+
+        int light = Byte.toUnsignedInt(block.getLightLevel());
+        if (light >= 14) {
+            purity += 10;
+        } else if (light >= 12) {
+            purity += 5;
+            tips.add("Increase light level to 14-15 (+5% purity)");
+        } else {
+            tips.add("Increase light level to 14-15 (+10% purity)");
+        }
+
+        boolean hasLamp = false;
+        for (int dy = 1; dy <= 4; dy++) {
+            Block above = block.getRelative(0, dy, 0);
+            if (above != null && above.getType() != null && GROW_LAMP_MATERIALS.contains(above.getType())) {
+                hasLamp = true;
+                break;
+            }
+        }
+        if (hasLamp) {
+            purity += 5;
+        } else {
+            tips.add("Place a grow lamp (Sea Lantern, Glowstone, Shroomlight, Froglight, or Lantern) 1-4 blocks above (+5% purity)");
+        }
+
+        boolean hasRichSoil = false;
+        outer:
+        for (int dx = -2; dx <= 2; dx++) {
+            for (int dz = -2; dz <= 2; dz++) {
+                if (dx == 0 && dz == 0) continue;
+                for (int dy = -1; dy <= 0; dy++) {
+                    Block nearby = block.getRelative(dx, dy, dz);
+                    if (nearby != null && nearby.getType() != null && RICH_SOIL_MATERIALS.contains(nearby.getType())) {
+                        hasRichSoil = true;
+                        break outer;
+                    }
+                }
+            }
+        }
+        if (hasRichSoil) {
+            purity += 5;
+        } else {
+            tips.add("Place a Composter or Moss Block within 2 blocks (+5% purity)");
+        }
+
+        int occupiedSides = 0;
+        int[][] dirs = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
+        for (int[] dir : dirs) {
+            Block adj = block.getRelative(dir[0], 0, dir[1]);
+            if (adj != null && !adj.isEmpty() && adj.getType() != null
+                    && adj.getType() != Material.AIR && adj.getType() != Material.CAVE_AIR && adj.getType() != Material.VOID_AIR) {
+                occupiedSides++;
+            }
+        }
+        boolean overcrowded = occupiedSides >= 3;
+        if (overcrowded) {
+            purity -= 5;
+            tips.add("Leave open space on at least 2 sides to avoid crowding (+5% purity)");
+        }
+
+        purity = Math.clamp(purity, 65, 100);
+        return new GrowingQuality(purity, light, moisture, hasLamp, hasRichSoil, overcrowded, List.copyOf(tips));
+    }
+
     public static Material material(String crop) { return "cannabis".equals(crop) ? Material.FERN : crops.get(crop).ingredient(); }
     public static boolean isHarvest(ItemStack item, String crop) {
         return item != null && item.getType() == material(crop) && item.hasItemMeta()
             && ("harvest_" + crop).equals(DrugItemMetadata.getItemType(item.getItemMeta()));
     }
     public static ItemStack harvest(String crop, String strain) {
+        return harvest(crop, strain, com.drugs.drug.DrugPurity.BASELINE);
+    }
+    public static ItemStack harvest(String crop, String strain, int purity) {
         ItemStack item = new ItemStack(material(crop));
         ItemMeta meta = item.getItemMeta();
         DrugItemMetadata.setItemType(meta, "harvest_" + crop);
@@ -122,6 +221,7 @@ public final class DrugGrowing implements Listener {
             DrugItemMetadata.setStrainId(meta, strain);
             DrugItemMetadata.applyStrainLore(meta, StrainConfigLoader.getStrain(strain));
         }
+        com.drugs.drug.DrugPurity.set(meta, purity);
         item.setItemMeta(meta);
         return item;
     }
@@ -217,8 +317,15 @@ public final class DrugGrowing implements Listener {
         else if (plant.crop().equals("cannabis") && block.getType() == Material.FERN && !block.getRelative(0, 1, 0).isEmpty()) status = "§ePaused: needs space above";
         else if (block.getLightLevel() < 9) status = "§ePaused: needs light level 9+";
         else status = "§7" + (crop.seconds() - plant.elapsed()) + "s of active growth left";
+        GrowingQuality quality = evaluateGrowingQuality(block);
+        String purityInfo = com.drugs.config.MechanicsConfig.isPurityEnabled()
+                ? " §8| §bPurity: §f" + quality.purity() + "%" : "";
         event.getPlayer().sendActionBar("§a" + crop.name() + " §8[§a" + "|".repeat(filled)
-                + "§7" + "|".repeat(10 - filled) + "§8] §f" + percent + "% §8— " + status);
+                + "§7" + "|".repeat(10 - filled) + "§8] §f" + percent + "%" + purityInfo + " §8— " + status);
+        if (com.drugs.config.MechanicsConfig.isPurityEnabled() && !quality.tips().isEmpty()) {
+            event.getPlayer().sendMessage("§b[Growing Purity: §f" + quality.purity() + "%§b] §7To make purer: §f"
+                    + quality.tips().getFirst() + " §8(§e/drugs purity§8)");
+        }
     }
 
     public boolean isMature(Block block) {
@@ -241,10 +348,11 @@ public final class DrugGrowing implements Listener {
             save();
             return result.getDrops();
         }
+        int purity = evaluateGrowingQuality(block).purity();
         plants.remove(key(block));
         clearModel(block);
         save();
-        return List.of(seed(plant.crop()).asQuantity(harvestSeedCount()), harvest(plant.crop(), null).asQuantity(2));
+        return List.of(seed(plant.crop()).asQuantity(harvestSeedCount()), harvest(plant.crop(), null, purity).asQuantity(2));
     }
 
     public boolean plantSeed(Block block, ItemStack seed) {
@@ -311,7 +419,8 @@ public final class DrugGrowing implements Listener {
             boolean mature = plant.elapsed() >= crops.get(plant.crop()).seconds();
             block.getWorld().dropItemNaturally(block.getLocation(), seed(plant.crop()).asQuantity(mature ? harvestSeedCount() : 1));
             if (mature) {
-                block.getWorld().dropItemNaturally(block.getLocation(), harvest(plant.crop(), null).asQuantity(2));
+                int purity = evaluateGrowingQuality(block).purity();
+                block.getWorld().dropItemNaturally(block.getLocation(), harvest(plant.crop(), null, purity).asQuantity(2));
                 Map<String, Object> context = AchievementManager.createContext();
                 context.put("crop_id", plant.crop());
                 AchievementManager.processTrigger(event.getPlayer(), "harvest_crop", context);

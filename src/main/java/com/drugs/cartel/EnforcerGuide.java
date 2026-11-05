@@ -197,6 +197,7 @@ public final class EnforcerGuide implements Listener {
                 "Break the mature large fern using shears.",
                 "Collect 2 Cannabis Buds and a cannabis plant. Mature plants have a 10% chance of an extra plant.",
                 "Replant the cannabis plant; its strain may mutate. Use buds in recipes.",
+                "Maximize purity (up to 100%) with full water hydration (7/7), bright light (14–15), an overhead grow lamp, a nearby Composter or Moss Block, and open spacing — or refine finished drugs at a cauldron with Quartz.",
                 "If harvesting early, use shears to recover planting stock. Without shears, no buds or planting stock are returned.");
         DrugGrowing.Crop definition = DrugGrowing.crop(crop);
         if (definition == null) return List.of("Growing information is currently unavailable.");
@@ -209,7 +210,8 @@ public final class EnforcerGuide implements Listener {
                 "Bone meal cannot speed up this crop.",
                 "Break the mature crop in Survival to get 2 " + definition.name() + " and a seed.",
                 "Mature crops have a 10% chance of one extra seed. Breaking early returns only the seed.",
-                "Replant the seed. Use the custom harvested " + definition.name() + ", not ordinary materials or seeds, in the recipe.");
+                "Replant the seed. Use the custom harvested " + definition.name() + ", not ordinary materials or seeds, in the recipe.",
+                "Maximize purity (up to 100%) with full water hydration (7/7), bright light (14–15), an overhead grow lamp, a nearby Composter or Moss Block, and open spacing — or refine finished drugs at a cauldron with Quartz.");
     }
 
     private static ItemStack icon(Material material, String name, String... lore) {

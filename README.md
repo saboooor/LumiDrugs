@@ -96,6 +96,10 @@ Plugin enable initializes one phase per server tick; commands show an initializi
 - `/drugstatus` or `/drugs status` → Lists active drugs, withdrawal and other potion effects with remaining durations, strengths and LSD/salvia onset delays. Effects with no recorded source are labeled source unknown. Confirms you are fully sober only when no drug or potion effects remain. Tolerance and addiction alone do not count as being high.
 - `/drugs achievements`  
   Explains how to open Minecraft’s Advancements screen (default key: L), then select the Drugs tab.
+- `/drugs growing [crop]`  
+  Opens the interactive growing guide for all crops or a specific crop.
+- `/drugs purity`  
+  Opens the interactive Purity & Refining guide detailing how growing conditions (hydration, light level, overhead grow lamps, nearby Composter/Moss Block, spacing) and cauldron refining increase purity up to 100%.
 
 ## Admin Commands
 

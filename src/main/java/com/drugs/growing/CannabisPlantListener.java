@@ -188,7 +188,8 @@ public class CannabisPlantListener implements Listener {
         }
 
         if (rootBlock.getType() == Material.LARGE_FERN && usingShears) {
-            drops.add(DrugGrowing.harvest("cannabis", parentStrain).asQuantity(2));
+            int purity = DrugGrowing.evaluateGrowingQuality(rootBlock).purity();
+            drops.add(DrugGrowing.harvest("cannabis", parentStrain, purity).asQuantity(2));
         }
         clearFernPlant(rootBlock);
         CannabisPlantRegistry.removePlant(rootBlock.getLocation());

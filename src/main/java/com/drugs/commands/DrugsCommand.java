@@ -170,6 +170,16 @@ public class DrugsCommand implements CommandExecutor {
             return true;
         }
 
+        // /drugs purity
+        if (args[0].equalsIgnoreCase("purity")) {
+            if (!(sender instanceof Player player)) {
+                sender.sendMessage("Only players can open the purity guide.");
+                return true;
+            }
+            com.drugs.ui.GrowingGuide.openPurity(player);
+            return true;
+        }
+
         // /drugs growing
         if (args[0].equalsIgnoreCase("growing")) {
             if (!(sender instanceof Player player)) {
@@ -177,6 +187,10 @@ public class DrugsCommand implements CommandExecutor {
                 return true;
             }
             String crop = args.length > 1 ? args[1].toLowerCase(java.util.Locale.ROOT) : null;
+            if ("purity".equalsIgnoreCase(crop)) {
+                com.drugs.ui.GrowingGuide.openPurity(player);
+                return true;
+            }
             if (crop != null && !DrugGrowing.cropIds().contains(crop)) {
                 sender.sendMessage("§cUnknown crop. Use /drugs growing to choose a crop.");
                 return true;
@@ -226,6 +240,7 @@ public class DrugsCommand implements CommandExecutor {
                 sender.sendMessage(ChatColor.YELLOW + "/drugs overdose reset <player>" + ChatColor.GRAY + " - Reset a player's overdose counts");
             }
             sender.sendMessage(ChatColor.YELLOW + "/drugs growing" + ChatColor.GRAY + " - Learn how to grow crafting ingredients");
+            sender.sendMessage(ChatColor.YELLOW + "/drugs purity" + ChatColor.GRAY + " - Learn how growing conditions and cauldron refining increase purity");
             sender.sendMessage(ChatColor.YELLOW + "/drugs help" + ChatColor.GRAY + " - Show this help menu");
             sender.sendMessage("");
             sender.sendMessage(ChatColor.DARK_RED + "⚠ Using drugs too often causes tolerance. Max tolerance = no effects!");

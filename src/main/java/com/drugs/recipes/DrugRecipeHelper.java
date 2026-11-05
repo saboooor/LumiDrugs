@@ -58,7 +58,7 @@ public class DrugRecipeHelper {
         if (!type.equals("crafting")) {
             String crop = section.getString("input-crop", DrugGrowing.requirement(id));
             if (crop == null || DrugGrowing.crop(crop) == null) return;
-            RecipeChoice input = new RecipeChoice.ExactChoice(DrugGrowing.harvest(crop, null));
+            RecipeChoice input = com.drugs.drug.DrugPurity.exactChoice(DrugGrowing.harvest(crop, null));
             int ticks = Math.max(1, section.getInt("cooking-time", 200));
             float experience = Math.max(0, (float) section.getDouble("experience", 0.1));
             Recipe processing = switch (type) {

@@ -62,6 +62,15 @@ public class DrugMenuListener implements Listener {
         if (title.startsWith("Recipe: ")) {
             // Recipe ingredients and custom items in the player inventory can open recipes.
             int slot = event.getRawSlot();
+            if (slot == 25) {
+                Bukkit.getScheduler().runTask(DrugsV2.getInstance(), () -> {
+                    openingRecipeView.add(player.getUniqueId());
+                    player.closeInventory();
+                    openingRecipeView.remove(player.getUniqueId());
+                    GrowingGuide.openPurity(player);
+                });
+                return;
+            }
             if (slot < inv.getSize() && (slot % 9 < 1 || slot % 9 > 3)) return;
             String ingredientRecipe = DrugRecipeViewer.recipeFor(clicked);
             if (ingredientRecipe != null) {

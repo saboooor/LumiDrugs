@@ -72,7 +72,11 @@ public final class FlavorInfusionListener implements Listener {
         }
         var flavor = FlavorVariants.matchingFlavor(product, ingredient);
         if (flavor == null) {
-            player.sendMessage("§eUse an unflavored product and its matching ingredient in your offhand. See /drugs.");
+            String refineHint = com.drugs.config.MechanicsConfig.isPurityEnabled()
+                    ? " Hold " + com.drugs.config.MechanicsConfig.getPurityRefiningIngredient().name().toLowerCase(java.util.Locale.ROOT).replace('_', ' ')
+                    + " in your offhand to refine purity (+5%)."
+                    : "";
+            player.sendMessage("§eUse an unflavored product and its matching ingredient in your offhand." + refineHint + " See /drugs purity.");
             return;
         }
         // Prepare the output before mutating either hand; cloning preserves remaining uses.

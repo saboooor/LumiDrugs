@@ -6,6 +6,7 @@ import com.drugs.items.DrugItemMetadata;
 import org.bukkit.ChatColor;
 import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.RecipeChoice;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 
@@ -15,24 +16,53 @@ import java.util.*;
 public final class DrugPurity {
     public static final int BASELINE = 90;
     private DrugPurity() {}
-    private static NamespacedKey key(String name) { return new NamespacedKey(DrugsV2.getInstance(), name); }
+    private static NamespacedKey key(String name) {
+        DrugsV2 instance = DrugsV2.getInstance();
+        return instance != null ? new NamespacedKey(instance, name) : new NamespacedKey("lumidrugs", name);
+    }
 
     public static int get(ItemStack item) {
         return item == null || !item.hasItemMeta() ? BASELINE : get(item.getItemMeta());
     }
     public static int get(ItemMeta meta) {
-        if (meta == null) return BASELINE;
+        if (meta == null || meta.getPersistentDataContainer() == null) return BASELINE;
         Integer value = meta.getPersistentDataContainer().get(key("purity"), PersistentDataType.INTEGER);
         return value == null ? BASELINE : Math.clamp(value, 1, 100);
     }
     public static void set(ItemMeta meta, int purity) {
         if (meta == null || !MechanicsConfig.isPurityEnabled()) return;
         purity = Math.clamp(purity, 1, 100);
-        meta.getPersistentDataContainer().set(key("purity"), PersistentDataType.INTEGER, purity);
+        var pdc = meta.getPersistentDataContainer();
+        if (pdc != null) {
+            pdc.set(key("purity"), PersistentDataType.INTEGER, purity);
+        }
         var lore = new ArrayList<>(meta.hasLore() ? Objects.requireNonNullElse(meta.getLore(), List.of()) : List.<String>of());
         lore.removeIf(line -> Objects.requireNonNullElse(ChatColor.stripColor(line), "").toLowerCase(Locale.ROOT).startsWith("purity:"));
         lore.add("§7Purity: §f" + purity + "%");
         meta.setLore(lore);
+    }
+    public static RecipeChoice.ExactChoice exactChoice(ItemStack base) {
+        if (base == null || !MechanicsConfig.isPurityEnabled()) {
+            return new RecipeChoice.ExactChoice(base);
+        }
+        ItemMeta meta = base.getItemMeta();
+        if (meta == null || meta.getPersistentDataContainer() == null) {
+            return new RecipeChoice.ExactChoice(base);
+        }
+        List<ItemStack> choices = new ArrayList<>();
+        choices.add(base);
+        for (int p = 1; p <= 100; p++) {
+            ItemStack variant = base.clone();
+            if (variant == null) continue;
+            ItemMeta vMeta = variant.getItemMeta();
+            if (vMeta == null) continue;
+            set(vMeta, p);
+            variant.setItemMeta(vMeta);
+            if (!variant.isSimilar(base)) {
+                choices.add(variant);
+            }
+        }
+        return new RecipeChoice.ExactChoice(choices);
     }
     public static double multiplier(ItemStack item) {
         return MechanicsConfig.isPurityEnabled() ? get(item) / (double) BASELINE : 1;

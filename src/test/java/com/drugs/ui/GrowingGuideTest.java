@@ -33,6 +33,51 @@ class GrowingGuideTest {
         assertTrue(body.contains("2 Cannabis Buds"));
         assertTrue(body.contains("Without shears"));
         assertTrue(body.contains("10%"));
+        assertTrue(body.contains("Maximize purity"));
+    }
+
+    @Test void purityDialogAndGrowingConditionEvaluationReflectEnvironmentAndTips() {
+        var purityDialog = GrowingGuide.createPurityDialog();
+        String purityText = purityDialog.getBase().body().getFirst().contents().toPlainText();
+        assertTrue(purityText.contains("hydrated farmland (moisture 7/7"));
+        assertTrue(purityText.contains("light level at 14–15"));
+        assertTrue(purityText.contains("overhead grow lamp"));
+        assertTrue(purityText.contains("Composter"));
+        assertTrue(purityText.contains("Cauldron"));
+
+        var block = mock(org.bukkit.block.Block.class);
+        var soil = mock(org.bukkit.block.Block.class);
+        var farmland = mock(org.bukkit.block.data.type.Farmland.class);
+        when(block.getRelative(0, -1, 0)).thenReturn(soil);
+        when(soil.getBlockData()).thenReturn(farmland);
+
+        // Dim light (9), low moisture (2), no lamp, no composter -> 75% purity + 4 tips
+        when(farmland.getMoisture()).thenReturn(2);
+        when(block.getLightLevel()).thenReturn((byte) 9);
+        var low = DrugGrowing.evaluateGrowingQuality(block);
+        assertEquals(75, low.purity());
+        assertEquals(4, low.tips().size());
+
+        // Standard good conditions: moisture 7 (+5%), light 15 (+10%) -> 90% baseline purity
+        when(farmland.getMoisture()).thenReturn(7);
+        when(block.getLightLevel()).thenReturn((byte) 15);
+        var baseline = DrugGrowing.evaluateGrowingQuality(block);
+        assertEquals(90, baseline.purity());
+        assertEquals(2, baseline.tips().size());
+
+        // Optimal conditions: moisture 7 (+5%), light 15 (+10%), Sea Lantern above (+5%), Composter nearby (+5%) -> 100% purity
+        var lamp = mock(org.bukkit.block.Block.class);
+        when(lamp.getType()).thenReturn(Material.SEA_LANTERN);
+        when(block.getRelative(0, 2, 0)).thenReturn(lamp);
+        var composter = mock(org.bukkit.block.Block.class);
+        when(composter.getType()).thenReturn(Material.COMPOSTER);
+        when(block.getRelative(1, 0, 1)).thenReturn(composter);
+        var optimal = DrugGrowing.evaluateGrowingQuality(block);
+        assertEquals(100, optimal.purity());
+        assertTrue(optimal.hasGrowLamp());
+        assertTrue(optimal.hasRichSoil());
+        assertFalse(optimal.overcrowded());
+        assertTrue(optimal.tips().isEmpty());
     }
     @Test void clickingHarvestOpensDialogWithoutReopeningMenuOnClose() throws Exception {
         var plugin = mock(com.drugs.DrugsV2.class);

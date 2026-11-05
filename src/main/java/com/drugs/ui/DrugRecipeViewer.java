@@ -46,6 +46,32 @@ public class DrugRecipeViewer {
         return null;
     }
 
+    private static void addPurityGuide(Inventory gui) {
+        if (!com.drugs.config.MechanicsConfig.isPurityEnabled()) return;
+        org.bukkit.Material mat = com.drugs.config.MechanicsConfig.getPurityRefiningIngredient();
+        ItemStack guide = new ItemStack(mat);
+        var meta = guide.getItemMeta();
+        if (meta != null) {
+            meta.setDisplayName("§bHow to Increase Purity");
+            String itemName = mat.name().toLowerCase(java.util.Locale.ROOT).replace('_', ' ');
+            int pts = com.drugs.config.MechanicsConfig.getPurityRefiningPoints();
+            meta.setLore(java.util.List.of(
+                    "§7Growing Conditions (65%–100%):",
+                    "§7 • Hydrated soil (7/7): §a+5%",
+                    "§7 • Bright light (14–15): §a+10%",
+                    "§7 • Grow lamp 1–4 blocks above: §a+5%",
+                    "§7 • Composter/Moss within 2 blocks: §a+5%",
+                    "§7 • Open spacing on 2+ sides: §a+5%",
+                    "§7Cauldron Refining (+§f" + pts + "%§7 per step):",
+                    "§7 • Hold 1 drug + §f" + itemName + " §7in offhand",
+                    "§7 • Sneak-right-click a Cauldron",
+                    "§eClick to open the full Purity Guide."
+            ));
+            guide.setItemMeta(meta);
+        }
+        gui.setItem(25, guide);
+    }
+
     public static void openRecipe(Player player, String drugId) {
         String key = "farm-controller".equals(drugId) ? "farm_controller" : drugId;
         var infusion = com.drugs.recipes.FlavorVariants.infusion(drugId);
@@ -62,6 +88,7 @@ public class DrugRecipeViewer {
             station.setItemMeta(meta);
             gui.setItem(13, station);
             gui.setItem(15, infusion.result());
+            addPurityGuide(gui);
             player.openInventory(gui);
             return;
         }
@@ -76,6 +103,7 @@ public class DrugRecipeViewer {
             stand.setItemMeta(meta);
             gui.setItem(13, stand);
             gui.setItem(15, brewing.result());
+            addPurityGuide(gui);
             player.openInventory(gui);
             return;
         }
@@ -92,6 +120,7 @@ public class DrugRecipeViewer {
             info.setItemMeta(meta);
             gui.setItem(13, info);
             gui.setItem(15, cooking.getResult());
+            addPurityGuide(gui);
             player.openInventory(gui);
             return;
         }
@@ -100,6 +129,7 @@ public class DrugRecipeViewer {
             gui.setItem(10, decorateIngredient(cutting.getInputChoice().getItemStack()));
             gui.setItem(13, new ItemStack(org.bukkit.Material.STONECUTTER));
             gui.setItem(15, cutting.getResult());
+            addPurityGuide(gui);
             player.openInventory(gui);
             return;
         }
@@ -111,6 +141,7 @@ public class DrugRecipeViewer {
                 index++;
             }
             gui.setItem(15, shapeless.getResult());
+            addPurityGuide(gui);
             player.openInventory(gui);
             return;
         }
@@ -133,6 +164,7 @@ public class DrugRecipeViewer {
             }
         }
         gui.setItem(15, recipe.getResult());
+        addPurityGuide(gui);
         player.openInventory(gui);
 
     }
