@@ -20,6 +20,8 @@ class CartelQuestSetupTest {
         assertEquals(9000, saved.getInt("id"));
         assertTrue(saved.getBoolean("repeatable"));
         assertTrue(saved.getBoolean("cancellable"));
+        assertTrue(saved.getBoolean("manager.branches.0.stages.0.options.lumi-follow.enabled"));
+        assertEquals("npc", saved.getString("manager.branches.0.stages.0.options.lumi-follow.npc-data"));
         assertEquals(CartelQuestSetup.STAGE_TYPE, saved.getString("manager.branches.0.stages.0.stageType"));
     }
 
@@ -39,6 +41,33 @@ class CartelQuestSetupTest {
         assertEquals(id, CartelQuestSetup.prepare(folder));
         assertEquals(edited, Files.readString(file));
         try (var files = Files.list(folder)) { assertEquals(1, files.count()); }
+    }
+
+    @Test void upgradesLegacyQuestWithBackupAndPreservesAdminSettings() throws Exception {
+        Path file = folder.resolve(CartelQuestSetup.FILE_NAME);
+        String legacy = "id: 9012\nname: My errands\nrepeatable: true\ncancellable: true\n"
+                + "manager:\n  branches:\n    '0':\n      stages:\n        '0':\n          stageType: lumidrugs-cartel-delivery\n"
+                + "      endingStages: {}\n";
+        Files.writeString(file, legacy);
+        assertEquals(9012, CartelQuestSetup.prepare(folder));
+        assertEquals(legacy, Files.readString(folder.resolve(CartelQuestSetup.FILE_NAME + ".pre-follow.backup")));
+        var saved = YamlConfiguration.loadConfiguration(file.toFile());
+        assertEquals("My errands", saved.getString("name"));
+        assertTrue(saved.getBoolean("manager.branches.0.stages.0.options.lumi-follow.enabled"));
+        String upgraded = Files.readString(file);
+        assertEquals(9012, CartelQuestSetup.prepare(folder));
+        assertEquals(upgraded, Files.readString(file));
+    }
+
+    @Test void preservesExplicitlyDisabledFollowing() throws Exception {
+        CartelQuestSetup.prepare(folder);
+        Path file = folder.resolve(CartelQuestSetup.FILE_NAME);
+        var saved = YamlConfiguration.loadConfiguration(file.toFile());
+        saved.set("manager.branches.0.stages.0.options.lumi-follow.enabled", false);
+        saved.save(file.toFile());
+        String edited = Files.readString(file);
+        CartelQuestSetup.prepare(folder);
+        assertEquals(edited, Files.readString(file));
     }
 
     @Test void unrelatedFileAtManagedPathIsNotOverwritten() throws Exception {

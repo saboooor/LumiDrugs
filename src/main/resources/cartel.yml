@@ -30,15 +30,13 @@ npc:
 # Temporary cartel encounters. Existing cartel.yml files use these defaults if absent.
 enforcer:
   # Leave -1 for automatic setup: LumiDrugs creates/selects its own BeautyQuests quest.
-  # No quest file copying or ID lookup needed. Existing quests are never overwritten.
+  # No quest file copying or ID lookup needed. Existing quest settings are preserved.
+  # Legacy generated quests gain a LumiFollow option with an original-file backup.
   # Advanced: set your own quest ID instead, then /cartel reload.
   # Switching back to automatic setup requires a server restart.
   beautyquests-quest-id: -1
-  wall-climbing:
-    enabled: true
-    max-height: 6             # Blocks; capped at 16.
-    timeout-ticks: 100        # Maximum time per climb (20 ticks = 1 second).
-  open-doors: true             # Allow Citizens navigation to open doors along the route.
+  # Movement is configured in the BeautyQuests stage's options.lumi-follow section.
+  # Install LumiFollow for quest-controlled following; legacy movement keys here are ignored.
   enabled: true                 # Automatic spawns; admins can still trigger encounters manually.
   # Each encounter chooses a random registered drug with a positive, finite base price.
   min-amount: 8                 # Inclusive random quantity limits, clamped to 1–2304.

@@ -1,13 +1,13 @@
-package com.drugs.internal.pursuit;
+package com.drugs.cartel;
 
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import java.util.concurrent.ThreadLocalRandom;
 
-/** Loaded-chunk-only landing search shared by spawning and recovery. */
-public final class SafeLocations {
-    private SafeLocations() {}
+/** Loaded-chunk-only spawn search for cartel encounters. */
+final class CartelSpawnLocations {
+    private CartelSpawnLocations() {}
     public static Location findNear(Location origin, double minRadius, double maxRadius) {
         if (!Double.isFinite(minRadius) || !Double.isFinite(maxRadius) || minRadius < 0 || maxRadius < minRadius)
             throw new IllegalArgumentException("Invalid search radii");

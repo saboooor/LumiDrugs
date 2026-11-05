@@ -93,6 +93,33 @@ class BeautyQuestsEnforcersTest {
 
     @AfterEach void cleanup() { apiMock.close(); }
 
+    @Test void identifiesLoadedQuestAndFailedRepeatableFlag() {
+        when(quest.isRepeatable()).thenReturn(false);
+        String reason = integration.unavailableReason(player);
+        assertTrue(reason.contains("quest 42"));
+        assertTrue(reason.contains("repeatable=false"));
+        assertNull(integration.begin(player, "joint", 16));
+        verify(quest, never()).start(quester, false);
+    }
+
+    @Test void identifiesFailedCancellableFlag() {
+        when(quest.isCancellable()).thenReturn(false);
+        assertTrue(integration.unavailableReason(player).contains("cancellable=false"));
+    }
+
+    @Test void identifiesMissingLoadedStage() {
+        when(controller.getStage()).thenReturn(null);
+        assertTrue(integration.unavailableReason(player).contains("loaded null"));
+    }
+
+    @Test void publishesNpcIdentityThroughQuestDataWithoutMovementDependency() {
+        var session = integration.begin(player, "joint", 16);
+        assertNotNull(session);
+        UUID npc = UUID.randomUUID();
+        session.npc(npc);
+        verify(stage).npc(quester, npc);
+    }
+
     @Test void unmetRequirementsDoNotStartQuest() {
         when(quest.canStart(player, false)).thenReturn(false);
         assertNotNull(integration.unavailableReason(player));

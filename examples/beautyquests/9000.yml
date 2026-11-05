@@ -12,4 +12,15 @@ manager:
       stages:
         '0':
           stageType: lumidrugs-cartel-delivery
+          options:
+            lumi-follow:
+              enabled: true
+              npc-data: npc
+              open-doors: true
+              climbing: true
+              max-climb-height: 6
+              climb-timeout-ticks: 100
+              teleport-recovery: true
+              follow-teleports: true
+              cross-world: false
       endingStages: {}

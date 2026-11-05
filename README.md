@@ -308,7 +308,7 @@ in addition to Citizens, Vault and an economy provider. BeautyQuests is an optio
 dependency for LumiDrugs as a whole: without it, enforcer encounters are disabled, while
 stationary buyers and other drug features remain available.
 
-1. Install BeautyQuests, Citizens, Vault and your economy provider, then restart the server.
+1. Install BeautyQuests, LumiFollow, Citizens, Vault and your economy provider, then restart the server.
 2. Leave `enforcer.beautyquests-quest-id: -1` in `plugins/LumiDrugs/cartel.yml`
    (this is also the default for existing configs without that setting).
 3. Test with `/cartel enforcer`. No quest import or ID lookup is needed.
@@ -317,10 +317,17 @@ LumiDrugs creates `plugins/BeautyQuests/quests/lumidrugs-cartel.yml` automatical
 BeautyQuests loads its quests. It chooses an unused ID starting at 9000 and reuses that
 file on future starts, preserving edits to its name, prerequisites and rewards. The selected
 ID is printed in the startup log; use `/quests edit <id>` to customize it. A setup error is
-logged clearly and disables encounters until fixed; existing quest files are never overwritten.
+logged clearly and disables encounters until fixed. Existing quest settings are preserved;
+legacy generated quests gain the missing `options.lumi-follow` section with an original-file
+backup at `lumidrugs-cartel.yml.pre-follow.backup`. Custom quests are not migrated.
 
 For everyday tuning, change the quantity range, spawn chance, cooldown and delivery deadline
-in `cartel.yml`, then use `/cartel reload`. The defaults work without editing BeautyQuests.
+in `cartel.yml`, then use `/cartel reload`. Movement is controlled by the quest stage's
+`options.lumi-follow` section; install the
+standalone LumiFollow plugin for following, climbing and recovery. LumiDrugs only supplies
+the NPC entity UUID as quest data and has no LumiFollow code or plugin dependency. Old
+`enforcer.wall-climbing` and `enforcer.open-doors` keys in `cartel.yml` are ignored; move any
+custom settings into the quest option. See [LumiFollow setup](lumifollow/README.md).
 
 Advanced: to use a different quest, set `enforcer.beautyquests-quest-id` to its ID and run
 `/cartel reload`. The quest must be valid, repeatable and cancellable, with individual player
@@ -382,13 +389,10 @@ Farm data now saves to `farms.yml`; existing `weed_farms.yml` is read automatica
 
 Production code lives in `src/main/java/com/drugs`, grouped by feature: `farm`, `growing`, `strains`, `bong`, `cartel`, `drug`, `items`, `recipes`, `addiction`, `tolerance`, `overdose`, `effects`, `achievements`, `status`, `commands`, `ui`, `config`, `integration`, and `bootstrap`. Tests mirror these packages under `src/test/java/com/drugs`. `DrugsV2` remains at the root as the plugin entry point.
 
-## Reusable NPC following library
+## Quest-controlled NPC following
 
-Cartel enforcer movement is implemented by the independent [LumiFollow](lumifollow/README.md)
-Gradle library. It includes Citizens following, sprinting, doors, wall climbing, drop assists,
-and teleport recovery, and can be shaded into quest plugins or other Citizens integrations.
-LumiDrugs bundles its own relocated copy; no additional server plugin is needed.
-
-Build both modules with Java 21 using `./gradlew clean build` (Windows: `gradlew.bat clean build`) from this repository's root.
-The plugin JAR is now at `lumidrugs/build/libs/LumiDrugs.jar`; the reusable library JAR is at
-`lumifollow/build/libs/lumifollow-1.0.0.jar`. The library README contains dependency and usage examples.
+Cartel enforcer movement is owned by the independent [LumiFollow](lumifollow/README.md)
+BeautyQuests option configured in the quest YAML. LumiDrugs manages the delivery objective
+and publishes its NPC entity UUID; it does not bundle or depend on LumiFollow. Install
+`lumifollow/build/libs/LumiFollow.jar` to enable movement for quests using that option.
+LumiFollow depends on Citizens and BeautyQuests and can be used without LumiDrugs.

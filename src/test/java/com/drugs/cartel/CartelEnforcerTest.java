@@ -113,7 +113,6 @@ class CartelEnforcerTest {
         when(npcs.find(npc, "enforcer")).thenReturn(character);
         when(character.entity()).thenReturn(npc);
         when(character.valid()).thenReturn(true);
-        when(character.approach(player)).thenReturn(true);
         quests = mock(EnforcerQuests.class);
         quest = mock(EnforcerQuests.Session.class);
         when(quests.begin(eq(player), anyString(), anyInt())).thenReturn(quest);
@@ -371,8 +370,8 @@ class CartelEnforcerTest {
         assertFalse(enforcer.spawn(player, "joint", 16, true));
     }
 
-    @Test void unreachableNpcIsRemovedWithoutIssuingADemand() {
-        when(character.approach(player)).thenReturn(false);
+    @Test void invalidNpcIsRemovedWithoutIssuingADemand() {
+        when(character.valid()).thenReturn(false);
         assertFalse(enforcer.spawn(player, "joint", 16, true));
         verify(character).destroy();
         verify(player, never()).sendMessage(anyString());
@@ -532,10 +531,8 @@ class CartelEnforcerTest {
         when(player.getLocation()).thenReturn(new Location(world, 500, 64, 500));
         enforcer.tick();
         verify(character, never()).destroy();
-        verify(character, never()).teleportCloser(any());
-        // The continuous library session owns pursuit; encounter ticks only manage the demand.
-        verify(character, times(1)).approach(player);
-        verify(character, never()).stop();
+        // Movement is owned by the quest option; the encounter only publishes the NPC identity.
+        verify(quest).npc(character.entity().getUniqueId());
     }
     @Test void missingBeautyQuestsPreventsNpcSpawn() {
         when(quests.unavailableReason(player)).thenReturn("Install BeautyQuests");

@@ -1,8 +1,8 @@
 package io.github.saboooor.lumifollow.quests;
 
 import fr.skytasul.quests.api.QuestsAPI;
-import fr.skytasul.quests.api.stages.StageController;
-import fr.skytasul.quests.api.stages.StageType;
+import fr.skytasul.quests.api.stages.*;
+import fr.skytasul.quests.api.stages.options.*;
 import fr.skytasul.quests.api.stages.creation.StageCreation;
 import io.github.saboooor.lumifollow.LumiFollow;
 import org.bukkit.Material;
@@ -13,6 +13,7 @@ import java.util.*;
 
 public final class LumiFollowPlugin extends JavaPlugin {
     final Set<EscortStage> stages = Collections.newSetFromMap(new IdentityHashMap<>());
+    final Set<FollowStageOption<?>> followOptions = Collections.newSetFromMap(new IdentityHashMap<>());
     final NpcLeases leases = new NpcLeases();
     LumiFollow following;
     private BukkitTask task;
@@ -20,6 +21,7 @@ public final class LumiFollowPlugin extends JavaPlugin {
     @Override public void onEnable() {
         saveDefaultConfig();
         following = new LumiFollow(this);
+        registerFollowOption();
         QuestsAPI.getAPI().getStages().register(new StageType<>("lumi-follow", EscortStage.class,
                 "LumiFollow escort", (section, controller) -> new EscortStage(controller, this,
                         section.getString("profile", "default")), new ItemStack(Material.LEAD),
@@ -31,6 +33,13 @@ public final class LumiFollowPlugin extends JavaPlugin {
                     }
                 }));
         task = getServer().getScheduler().runTaskTimer(this, () -> {
+            for (FollowStageOption<?> option : List.copyOf(followOptions)) {
+                try { option.tick(); }
+                catch (RuntimeException exception) {
+                    option.stopAll();
+                    getLogger().log(java.util.logging.Level.SEVERE, "Quest following failed", exception);
+                }
+            }
             for (EscortStage stage : List.copyOf(stages)) {
                 try { stage.tick(); }
                 catch (RuntimeException exception) {
@@ -39,7 +48,17 @@ public final class LumiFollowPlugin extends JavaPlugin {
                 }
             }
         }, 1L, 10L);
-        getLogger().info("Registered BeautyQuests stage lumi-follow. Configure escorts in config.yml before creating quests.");
+        getLogger().info("Registered BeautyQuests lumi-follow stage and objective option. Configure following in quest YAML; escort routes in config.yml.");
+    }
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    void registerFollowOption() {
+        QuestsAPI.getAPI().getStages().autoRegisterOption(new StageOptionAutoRegister() {
+            @Override public boolean appliesTo(StageType<?> type) { return true; }
+            @Override public <T extends AbstractStage> StageOptionCreator<T> createOptionCreator(StageType<T> type) {
+                return StageOptionCreator.create("lumi-follow", FollowStageOption.class,
+                        () -> new FollowStageOption<>(type.getStageClass(), LumiFollowPlugin.this));
+            }
+        });
     }
     EscortProfile profile(String name) {
         return EscortProfile.read(getConfig().getConfigurationSection("escorts." + name));
@@ -48,6 +67,8 @@ public final class LumiFollowPlugin extends JavaPlugin {
         if (task != null) task.cancel();
         for (EscortStage stage : List.copyOf(stages)) stage.stopAll();
         stages.clear();
+        for (FollowStageOption<?> option : List.copyOf(followOptions)) option.stopAll();
+        followOptions.clear();
         leases.clear();
         if (following != null) following.close();
     }

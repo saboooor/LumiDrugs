@@ -65,6 +65,11 @@ def verifyPluginJar = tasks.register('verifyPluginJar') {
              'com/drugs/recipes/BrewingRecipes.class', 'com/drugs/recipes/FlavorInfusionListener.class'].each { entry ->
                 if (zip.getEntry(entry) == null) missing.add(entry)
             }
+            def bundledFollowing = zip.entries().findAll { entry ->
+                entry.name.startsWith('com/drugs/internal/pursuit/') ||
+                        entry.name.startsWith('io/github/saboooor/lumifollow/')
+            }
+            if (!bundledFollowing.isEmpty()) throw new GradleException('LumiDrugs must not bundle LumiFollow movement classes')
             if (!missing.isEmpty()) throw new GradleException("Incomplete plugin JAR: ${missing.unique().join(', ')}")
             logger.lifecycle("Verified all plugin classes are packaged in ${archive.name}")
         }

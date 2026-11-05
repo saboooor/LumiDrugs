@@ -22,6 +22,26 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 class StartupWorkTest {
+    @Test void cartelIntegrationIsCreatedBeforeDeferredStartupRuns() {
+        DrugsV2 plugin = mock(DrugsV2.class);
+        when(plugin.getCommand(anyString())).thenReturn(mock(org.bukkit.command.PluginCommand.class));
+        when(plugin.getLogger()).thenReturn(java.util.logging.Logger.getAnonymousLogger());
+        doCallRealMethod().when(plugin).onEnable();
+        try (var dealers = mockConstruction(com.drugs.cartel.CartelDealer.class);
+             var enforcers = mockConstruction(com.drugs.cartel.CartelEnforcer.class);
+             var startup = mockConstruction(PluginStartup.class, (created, context) -> {
+                 assertEquals(1, dealers.constructed().size());
+                 assertEquals(1, enforcers.constructed().size());
+             })) {
+            plugin.onEnable();
+            verify(dealers.constructed().getFirst()).setEnforcer(enforcers.constructed().getFirst());
+            verify(startup.constructed().getFirst()).start();
+            verify(enforcers.constructed().getFirst(), never()).start();
+        } catch (Exception exception) {
+            throw new AssertionError(exception);
+        }
+    }
+
     @Test void advancementRegistrationIsDeferredAndLimitedToOnePerTick() throws Exception {
         DrugsV2 plugin = mock(DrugsV2.class);
         var instance = DrugsV2.class.getDeclaredField("instance");

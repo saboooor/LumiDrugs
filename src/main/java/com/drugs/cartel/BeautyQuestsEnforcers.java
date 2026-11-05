@@ -77,8 +77,22 @@ final class BeautyQuestsEnforcers implements EnforcerQuests {
                 return setupError != null ? setupError : "The automatic cartel quest is not loaded. Restart the server and check BeautyQuests startup logs.";
             return "The custom cartel quest ID is invalid. Set beautyquests-quest-id to -1 and restart for automatic setup, or choose a valid quest ID.";
         }
-        if (!quest.isRepeatable() || !quest.isCancellable() || stage(quest) == null)
-            return "The cartel quest must be repeatable and cancellable, with exactly one Cartel delivery stage and no ending stages.";
+        String prefix = "Cartel quest " + quest.getId() + ": ";
+        if (!quest.isRepeatable()) return prefix + "BeautyQuests reports repeatable=false. Enable Repeatable in /quests edit " + quest.getId() + ".";
+        if (!quest.isCancellable()) return prefix + "BeautyQuests reports cancellable=false. Enable Cancellable in /quests edit " + quest.getId() + ".";
+        var branches = quest.getBranchesManager().getBranches();
+        if (branches.size() != 1) return prefix + "expected one branch, loaded " + branches.size() + ".";
+        var branch = branches.iterator().next();
+        if (branch.getRegularStages().size() != 1)
+            return prefix + "expected one regular Cartel delivery stage, loaded " + branch.getRegularStages().size() + ".";
+        if (!branch.getEndingStages().isEmpty())
+            return prefix + "expected no ending stages, loaded " + branch.getEndingStages().size() + ".";
+        if (stage(quest) == null) {
+            var loaded = branch.getRegularStage(0).getStage();
+            return prefix + "expected a LumiDrugs Cartel delivery stage, loaded "
+                    + (loaded == null ? "null" : loaded.getClass().getName())
+                    + ". Fully restart the server with LumiDrugs enabled; avoid plugin hot reloads.";
+        }
         if (personalQuester(quest, player) == null) return "The cartel quest must use individual player progression.";
         if (!quest.hasStarted(personalQuester(quest, player)) && !quest.canStart(player, false)) return "The target cannot start the cartel quest: check BeautyQuests requirements, quest limits and cooldowns.";
         return null;
@@ -101,6 +115,9 @@ final class BeautyQuestsEnforcers implements EnforcerQuests {
                 public boolean active() {
                     return !closed && sessions.get(quester) == this && enabled() && quest() == quest && quest.isValid()
                             && stage.getController().hasStarted(quester);
+                }
+                public void npc(java.util.UUID entityId) {
+                    if (active()) stage.npc(quester, entityId);
                 }
                 public void progress(int delivered) {
                     if (active()) stage.progress(quester, drug, amount, delivered);
@@ -153,6 +170,10 @@ final class BeautyQuestsEnforcers implements EnforcerQuests {
         @Override public String getDefaultDescription(StageDescriptionPlaceholdersContext context) {
             String delivery = getData(context.getQuester(), "delivery", String.class);
             return delivery == null ? "Complete a cartel enforcer delivery" : delivery;
+        }
+
+        void npc(Quester quester, java.util.UUID entityId) {
+            updateObjective(quester, "npc", entityId.toString());
         }
 
         void progress(Quester quester, String drug, int amount, int delivered) {

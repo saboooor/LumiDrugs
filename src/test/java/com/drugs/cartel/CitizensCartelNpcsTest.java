@@ -187,7 +187,7 @@ class CitizensCartelNpcsTest {
         config.set("npc.skin-name", "MyCartelSkin");
         assertNotNull(service.create(location, "enforcer"));
         verify(temporary).createNPC(EntityType.PLAYER, "Cartel Enforcer");
-        verify(metadata).setPersistent("pathfinder-open-doors", true);
+        verify(metadata, never()).setPersistent(eq("pathfinder-open-doors"), any());
         verify(metadata).setPersistent("activation-range", 64);
         verify(persistent, never()).createNPC(any(), anyString());
         verify(skin).clearTexture();
@@ -244,38 +244,14 @@ class CitizensCartelNpcsTest {
         verify(dealer, never()).interact(any(), any());
     }
 
-    @Test void enforcersNavigateWithCitizensAndTeleportWhenStuck() {
-        Navigator navigator = mock(Navigator.class);
-        NavigatorParameters parameters = mock(NavigatorParameters.class, RETURNS_SELF);
-        when(npc.getNavigator()).thenReturn(navigator);
-        when(navigator.getDefaultParameters()).thenReturn(parameters);
-        Player target = mock(Player.class);
-        when(target.getLocation()).thenReturn(location);
-        when(target.isOnline()).thenReturn(true);
-        when(navigator.canNavigateTo(location)).thenReturn(true);
+    @Test void enforcerSpawnDoesNotStartNavigation() {
         when(metadata.get(CitizensCartelNpcs.ROLE, "")).thenReturn("enforcer");
         CartelNpcs.Character enforcer = service.create(location, "enforcer");
-        assertTrue(enforcer.approach(target));
-        verify(navigator).setTarget(target, false);
-        ArgumentCaptor<net.citizensnpcs.api.ai.StuckAction> stuck = ArgumentCaptor.forClass(net.citizensnpcs.api.ai.StuckAction.class);
-        verify(parameters).stuckAction(stuck.capture());
-        verify(parameters).useNewPathfinder(true);
-        verify(parameters).updatePathRate(10);
-        verify(parameters).examiner(any(net.citizensnpcs.api.astar.pathfinder.DoorExaminer.class));
-
-        // When stuckAction fires, enforcer teleports closer to target
-        try (MockedStatic<com.drugs.internal.pursuit.SafeLocations> safe = mockStatic(com.drugs.internal.pursuit.SafeLocations.class)) {
-            safe.when(() -> com.drugs.internal.pursuit.SafeLocations.findNear(location, 4, 8)).thenReturn(location);
-            assertTrue(stuck.getValue().run(npc, navigator));
-        }
-        verify(npc).teleport(any(Location.class), eq(org.bukkit.event.player.PlayerTeleportEvent.TeleportCause.PLUGIN));
-
-        enforcer.stop();
-        verify(navigator, atLeastOnce()).cancelNavigation();
-        // Navigation is attempted even if a preliminary path check would return false.
-        verify(navigator, never()).canNavigateTo(any(Location.class));
-        when(npc.isSpawned()).thenReturn(false);
-        assertFalse(enforcer.approach(target));
+        assertNotNull(enforcer);
+        assertTrue(enforcer.valid());
+        verify(npc, never()).getNavigator();
+        enforcer.destroy();
+        verify(npc).destroy();
     }
 
     @Test void legacyBuyersAreReplacedOnlyAfterSuccessfulPlayerSpawn() {

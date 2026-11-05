@@ -1,7 +1,6 @@
 package com.drugs.cartel;
 
 import com.drugs.DrugsV2;
-import com.drugs.internal.pursuit.SafeLocations;
 import com.drugs.drug.DrugRegistry;
 import com.drugs.items.DrugItemMetadata;
 
@@ -172,15 +171,16 @@ public final class CartelEnforcer implements Listener {
         if (location == null) return "No safe nearby ground found in loaded chunks. Try an open, flat area.";
         CartelNpcs.Character npc = npcs.create(location, "enforcer");
         if (npc == null) return "Citizens could not spawn the player NPC. Check the server console for errors or spawn protection.";
-        if (!npc.valid() || !npc.approach(player)) {
+        if (!npc.valid()) {
             npc.destroy();
-            return "The player NPC did not become ready for navigation. Check Citizens compatibility and the server console.";
+            return "The player NPC did not become valid. Check Citizens compatibility and the server console.";
         }
         EnforcerQuests.Session quest = quests.begin(player, drug, amount);
         if (quest == null) {
             npc.destroy();
             return "BeautyQuests could not start the cartel quest. Check its requirements and the server log.";
         }
+        quest.npc(npc.entity().getUniqueId());
         Encounter encounter = new Encounter(npc, drug, amount, now, quest);
         encounters.put(player.getUniqueId(), encounter);
         say(player, encounter, "arrival", "&8Someone from the cartel is heading your way.", 0);
@@ -196,7 +196,7 @@ public final class CartelEnforcer implements Listener {
     private Location findSpawn(Player player) {
         int minRadius = seconds("spawn-min-distance", 8, 4, 24);
         int maxRadius = Math.max(minRadius, seconds("spawn-max-distance", 12, 4, 32));
-        return SafeLocations.findNear(player.getLocation(), minRadius, maxRadius);
+        return CartelSpawnLocations.findNear(player.getLocation(), minRadius, maxRadius);
     }
 
     void tick() {

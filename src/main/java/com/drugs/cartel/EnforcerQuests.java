@@ -11,6 +11,8 @@ interface EnforcerQuests {
 
     interface Session {
         boolean active();
+        /** Publish the encounter entity as generic quest data for optional stage behaviors. */
+        default void npc(java.util.UUID entityId) {}
         void progress(int delivered);
         boolean complete();
         void cancel();

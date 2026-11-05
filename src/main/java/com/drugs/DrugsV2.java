@@ -84,6 +84,7 @@ public class DrugsV2 extends JavaPlugin {
     private boolean bongsLoaded;
     private boolean farmsLoaded;
     private boolean addictionLoaded;
+    private CartelDealer cartelDealer;
     private CartelEnforcer cartelEnforcer;
     private CartelNpcs cartelNpcs;
     private CartelDroppedSales cartelDroppedSales;
@@ -105,6 +106,11 @@ public class DrugsV2 extends JavaPlugin {
             });
             getCommand(name).setTabCompleter((sender, command, label, args) -> List.of());
         }
+        // BeautyQuests loads saved quests on its first scheduled tick. Register our
+        // stage and prepare its file synchronously, before deferred startup begins.
+        cartelDealer = new CartelDealer(this);
+        cartelEnforcer = new CartelEnforcer(this, cartelDealer);
+        cartelDealer.setEnforcer(cartelEnforcer);
         startup = new PluginStartup(this, List.of(
                 new PluginStartup.Step("default configuration", () -> {
                     saveDefaultConfig();
@@ -195,14 +201,11 @@ public class DrugsV2 extends JavaPlugin {
         getServer().getScheduler().runTask(this, () -> BongRegistry.respawnMissing(bongListener));
 
         // Register commands
-        CartelDealer cartelDealer = new CartelDealer(this);
         getServer().getPluginManager().registerEvents(cartelDealer, this);
         getCommand("cartel").setExecutor(cartelDealer);
         getCommand("cartel").setTabCompleter(cartelDealer);
         cartelNpcs = CartelNpcs.create(this, cartelDealer);
         cartelDealer.setNpcs(cartelNpcs);
-        cartelEnforcer = new CartelEnforcer(this, cartelDealer);
-        cartelDealer.setEnforcer(cartelEnforcer);
         getServer().getPluginManager().registerEvents(cartelEnforcer, this);
         cartelEnforcer.start();
         cartelDroppedSales = new CartelDroppedSales(this, cartelDealer, cartelEnforcer);

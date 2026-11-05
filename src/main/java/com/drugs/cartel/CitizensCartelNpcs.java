@@ -1,7 +1,6 @@
 package com.drugs.cartel;
 
 import com.drugs.DrugsV2;
-import com.drugs.internal.pursuit.*;
 
 import net.citizensnpcs.api.CitizensAPI;
 import net.citizensnpcs.api.event.CitizensEnableEvent;
@@ -32,12 +31,10 @@ final class CitizensCartelNpcs implements CartelNpcs, Listener {
     private final NPCRegistry temporary;
     private final YamlConfiguration bundledSkin;
     private boolean closed;
-    private final LumiFollow following;
 
     CitizensCartelNpcs(DrugsV2 plugin, CartelDealer dealer) {
         this.plugin = plugin;
         this.dealer = dealer;
-        following = new LumiFollow(plugin);
         temporary = CitizensAPI.createInMemoryNPCRegistry(TEMPORARY_REGISTRY);
         bundledSkin = YamlConfiguration.loadConfiguration(new InputStreamReader(Objects.requireNonNull(
                 CitizensCartelNpcs.class.getResourceAsStream("/cartel-skin.yml")), StandardCharsets.UTF_8));
@@ -61,8 +58,6 @@ final class CitizensCartelNpcs implements CartelNpcs, Listener {
             npc.data().setPersistent(ROLE, role);
             if (role.equals("enforcer")) {
                 npc.data().setPersistent("activation-range", 64);
-                npc.data().setPersistent("pathfinder-open-doors",
-                        dealer.settings().getBoolean("enforcer.open-doors", true));
             }
             npc.setProtected(true);
             npc.data().setPersistent("collidable", false);
@@ -146,7 +141,6 @@ final class CitizensCartelNpcs implements CartelNpcs, Listener {
     @Override public void shutdown() {
         if (closed) return;
         closed = true;
-        following.close();
         temporary.deregisterAll();
         CitizensAPI.removeNamedNPCRegistry(TEMPORARY_REGISTRY);
         // Buyers remain owned by Citizens, which handles its own persistence.
@@ -191,31 +185,12 @@ final class CitizensCartelNpcs implements CartelNpcs, Listener {
         }
     }
 
-    private FollowOptions followOptions() {
-        return FollowOptions.defaults()
-                .withDoors(dealer.settings().getBoolean("enforcer.open-doors", true))
-                .withClimbing(dealer.settings().getBoolean("enforcer.wall-climbing.enabled", true),
-                        Math.max(1, Math.min(16, dealer.settings().getInt("enforcer.wall-climbing.max-height", 6))),
-                        Math.max(20, Math.min(400, dealer.settings().getInt("enforcer.wall-climbing.timeout-ticks", 100))));
-    }
-
     private final class Citizen implements Character {
         private final NPC npc;
         Citizen(NPC npc) { this.npc = npc; }
         public LivingEntity entity() { return (LivingEntity) npc.getEntity(); }
         public boolean valid() { return npc.isSpawned() && npc.getEntity() != null && npc.getEntity().isValid(); }
-        public boolean approach(Player player) {
-            return !closed && valid() && following.controller(npc, followOptions()).follow(player);
-        }
-        public boolean teleportCloser(Player player) {
-            return !closed && valid() && following.controller(npc, followOptions()).teleportCloser(player);
-        }
-        public boolean teleport(Location location) {
-            return !closed && valid() && following.controller(npc, followOptions()).teleport(location);
-        }
-        public void stop() { following.stop(npc); }
         public void destroy() {
-            following.release(npc);
             NPCRegistry registry = npc.getOwningRegistry();
             npc.destroy();
             registry.saveToStore();

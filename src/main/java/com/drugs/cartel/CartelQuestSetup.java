@@ -17,6 +17,8 @@ final class CartelQuestSetup {
     static final String FILE_NAME = "lumidrugs-cartel.yml";
     static final String STAGE_TYPE = "lumidrugs-cartel-delivery";
 
+    private static final String FOLLOW = "manager.branches.0.stages.0.options.lumi-follow";
+
     private CartelQuestSetup() {}
 
     static int prepare(Path folder) throws IOException, InvalidConfigurationException {
@@ -27,7 +29,15 @@ final class CartelQuestSetup {
             if (!STAGE_TYPE.equals(saved.getString("manager.branches.0.stages.0.stageType"))) {
                 throw new IOException(destination + " does not contain a Cartel delivery stage. Use a custom quest ID or fix this file.");
             }
-            return id(saved, destination); // Preserve admin edits, rewards and prerequisites.
+            int existingId = id(saved, destination);
+            if (!saved.contains(FOLLOW)) {
+                // Upgrade only the movement option; retain a byte-for-byte backup of admin edits.
+                Path backup = folder.resolve(FILE_NAME + ".pre-follow.backup");
+                if (!Files.exists(backup)) Files.copy(destination, backup);
+                followOptions(saved);
+                Files.writeString(destination, saved.saveToString(), StandardCharsets.UTF_8);
+            }
+            return existingId;
         }
 
         Set<Integer> used = new HashSet<>();
@@ -50,9 +60,22 @@ final class CartelQuestSetup {
         quest.set("cancellable", true);
         quest.set("manager.branches.0.stages.0.stageType", STAGE_TYPE);
         quest.createSection("manager.branches.0.endingStages");
+        followOptions(quest);
         Files.writeString(destination, quest.saveToString(), StandardCharsets.UTF_8,
                 StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE);
         return id;
+    }
+
+    private static void followOptions(YamlConfiguration quest) {
+        quest.set(FOLLOW + ".enabled", true);
+        quest.set(FOLLOW + ".npc-data", "npc");
+        quest.set(FOLLOW + ".open-doors", true);
+        quest.set(FOLLOW + ".climbing", true);
+        quest.set(FOLLOW + ".max-climb-height", 6);
+        quest.set(FOLLOW + ".climb-timeout-ticks", 100);
+        quest.set(FOLLOW + ".teleport-recovery", true);
+        quest.set(FOLLOW + ".follow-teleports", true);
+        quest.set(FOLLOW + ".cross-world", false);
     }
 
     private static YamlConfiguration read(Path file) throws IOException, InvalidConfigurationException {
