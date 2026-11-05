@@ -146,6 +146,7 @@ public class AddictionManager {
             boolean wasActive = state.isWithdrawalActive();
             applyWithdrawalEffects(player, profile, settings.getInfiniteDurationTicks());
             state.setWithdrawalActive(true);
+            com.drugs.overdose.OverdoseWarnings.check(player);
             if (!wasActive) {
                 notifyWithdrawalStarted(player, profile);
             }
@@ -169,6 +170,12 @@ public class AddictionManager {
         state.setLastDecayMillis(now);
         state.setWithdrawalActive(false);
         clearWithdrawalEffects(player, profile);
+    }
+
+    public static boolean hasActiveWithdrawal(Player player) {
+        if (!AddictionConfigLoader.getSettings().isEnabled()) return false;
+        Map<String, AddictionState> states = addictionData.get(player.getUniqueId());
+        return states != null && states.values().stream().anyMatch(AddictionState::isWithdrawalActive);
     }
 
     public static boolean applyCure(Player player, CureProfile cure) {

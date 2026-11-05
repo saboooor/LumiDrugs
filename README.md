@@ -373,159 +373,46 @@ Configure the `enforcer` section in `cartel.yml`, then run `/cartel reload`. Aut
 
 Choose **Reject demand** in the enforcer dialogue, or run `/cartel reject`, to refuse immediately and make the enforcer leave. Rejection counts exactly like an expired demand: it adds one refusal, applies the configured failure consequences, and starts the normal cooldown. Partial deliveries already paid remain paid. Closing the dialogue does not reject a demand. This command only affects your own encounter and does not require admin permission.
 
-Each expired demand adds one consecutive refusal for that player. At **15 refusals**, the enforcer uses angrier dialogue and caps new delivery deadlines at **45 seconds**; at **20**, he becomes furious and caps them at **30 seconds**. Completing a demand resets the streak; partial deliveries do not. Called-off encounters neither add to nor reset it. Streaks persist in player data across reconnects and server restarts. Configure thresholds and deadline caps un…8067 tokens truncated…ctionDrugProfile> entry : AddictionConfigLoader.getDrugProfiles().entrySet()) {
-            String drugId = entry.getKey();
-            AddictionDrugProfile profile = entry.getValue();
+Each expired demand adds one consecutive refusal for that player. At **15 refusals**, the enforcer uses angrier dialogue and caps new delivery deadlines at **45 seconds**; at **20**, he becomes furious and caps them at **30 seconds**. Completing a demand resets the streak; partial deliveries do not. Called-off encounters neither add to nor reset it. Streaks persist in player data across reconnects and server restarts. Configure thresholds and deadline caps under `enforcer.aggravation`, and dialogue with the `angry-*` / `furious-*` keys under `enforcer.messages`. `{refusals}` shows the current streak.
 
-            if (!curesAll && cure.getCures().stream().noneMatch(id -> id.equalsIgnoreCase(drugId))) {
-                continue;
-            }
+Use `{remaining}` in warnings for the quantity still needed. Customize the arrival, demand, warning, failure, and success dialogue under `enforcer.messages`. Failure produces threats only by default. Optional `failure-damage` is measured in HP, applies only within six blocks, and is capped at 20 HP and the player's health minus one before normal damage events/modifiers. Set it to `0` for dialogue only. Grant `drugs.cartel.enforcer.bypass` to exempt a player (not granted to operators automatically).
 
-            AddictionState state = getOrCreateState(player.getUniqueId(), drugId);
-            if (cure.isClearsPoints()) {
-                state.setPoints(0);
-            } else if (cure.getReducePoints() > 0) {
-                state.setPoints(state.getPoints() - cure.getReducePoints());
-            }
+Enforcers use Citizens player NPCs and navigation. They cancel without a penalty if they cannot reach the player before the approach timeout, the player dies/disconnects/travels to another world or far away, or the economy becomes unavailable. Reloading cartel settings calls off active demands. NPCs also clean up on chunk unload and plugin shutdown; enforcers and cooldowns are temporary and reset on server restart. Stationary cartel buyers remain persistent.
 
-            if (cure.getBlockWithdrawalSeconds() > 0) {
-                state.setWithdrawalBlockedUntilMillis(now + cure.getBlockWithdrawalSeconds() * 1000L);
-            }
+### Cartel NPC skins
 
-            clearWithdrawalEffects(player, profile);
-            state.setWithdrawalActive(false);
-            affected = true;
-        }
+Both buyers and enforcers use the bundled signed camouflage-style skin by default (a snapshot of the public Minecraft skin for `ElChapo`). It does not require a skin lookup at spawn. To use another Minecraft account's skin, add this to `cartel.yml` and run `/cartel reload`:
 
-        return affected;
-    }
+```yaml
+npc:
+  skin-name: "MinecraftUsername"
+```
 
-    public static void handleMilkConsumed(Player player) {
-        AddictionSettings settings = AddictionConfigLoader.getSettings();
-        if (!settings.isEnabled() || settings.isMilkClearsWithdrawal()) return;
+Leave `skin-name` blank to restore the bundled skin. Reload updates existing buyers and calls off active enforcer demands; subsequent enforcers use the updated skin. Username-based skins require Citizens to fetch the account's skin from Mojang.
 
-        Bukkit.getScheduler().runTaskLater(DrugsV2.getInstance(), () -> {
-            long now = System.currentTimeMillis();
-            Map<String, AddictionState> stateMap = addictionData.get(player.getUniqueId());
-            if (stateMap == null) return;
-            for (Map.Entry<String, AddictionState> entry : stateMap.entrySet()) {
-                AddictionDrugProfile profile = AddictionConfigLoader.getDrugProfile(entry.getKey());
-                if (profile == null) continue;
-                processWithdrawal(player, entry.getValue(), profile, now, settings);
-            }
-        }, 1L);
-    }
+If `/cartel enforcer` cannot start, its error identifies the failed requirement: player mode/permissions, an existing encounter, pricing, economy, NPC provider, safe ground, or NPC spawning. For a Citizens spawn failure, check the console for the associated spawn rejection or exception. Enforcers now attempt navigation without rejecting a new NPC on Citizens' preliminary path check; unreachable players are handled by the approach timeout.
 
-    private static void notifyWithdrawalStarted(Player player, AddictionDrugProfile profile) {
-        String drugId = profile.getId();
-        var drugProfile = com.drugs.drug.DrugRegistry.getProfileById(drugId);
-        String drugName = drugProfile != null
-                ? org.bukkit.ChatColor.stripColor(org.bukkit.ChatColor.translateAlternateColorCodes('&', drugProfile.getDisplayName()))
-                : drugId;
-        java.util.List<String> effectNames = new java.util.ArrayList<>();
-        for (WithdrawalEffect effect : profile.getWithdrawalEffects()) {
-            String raw = effect.getType().getKey().getKey().replace('_', ' ');
-            String formatted = Character.toUpperCase(raw.charAt(0)) + raw.substring(1);
-            effectNames.add(formatted + " " + (effect.getAmplifier() + 1));
-        }
-        String effectsSummary = effectNames.isEmpty() ? "Tremors" : String.join(", ", effectNames);
-        player.sendMessage("§4§l⚠ WITHDRAWAL §8» §cYou are going into §e" + drugName + " §cwithdrawal! §7(Effects: §f" + effectsSummary + "§7)");
-    }
+Farm data now saves to `farms.yml`; existing `weed_farms.yml` is read automatically when the new file is absent. Legacy `weed-farm` mechanics settings remain supported when no `farm` section exists.
 
-    private static void applyWithdrawalEffects(Player player, AddictionDrugProfile profile, int duration) {
-        for (WithdrawalEffect effect : profile.getWithdrawalEffects()) {
-            PotionEffect potion = new PotionEffect(effect.getType(), duration, effect.getAmplifier(), true, true, true);
-            DrugStatusTracker.applyEffect(player, DrugStatusTracker.WITHDRAWAL_PREFIX + profile.getId(), potion);
-        }
-        DrugsV2 plugin = DrugsV2.getInstance();
-        if (plugin != null && plugin.getSensoryEffectManager() != null) {
-            plugin.getSensoryEffectManager().onWithdrawalTick(player, profile.getId());
-        }
-    }
+## Java source layout
 
-    private static void clearWithdrawalEffects(Player player, AddictionDrugProfile profile) {
-        for (WithdrawalEffect effect : profile.getWithdrawalEffects()) {
-            player.removePotionEffect(effect.getType());
-        }
-        DrugsV2 plugin = DrugsV2.getInstance();
-        if (plugin != null && plugin.getSensoryEffectManager() != null) {
-            plugin.getSensoryEffectManager().clearWithdrawalSensory(player);
-        }
-    }
+Production code lives in `src/main/java/com/drugs`, grouped by feature: `farm`, `growing`, `strains`, `bong`, `cartel`, `drug`, `items`, `recipes`, `addiction`, `tolerance`, `overdose`, `effects`, `achievements`, `status`, `commands`, `ui`, `config`, `integration`, and `bootstrap`. Tests mirror these packages under `src/test/java/com/drugs`. `DrugsV2` remains at the root as the plugin entry point.
 
-    private static AddictionState getOrCreateState(UUID uuid, String drugId) {
-        Map<String, AddictionState> playerData = addictionData.computeIfAbsent(uuid, k -> new ConcurrentHashMap<>());
-        return playerData.computeIfAbsent(drugId.toLowerCase(), key -> new AddictionState(0, 0L, 0L, 0L));
-    }
+## Quest-controlled NPC following
 
-    private static void loadData(File dataFolder) {
-        if (dataFile == null) {
-            dataFile = new File(dataFolder, "addiction_data.yml");
-        }
-        if (!dataFile.exists()) {
-            try {
-                dataFile.createNewFile();
-            } catch (IOException e) {
-                Bukkit.getLogger().severe("[LumiDrugs] Failed to create addiction_data.yml: " + e.getMessage());
-            }
-        }
+Cartel enforcer movement is owned by the independent [LumiFollow](https://github.com/saboooor/LumiFollow#readme)
+BeautyQuests option configured in the quest YAML. LumiDrugs manages the delivery objective
+and publishes its NPC entity UUID; it does not bundle or depend on LumiFollow. Install
+`LumiFollow.jar` from the [LumiFollow repository](https://github.com/saboooor/LumiFollow) to enable movement for quests using that option.
+LumiFollow depends on Citizens and BeautyQuests and can be used without LumiDrugs.
 
-        dataConfig = YamlConfiguration.loadConfiguration(dataFile);
-        addictionData.clear();
 
-        ConfigurationSection playersSection = dataConfig.getConfigurationSection("players");
-        if (playersSection == null) return;
+### Overdose-risk warnings
 
-        for (String uuidKey : playersSection.getKeys(false)) {
-            UUID uuid;
-            try {
-                uuid = UUID.fromString(uuidKey);
-            } catch (IllegalArgumentException e) {
-                continue;
-            }
-
-            ConfigurationSection playerSection = playersSection.getConfigurationSection(uuidKey);
-            if (playerSection == null) continue;
-
-            Map<String, AddictionState> playerMap = new ConcurrentHashMap<>();
-            for (String drugId : playerSection.getKeys(false)) {
-                ConfigurationSection drugSection = playerSection.getConfigurationSection(drugId);
-                if (drugSection == null) continue;
-
-                double points = drugSection.getDouble("points", 0);
-                long lastUse = drugSection.getLong("last_use", 0L);
-                long blockedUntil = drugSection.getLong("withdrawal_blocked_until", 0L);
-                long lastDecay = drugSection.getLong("last_decay", 0L);
-
-                playerMap.put(drugId.toLowerCase(), new AddictionState(points, lastUse, blockedUntil, lastDecay));
-            }
-
-            addictionData.put(uuid, playerMap);
-        }
-    }
-
-    public static void saveData() {
-        if (dataFile == null) return;
-
-        FileConfiguration config = new YamlConfiguration();
-        ConfigurationSection playersSection = config.createSection("players");
-
-        for (Map.Entry<UUID, Map<String, AddictionState>> playerEntry : addictionData.entrySet()) {
-            ConfigurationSection playerSection = playersSection.createSection(playerEntry.getKey().toString());
-            for (Map.Entry<String, AddictionState> drugEntry : playerEntry.getValue().entrySet()) {
-                AddictionState state = drugEntry.getValue();
-                ConfigurationSection drugSection = playerSection.createSection(drugEntry.getKey());
-                drugSection.set("points", state.getPoints());
-                drugSection.set("last_use", state.getLastUseMillis());
-                drugSection.set("withdrawal_blocked_until", state.getWithdrawalBlockedUntilMillis());
-                drugSection.set("last_decay", state.getLastDecayMillis());
-            }
-        }
-
-        try {
-            config.save(dataFile);
-        } catch (IOException e) {
-            Bukkit.getLogger().severe("[LumiDrugs] Failed to save addiction_data.yml: " + e.getMessage());
-        }
-    }
-}
+Players receive private chat warnings when they approach the tolerance limit, reach
+it, or develop withdrawal. A dangerous new dose warns again, with a one-second duplicate
+guard for laced items. Active risk/withdrawal reminders repeat every 60 seconds by
+default; escalating risk warns immediately. Messages do not name hidden added drugs.
+Withdrawals warn that temporary relief from another dose is not proof that further use
+is safe. The existing overdose calculation is unchanged. Use `/drugstatus` for current
+effects. Configure `mechanics.yml` → `overdose-warnings.enabled` and `reminder-seconds`.
