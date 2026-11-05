@@ -1,9 +1,11 @@
 """Native pixel-art drawing for flavored items; no vanilla texture replacements."""
 from PIL import Image, ImageDraw, ImageColor
+from surface_detail import add_material_detail
 
 
 def flavor_icon(product, flavor, color, base_icon):
     image = base_icon(product).resize((32, 32), Image.Resampling.NEAREST)
+    original = image.copy()
     draw = ImageDraw.Draw(image)
     rgb = ImageColor.getrgb(color)
     dark = tuple(int(c * .55) for c in rgb)
@@ -79,4 +81,9 @@ def flavor_icon(product, flavor, color, base_icon):
         draw.line((x+4, y+4, x+7, y+4), fill='#e5c36d', width=3)
         draw.line((x+5, y+2, x+5, y+6), fill='#e5c36d')
         draw.point((x+5, y+4), fill='#fff9df')
-    return image
+    before, after = original.load(), image.load()
+    # Texture only the new label/wrapper/frosting, preserving the already-detailed base.
+    # Tiny ingredient seals stay crisp and readable at inventory scale.
+    return add_material_detail(image, product,
+                               changed=lambda x, y: not (x >= 21 and y >= 22) and before[x, y] != after[x, y],
+                               seed_name=f'{product}_flavor_{flavor}')

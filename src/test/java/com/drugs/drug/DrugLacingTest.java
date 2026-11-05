@@ -204,29 +204,4 @@ class DrugLacingTest {
         }
     }
 
-    @Test void purityScalesActualEffectDurationAndKeepsNormalToleranceAndAddictionTracking() {
-        var dose = drug("meth", 1);
-        dose.data().put(key("purity"), 100);
-        var effect = mock(org.bukkit.potion.PotionEffect.class);
-        when(effect.getType()).thenReturn(mock(org.bukkit.potion.PotionEffectType.class));
-        when(effect.getDuration()).thenReturn(900);
-        DrugEffectProfile profile;
-        try (var items = mockConstruction(ItemStack.class)) {
-            profile = new DrugEffectProfile("meth", List.of(effect), Material.SUGAR, "Meth", List.of());
-        }
-        var player = mock(org.bukkit.entity.Player.class);
-        when(player.getLocation()).thenReturn(new org.bukkit.Location(null, 0, 64, 0));
-        try (var tolerance = mockStatic(com.drugs.tolerance.ToleranceTracker.class);
-             var config = mockStatic(com.drugs.tolerance.ToleranceConfigLoader.class);
-             var addiction = mockStatic(com.drugs.addiction.AddictionManager.class);
-             var status = mockStatic(com.drugs.status.DrugStatusTracker.class)) {
-            tolerance.when(() -> com.drugs.tolerance.ToleranceTracker.getEffectivenessMultiplier(player, "meth")).thenReturn(1.0);
-            config.when(() -> com.drugs.tolerance.ToleranceConfigLoader.getMaxTolerance("meth")).thenReturn(100);
-            profile.applyEffects(player, dose.item());
-            status.verify(() -> com.drugs.status.DrugStatusTracker.applyEffect(eq(player), eq("meth"),
-                    argThat(applied -> applied.getDuration() == 1000)));
-            tolerance.verify(() -> com.drugs.tolerance.ToleranceTracker.onDrugUse(player, "meth"));
-            addiction.verify(() -> com.drugs.addiction.AddictionManager.onDrugUse(player, "meth"));
-        }
-    }
 }

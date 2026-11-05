@@ -14,7 +14,7 @@ To rebuild the assets and installable ZIP with Python 3 and Pillow:
 python resourcepack/tools/build.py
 ```
 
-`tools/items.json` lists the original model keys and matches `RESOURCE_PACK_TYPES` in `DrugItemMetadata.java` (with `custom_model_data` `1001 + index`). `tools/build.py` draws the simple 16×16 pixel icons, writes the `lumidrugs:` item/model layers and `minecraft:custom_model_data` range-dispatch item definitions, and packages only `pack.mcmeta` and `assets/` into the ZIP. All source artwork is stored in `tools/artwork/` outside the distributed pack, and no vanilla textures under `assets/minecraft/textures/` are replaced.
+`tools/items.json` lists the original model keys and matches `RESOURCE_PACK_TYPES` in `DrugItemMetadata.java` (with `custom_model_data` `1001 + index`). `tools/build.py` draws the 32×32 pixel icons with palette-stepped material shading, clustered grain, fibers, facets and highlights, writes the `lumidrugs:` item/model layers and `minecraft:custom_model_data` range-dispatch item definitions, and packages only `pack.mcmeta` and `assets/` into the ZIP. All source artwork is stored in `tools/artwork/` outside the distributed pack, and no vanilla textures under `assets/minecraft/textures/` are replaced.
 
 ## Flavored items
 
@@ -25,3 +25,19 @@ The original 50 model IDs remain unchanged. Flavored models append IDs 1051–11
 `tools/flavors.json` defines the product/flavor ordering and palette, matching the appended catalog in `DrugItemMetadata.java`. `tools/flavor_icons.py` draws the variant sprites. Rebuilding also creates `tools/flavor-preview.png`, a labeled contact sheet excluded from the distributed ZIP.
 
 Farm Controller, Farm Area Wand, and Work Contract have their own textures (IDs 1181–1183). Farm-bound tool metadata remains unchanged. `tools/extra-items.json` lists these items after the flavor catalog.
+
+
+## Material detail
+
+Generated drug/crop sprites now use a 32×32 pixel surface layer: faceted crystals,
+granular powders, paper fibers, leaf veins, tobacco folds, baked crumbs, brushed
+metal and glass highlights. Flavored wrappers, labels and frosting receive matching
+detail while their small ingredient seals remain crisp. Original custom artwork is
+retained, and silhouettes, transparency, model keys and custom-model-data IDs stay
+unchanged. `tools/surface_detail.py` seeds each item deterministically, so rebuilding
+never changes a texture randomly. Farm equipment and the source artwork keep their
+existing designs.
+
+GitHub Actions rebuilds and verifies the pack and uploads a separate
+**LumiDrugs-resourcepack** artifact alongside the plugin JAR. The artifact contains
+`LumiDrugs-resourcepack.zip`, ready for the client resourcepacks folder or server hosting.
