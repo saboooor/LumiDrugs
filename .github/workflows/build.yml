@@ -13,8 +13,21 @@ jobs:
           java-version: '21'
       - uses: gradle/actions/setup-gradle@v4
       - run: ./gradlew --no-daemon clean build
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Rebuild and verify resource pack
+        run: |
+          python -m pip install Pillow==13.0.0
+          python resourcepack/tools/build.py
+          git diff --exit-code -- resourcepack/assets resourcepack/tools/flavor-preview.png
       - uses: actions/upload-artifact@v4
         with:
           name: LumiDrugs
           path: build/libs/LumiDrugs.jar
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        with:
+          name: LumiDrugs-resourcepack
+          path: LumiDrugs-resourcepack.zip
           if-no-files-found: error

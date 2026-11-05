@@ -78,6 +78,7 @@ public class DrugsV2 extends JavaPlugin {
     private LsdEffectManager lsdEffectManager;
     private SalviaEffectManager salviaEffectManager;
     private SensoryEffectManager sensoryEffectManager;
+    private com.drugs.overdose.OverdoseWarnings overdoseWarnings;
     private PluginStartup startup;
     private DrugsPlaceholderExpansion placeholderExpansion;
     private boolean cannabisLoaded;
@@ -176,6 +177,8 @@ public class DrugsV2 extends JavaPlugin {
         var manager = getServer().getPluginManager();
         manager.registerEvents(drugGrowing, this);
         manager.registerEvents(new DrugStatusTracker(), this);
+        overdoseWarnings = new com.drugs.overdose.OverdoseWarnings(this);
+        manager.registerEvents(overdoseWarnings, this);
         manager.registerEvents(new DrugMenuListener(), this);
         manager.registerEvents(new DrugUseListener(), this);
         manager.registerEvents(new com.drugs.recipes.FlavorInfusionListener(), this);
@@ -254,6 +257,7 @@ public class DrugsV2 extends JavaPlugin {
         RecipeUpdates.reset();
         savePhase("removing production recipes", com.drugs.recipes.ProductionRecipes::clear);
         if (cartelDroppedSales != null) savePhase("stopping cartel sales", cartelDroppedSales::shutdown);
+        if (overdoseWarnings != null) savePhase("stopping overdose warnings", overdoseWarnings::shutdown);
         if (cartelEnforcer != null) savePhase("stopping cartel encounters", cartelEnforcer::shutdown);
         if (cartelNpcs != null) savePhase("stopping Citizens integration", cartelNpcs::shutdown);
         savePhase("stopping advancements", NativeAdvancements::shutdown);

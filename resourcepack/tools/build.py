@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build the pack's simple pixel icons and model files. Requires Pillow."""
+"""Build the pack's textured pixel icons and model files. Requires Pillow."""
 from collections import defaultdict
 import colorsys
 import hashlib
@@ -9,6 +9,7 @@ from pathlib import Path
 from zipfile import ZipFile, ZIP_DEFLATED
 from PIL import Image, ImageDraw
 from flavor_icons import flavor_icon
+from surface_detail import add_material_detail
 
 ROOT = Path(__file__).resolve().parents[1]
 IDS = json.loads((ROOT / 'tools/items.json').read_text())
@@ -167,7 +168,10 @@ def icon(name):
         if name.startswith('harvest_'): green = color
         draw.line((5,14,10,3),fill='#877044')
         leaf(2,5,green); leaf(7,2,green); leaf(7,8,green)
-    return image
+    if name.startswith('farm_'):
+        return image
+    # Draw silhouettes on the original grid, then add a finer pixel layer for surface detail.
+    return add_material_detail(image.resize((32, 32), Image.Resampling.NEAREST), name)
 
 shutil.rmtree(ROOT / 'assets/minecraft', ignore_errors=True)
 by_material = defaultdict(list)

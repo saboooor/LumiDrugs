@@ -405,3 +405,25 @@ BeautyQuests option configured in the quest YAML. LumiDrugs manages the delivery
 and publishes its NPC entity UUID; it does not bundle or depend on LumiFollow. Install
 `LumiFollow.jar` from the [LumiFollow repository](https://github.com/saboooor/LumiFollow) to enable movement for quests using that option.
 LumiFollow depends on Citizens and BeautyQuests and can be used without LumiDrugs.
+
+
+### Overdose-risk warnings
+
+Players receive private chat warnings when they approach the tolerance limit, reach
+it, or develop withdrawal. A dangerous new dose warns again, with a one-second duplicate
+guard for laced items. Active risk/withdrawal reminders repeat every 60 seconds by
+default; escalating risk warns immediately. Messages do not name hidden added drugs.
+Withdrawals warn that temporary relief from another dose is not proof that further use
+is safe. The existing overdose calculation is unchanged. Use `/drugstatus` for current
+effects. Configure `mechanics.yml` → `overdose-warnings.enabled` and `reminder-seconds`.
+
+
+### Withdrawal recovery timers
+
+Withdrawal countdowns now show the actual time until addiction naturally falls below
+the configured threshold. They decrease as time passes and are not restarted by the
+withdrawal heartbeat or milk reapplication. Naturally decaying withdrawal ends once
+that threshold is crossed. Drugs with `decay.enabled: false` (or no positive decay
+rate) instead display **until treated (no natural recovery)**; their potion effects
+use a true infinite duration. The old `infinite_duration_ticks` setting no longer
+creates a repeatedly resetting fake countdown. Existing cure/decay rules are unchanged.

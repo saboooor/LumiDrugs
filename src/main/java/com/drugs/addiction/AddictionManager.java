@@ -96,7 +96,7 @@ public class AddictionManager {
                 if (profile == null) continue;
 
                 applyDecay(state, profile, now);
-                processWithdrawal(player, state, profile, now, settings);
+                processWithdrawal(player, state, profile, now);
             }
         }
     }
@@ -126,8 +126,7 @@ public class AddictionManager {
     private static void processWithdrawal(Player player,
                                           AddictionState state,
                                           AddictionDrugProfile profile,
-                                          long now,
-                                          AddictionSettings settings) {
+                                          long now) {
         boolean addicted = profile.isAddictive() && state.getPoints() >= profile.getAddictedAtPoints();
         boolean blocked = now < state.getWithdrawalBlockedUntilMillis();
 
@@ -144,8 +143,15 @@ public class AddictionManager {
 
         if (threshold > 0 && now - lastUse >= threshold) {
             boolean wasActive = state.isWithdrawalActive();
-            applyWithdrawalEffects(player, profile, settings.getInfiniteDurationTicks());
+            int duration = WithdrawalTiming.remainingTicks(state, profile, now);
+            if (duration == 0) {
+                if (wasActive) clearWithdrawalEffects(player, profile);
+                state.setWithdrawalActive(false);
+                return;
+            }
+            applyWithdrawalEffects(player, profile, duration);
             state.setWithdrawalActive(true);
+            com.drugs.overdose.OverdoseWarnings.check(player);
             if (!wasActive) {
                 notifyWithdrawalStarted(player, profile);
             }
@@ -169,6 +175,28 @@ public class AddictionManager {
         state.setLastDecayMillis(now);
         state.setWithdrawalActive(false);
         clearWithdrawalEffects(player, profile);
+    }
+
+    public static boolean hasActiveWithdrawal(Player player) {
+        return !getWithdrawalTimers(player).isEmpty();
+    }
+
+    public static Map<String, Integer> getWithdrawalTimers(Player player) {
+        return getWithdrawalTimers(player, System.currentTimeMillis());
+    }
+
+    static Map<String, Integer> getWithdrawalTimers(Player player, long now) {
+        if (!AddictionConfigLoader.getSettings().isEnabled()) return Map.of();
+        Map<String, AddictionState> states = addictionData.get(player.getUniqueId());
+        if (states == null) return Map.of();
+        Map<String, Integer> timers = new HashMap<>();
+        for (var entry : states.entrySet()) {
+            var profile = AddictionConfigLoader.getDrugProfile(entry.getKey());
+            if (profile == null || !entry.getValue().isWithdrawalActive()) continue;
+            int ticks = WithdrawalTiming.remainingTicks(entry.getValue(), profile, now);
+            if (ticks != 0) timers.put(entry.getKey(), ticks);
+        }
+        return timers;
     }
 
     public static boolean applyCure(Player player, CureProfile cure) {
@@ -217,7 +245,7 @@ public class AddictionManager {
             for (Map.Entry<String, AddictionState> entry : stateMap.entrySet()) {
                 AddictionDrugProfile profile = AddictionConfigLoader.getDrugProfile(entry.getKey());
                 if (profile == null) continue;
-                processWithdrawal(player, entry.getValue(), profile, now, settings);
+                processWithdrawal(player, entry.getValue(), profile, now);
             }
         }, 1L);
     }

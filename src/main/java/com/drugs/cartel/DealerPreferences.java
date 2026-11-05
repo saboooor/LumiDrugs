@@ -33,7 +33,10 @@ final class DealerPreferences {
         String drug = drugs.get((int) ((offset + rotation % drugs.size()) % drugs.size()));
         List<String> strains = config.getStringList("preferences.strains." + drug).stream()
                 .map(id -> id.toLowerCase(Locale.ROOT)).distinct()
-                .filter(id -> StrainConfigLoader.isCannabisDrug(drug) && StrainConfigLoader.getStrain(id) != null)
+                .filter(id -> {
+                    var profile = StrainConfigLoader.getStrain(id);
+                    return StrainConfigLoader.isCannabisDrug(drug) && profile != null && id.equalsIgnoreCase(profile.getId());
+                })
                 .filter(id -> {
                     double price = config.getDouble("strain-prices." + drug + "." + id, config.getDouble("prices." + drug));
                     return Double.isFinite(price) && price > 0;

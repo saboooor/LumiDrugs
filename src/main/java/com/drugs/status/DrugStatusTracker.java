@@ -41,9 +41,24 @@ public final class DrugStatusTracker implements Listener {
     }
 
     public static void applyEffect(Player player, String drugId, PotionEffect effect) {
+        if (drugId.startsWith(WITHDRAWAL_PREFIX)) {
+            PotionEffect current = player.getPotionEffect(effect.getType());
+            if (current != null && needsWithdrawalRefresh(
+                    player.getPersistentDataContainer().get(key(effect.getType()), PersistentDataType.STRING),
+                    drugId, current.getDuration(), effect.getDuration())) {
+                // Bukkit normally keeps the longer existing effect. Replace only our
+                // own oversized withdrawal timer, including legacy 99,999-tick effects.
+                player.removePotionEffect(effect.getType());
+            }
+        }
         if (player.addPotionEffect(effect) && player.getPotionEffect(effect.getType()) != null) {
             player.getPersistentDataContainer().set(key(effect.getType()), PersistentDataType.STRING, drugId);
         }
+    }
+
+    static boolean needsWithdrawalRefresh(String previousSource, String source, int currentTicks, int nextTicks) {
+        return source.startsWith(WITHDRAWAL_PREFIX) && source.equals(previousSource)
+                && nextTicks >= 0 && (currentTicks < 0 || currentTicks > nextTicks + 20L);
     }
 
     /** Reports all live effects, preserving known drug sources and unknown sources. */
@@ -56,6 +71,14 @@ public final class DrugStatusTracker implements Listener {
                     List.of(name + " " + (effect.getAmplifier() + 1))));
         }
         status.putAll(potionStatus(player.getPersistentDataContainer(), activeKeys));
+        // Withdrawal is an addiction state, not the periodically refreshed lifetime
+        // of one potion effect. It can remain active even while effects are absent.
+        for (var entry : com.drugs.addiction.AddictionManager.getWithdrawalTimers(player).entrySet()) {
+            String id = WITHDRAWAL_PREFIX + entry.getKey();
+            var previous = status.get(id);
+            status.put(id, new Status(entry.getValue(), 0,
+                    previous == null ? List.of("withdrawal symptoms") : previous.effects()));
+        }
         DrugsV2 plugin = DrugsV2.getInstance();
         if (plugin != null) {
             LsdEffectManager lsd = plugin.getLsdEffectManager();
