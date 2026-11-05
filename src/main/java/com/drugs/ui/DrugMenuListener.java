@@ -49,7 +49,7 @@ public class DrugMenuListener implements Listener {
             int slot = event.getRawSlot();
             if (slot == 27) DrugMenuGUI.openFlavors(player, product, parsePageNumber(title) - 1);
             else if (slot == 35) DrugMenuGUI.openFlavors(player, product, parsePageNumber(title) + 1);
-            else if (slot == 31) DrugMenuGUI.open(player, 0);
+            else if (slot == 31) DrugMenuGUI.openRecipeCategory(player, product);
             else if (slot == 30) DrugRecipeViewer.openRecipe(player, product);
             else if (slot >= 0 && slot < 27) {
                 String recipe = com.drugs.recipes.FlavorVariants.recipeFor(clicked);
@@ -87,16 +87,26 @@ public class DrugMenuListener implements Listener {
             return;
         }
 
+        DrugCategory category = DrugCategory.fromTitle(title);
+        int menuSlot = event.getRawSlot();
+        if (category == null) {
+            if (menuSlot == 31) player.closeInventory();
+            else if (menuSlot >= 0 && menuSlot < DrugCategory.values().length)
+                DrugMenuGUI.openCategory(player, DrugCategory.values()[menuSlot], 0);
+            return;
+        }
+        if (menuSlot == 31) { DrugMenuGUI.open(player, 0); return; }
+
         String name = clicked.getItemMeta() != null ? ChatColor.stripColor(clicked.getItemMeta().getDisplayName()) : "";
 
         switch (name.toLowerCase()) {
             case "next page" -> {
                 int currentPage = parsePageNumber(title);
-                DrugMenuGUI.open(player, currentPage + 1);
+                DrugMenuGUI.openCategory(player, category, currentPage + 1);
             }
             case "previous page" -> {
                 int currentPage = parsePageNumber(title);
-                DrugMenuGUI.open(player, currentPage - 1);
+                DrugMenuGUI.openCategory(player, category, currentPage - 1);
             }
             case "close" -> player.closeInventory();
             default -> {
@@ -156,7 +166,7 @@ public class DrugMenuListener implements Listener {
                 String recipe = title.substring("Recipe: ".length());
                 int flavor = recipe.indexOf("_flavor_");
                 if (flavor > 0) DrugMenuGUI.openFlavors(player, recipe.substring(0, flavor), 0);
-                else DrugMenuGUI.open(player, 0);
+                else DrugMenuGUI.openRecipeCategory(player, recipe);
             }, 1L); // Delay to prevent recursion
         }
     }
