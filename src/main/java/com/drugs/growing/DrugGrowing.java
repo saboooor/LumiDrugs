@@ -43,6 +43,8 @@ public final class DrugGrowing implements Listener {
         Map.entry("caffeine", "coffee"), Map.entry("energy_drink", "coffee"));
     private record Plant(String crop, int elapsed) {}
     private final Map<String, Plant> plants = new HashMap<>();
+    private final Object saveLock = new Object();
+    private boolean dirty;
     private final DrugsV2 plugin;
     private final File file;
 
@@ -57,7 +59,7 @@ public final class DrugGrowing implements Listener {
             if (crops.containsKey(crop)) plants.put(key, new Plant(crop, Math.max(0, saved.getInt(key + ".elapsed"))));
         }
         plugin.getServer().getScheduler().runTaskTimer(plugin, this::tick, 20L, 20L);
-        plugin.getServer().getScheduler().runTaskTimer(plugin, this::save, 1200L, 1200L);
+        plugin.getServer().getScheduler().runTaskTimer(plugin, this::saveAsync, 1200L, 1200L);
     }
 
     public void reloadConfiguration() {
@@ -133,9 +135,6 @@ public final class DrugGrowing implements Listener {
         int moisture = farmland.getMoisture();
         if (moisture >= 7) {
             purity += 5;
-        } else if (moisture >= 4) {
-            purity += 2;
-            tips.add("Hydrate farmland to 7/7 with water within 4 blocks (+3% purity)");
         } else {
             tips.add("Hydrate farmland to 7/7 with water within 4 blocks (+5% purity)");
         }
@@ -284,10 +283,16 @@ public final class DrugGrowing implements Listener {
     }
 
     public void trackCannabis(Block block) {
-        plants.putIfAbsent(key(block), new Plant("cannabis", block.getType() == Material.LARGE_FERN ? crops.get("cannabis").seconds() : 0));
+        if (plants.putIfAbsent(key(block), new Plant("cannabis", block.getType() == Material.LARGE_FERN ? crops.get("cannabis").seconds() : 0)) == null) {
+            dirty = true;
+        }
     }
 
-    public void forget(Block block) { plants.remove(key(block)); }
+    public void forget(Block block) {
+        if (plants.remove(key(block)) != null) {
+            dirty = true;
+        }
+    }
 
     private boolean matchesPlant(Block block, Plant plant) {
         if (plant != null && plant.crop().equals("cannabis"))
@@ -345,13 +350,12 @@ public final class DrugGrowing implements Listener {
             var result = CannabisPlantListener.harvestCannabis(block, true);
             if (result == null) return List.of();
             forget(block);
-            save();
             return result.getDrops();
         }
         int purity = evaluateGrowingQuality(block).purity();
         plants.remove(key(block));
+        dirty = true;
         clearModel(block);
-        save();
         return List.of(seed(plant.crop()).asQuantity(harvestSeedCount()), harvest(plant.crop(), null, purity).asQuantity(2));
     }
 
@@ -360,7 +364,6 @@ public final class DrugGrowing implements Listener {
             block.setType(Material.FERN, false);
             if (!CannabisPlantListener.applyPlacedCannabis(block, seed)) { block.setType(Material.AIR, false); return false; }
             trackCannabis(block);
-            save();
             return true;
         }
         String type = seed.hasItemMeta() ? DrugItemMetadata.getItemType(seed.getItemMeta()) : null;
@@ -370,7 +373,7 @@ public final class DrugGrowing implements Listener {
                 || soil.getMoisture() == 0) return false;
         if (!placeModel(block, type.substring(5))) return false;
         plants.put(key(block), new Plant(type.substring(5), 0));
-        save();
+        dirty = true;
         return true;
     }
 
@@ -398,8 +401,8 @@ public final class DrugGrowing implements Listener {
         }
         String cropId = type.substring(5);
         plants.put(key(block), new Plant(cropId, 0));
+        dirty = true;
         if (event.getPlayer().getGameMode() != GameMode.CREATIVE) event.getItem().setAmount(event.getItem().getAmount() - 1);
-        save();
         Map<String, Object> context = AchievementManager.createContext();
         context.put("crop_id", cropId);
         AchievementManager.processTrigger(event.getPlayer(), "plant_crop", context);
@@ -412,6 +415,7 @@ public final class DrugGrowing implements Listener {
         if (plant != null && plant.crop().equals("cannabis")) return;
         plants.remove(key(root));
         if (plant == null) return;
+        dirty = true;
         event.setDropItems(false);
         event.setExpToDrop(0);
         if (matchesPlant(root, plant) && event.getPlayer().getGameMode() != GameMode.CREATIVE) {
@@ -429,7 +433,6 @@ public final class DrugGrowing implements Listener {
             } else event.getPlayer().sendMessage("§eThis crop was not mature. Only its seed was recovered.");
         }
         clearModel(root);
-        save();
     }
     @EventHandler(ignoreCancelled = true)
     public void preventVanillaFarmerHarvest(org.bukkit.event.entity.EntityChangeBlockEvent event) {
@@ -473,15 +476,15 @@ public final class DrugGrowing implements Listener {
     }
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void replaced(BlockPlaceEvent event) {
-        plants.remove(key(event.getBlockPlaced()));
+        forget(event.getBlockPlaced());
     }
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void exploded(org.bukkit.event.entity.EntityExplodeEvent event) {
-        for (Block block : event.blockList()) plants.remove(key(block));
+        for (Block block : event.blockList()) forget(block);
     }
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void exploded(BlockExplodeEvent event) {
-        for (Block block : event.blockList()) plants.remove(key(block));
+        for (Block block : event.blockList()) forget(block);
     }
     @EventHandler(ignoreCancelled = true)
     public void piston(BlockPistonExtendEvent event) {
@@ -507,7 +510,7 @@ public final class DrugGrowing implements Listener {
             if (world == null || !world.isChunkLoaded(x >> 4, z >> 4)) continue;
             Block block = world.getBlockAt(x, y, z);
             Plant plant = entry.getValue();
-            if (!matchesPlant(block, plant)) { iterator.remove(); continue; }
+            if (!matchesPlant(block, plant)) { iterator.remove(); dirty = true; continue; }
             if (block.getType() == Material.LILAC
                     && block.getBlockData() instanceof org.bukkit.block.data.Bisected half
                     && half.getHalf() == org.bukkit.block.data.Bisected.Half.BOTTOM) {
@@ -524,7 +527,10 @@ public final class DrugGrowing implements Listener {
                     && !block.getRelative(0, 1, 0).isEmpty()) continue;
             int seconds = crops.get(plant.crop()).seconds();
             int elapsed = Math.min(seconds, plant.elapsed() + 1);
-            entry.setValue(new Plant(plant.crop(), elapsed));
+            if (elapsed != plant.elapsed()) {
+                entry.setValue(new Plant(plant.crop(), elapsed));
+                dirty = true;
+            }
             if (plant.crop().equals("cannabis") && elapsed >= seconds && block.getType() == Material.FERN)
                 CannabisPlantListener.growToLargeFern(block, block.getRelative(0, 1, 0));
             if (block.getBlockData() instanceof Ageable age) {
@@ -533,9 +539,21 @@ public final class DrugGrowing implements Listener {
             }
         }
     }
+    private void saveAsync() {
+        if (!dirty) return;
+        dirty = false;
+        Map<String, Plant> snapshot = new HashMap<>(plants);
+        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> writeSnapshot(snapshot));
+    }
     public void save() {
-        var yaml = new YamlConfiguration();
-        plants.forEach((key, plant) -> { yaml.set(key + ".crop", plant.crop()); yaml.set(key + ".elapsed", plant.elapsed()); });
-        try { yaml.save(file); } catch (IOException e) { plugin.getLogger().warning("Cannot save ingredient crops: " + e.getMessage()); }
+        dirty = false;
+        writeSnapshot(new HashMap<>(plants));
+    }
+    private void writeSnapshot(Map<String, Plant> snapshot) {
+        synchronized (saveLock) {
+            var yaml = new YamlConfiguration();
+            snapshot.forEach((key, plant) -> { yaml.set(key + ".crop", plant.crop()); yaml.set(key + ".elapsed", plant.elapsed()); });
+            try { yaml.save(file); } catch (IOException e) { plugin.getLogger().warning("Cannot save ingredient crops: " + e.getMessage()); }
+        }
     }
 }

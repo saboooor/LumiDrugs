@@ -51,7 +51,8 @@ public final class DrugPurity {
         }
         List<ItemStack> choices = new ArrayList<>();
         choices.add(base);
-        for (int p = 1; p <= 100; p++) {
+        int step = Math.min(5, Math.max(1, MechanicsConfig.getPurityRefiningPoints()));
+        for (int p = 65; p <= 100; p += step) {
             ItemStack variant = base.clone();
             if (variant == null) continue;
             ItemMeta vMeta = variant.getItemMeta();

@@ -93,7 +93,7 @@ Plugin enable initializes one phase per server tick; commands show an initializi
 - `/strains`  
   Opens the cannabis strain index GUI.
 
-- `/drugstatus` or `/drugs status` → Lists active drugs, withdrawal and other potion effects with remaining durations, strengths and LSD/salvia onset delays. Effects with no recorded source are labeled source unknown. Confirms you are fully sober only when no drug or potion effects remain. Tolerance and addiction alone do not count as being high.
+- `/drugstatus` or `/drugs status` → Lists active drugs, withdrawal and other potion effects with remaining durations, strengths and LSD/salvia onset delays, plus an **Overdose Limits, Tolerance & Addiction** summary (current tolerance vs. max overdose limit, potency %, decay timer, overdose attempts vs. threshold, and addiction/withdrawal progress). Effects with no recorded source are labeled source unknown. Confirms you are fully sober only when no drug or potion effects remain. Tolerance and addiction alone do not count as being high.
 - `/drugs achievements`  
   Explains how to open Minecraft’s Advancements screen (default key: L), then select the Drugs tab.
 - `/drugs growing [crop]`  

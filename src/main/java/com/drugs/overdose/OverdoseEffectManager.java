@@ -336,6 +336,10 @@ public class OverdoseEffectManager {
         return shouldDie;
     }
     
+    public static int getThreshold() {
+        return threshold;
+    }
+
     /**
      * Resets overdose counts for a player
      */

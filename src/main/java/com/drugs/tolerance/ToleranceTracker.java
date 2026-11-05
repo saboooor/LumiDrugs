@@ -59,7 +59,9 @@ public class ToleranceTracker {
     }
 
     public static int getToleranceLevel(Player player, String drugId) {
+        if (player == null || drugId == null) return 0;
         UUID uuid = player.getUniqueId();
+        if (uuid == null) return 0;
         
         // Try to get from cache first
         if (PerformanceOptimizer.isToleranceCached(uuid) && !PerformanceOptimizer.isCacheExpired(uuid)) {
@@ -73,6 +75,40 @@ public class ToleranceTracker {
         return toleranceLevels
                 .getOrDefault(uuid, Collections.emptyMap())
                 .getOrDefault(drugId.toLowerCase(), 0);
+    }
+
+    public static int getOverdoseAttempts(Player player, String drugId) {
+        if (player == null || player.getUniqueId() == null || drugId == null) return 0;
+        return overdoseAttempts
+                .getOrDefault(player.getUniqueId(), Collections.emptyMap())
+                .getOrDefault(drugId.toLowerCase(), 0);
+    }
+
+    public static int getRemainingDecaySeconds(Player player, String drugId) {
+        if (player == null || player.getUniqueId() == null || drugId == null) return 0;
+        int level = getToleranceLevel(player, drugId);
+        if (level <= 0) return 0;
+        long lastUsed = lastUseTimestamps
+                .getOrDefault(player.getUniqueId(), Collections.emptyMap())
+                .getOrDefault(drugId.toLowerCase(), 0L);
+        int decayMinutes = ToleranceConfigLoader.getDecayMinutes(drugId);
+        long decayMillis = decayMinutes * 60_000L;
+        if (lastUsed <= 0L) return decayMinutes * 60;
+        long remainingMillis = Math.max(0L, (lastUsed + decayMillis) - System.currentTimeMillis());
+        return (int) ((remainingMillis + 999L) / 1000L);
+    }
+
+    public static Set<String> getTrackedDrugs(Player player) {
+        if (player == null || player.getUniqueId() == null) return Set.of();
+        UUID uuid = player.getUniqueId();
+        Set<String> tracked = new TreeSet<>();
+        for (var entry : toleranceLevels.getOrDefault(uuid, Collections.emptyMap()).entrySet()) {
+            if (entry.getValue() != null && entry.getValue() > 0) tracked.add(entry.getKey());
+        }
+        for (var entry : overdoseAttempts.getOrDefault(uuid, Collections.emptyMap()).entrySet()) {
+            if (entry.getValue() != null && entry.getValue() > 0) tracked.add(entry.getKey());
+        }
+        return tracked;
     }
 
     private static void setToleranceLevel(Player player, String drugId, int value) {

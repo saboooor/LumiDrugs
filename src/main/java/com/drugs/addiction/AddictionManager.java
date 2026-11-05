@@ -181,6 +181,28 @@ public class AddictionManager {
         return !getWithdrawalTimers(player).isEmpty();
     }
 
+    public static AddictionState getState(Player player, String drugId) {
+        if (player == null || player.getUniqueId() == null || drugId == null) return null;
+        Map<String, AddictionState> states = addictionData.get(player.getUniqueId());
+        return states == null ? null : states.get(drugId.toLowerCase());
+    }
+
+    public static java.util.Set<String> getTrackedDrugs(Player player) {
+        if (player == null || player.getUniqueId() == null || !AddictionConfigLoader.getSettings().isEnabled()) {
+            return java.util.Set.of();
+        }
+        Map<String, AddictionState> states = addictionData.get(player.getUniqueId());
+        if (states == null) return java.util.Set.of();
+        java.util.Set<String> tracked = new java.util.TreeSet<>();
+        for (var entry : states.entrySet()) {
+            AddictionState state = entry.getValue();
+            if (state != null && (state.getPoints() > 0 || state.isWithdrawalActive())) {
+                tracked.add(entry.getKey());
+            }
+        }
+        return tracked;
+    }
+
     public static Map<String, Integer> getWithdrawalTimers(Player player) {
         return getWithdrawalTimers(player, System.currentTimeMillis());
     }
