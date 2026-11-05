@@ -340,6 +340,14 @@ Cannabis strains carry through dough, edibles, extracts, cartridges, and CBD.
 The old direct crafting recipes for these products have been replaced.
 
 
+### Dealer preferences
+
+Right-click a cartel buyer to see which drug it currently prefers and when that offer
+changes. The default bonus is **1.5× the normal sale price**, rotating every **24 hours**.
+Some servers also configure preferences for particular cannabis strains. Throw matching
+products near that buyer to receive the bonus; other products still sell at normal prices.
+Each buyer keeps the same offer across restarts. Temporary enforcer delivery contracts
+keep their normal prices.
 ### Lacing
 
 Hold **one target drug** in your main hand and a **different drug** in your offhand,

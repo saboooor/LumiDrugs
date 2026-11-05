@@ -27,11 +27,14 @@ import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
 import java.util.logging.Logger;
+import java.util.UUID;
+import java.nio.file.Path;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 class CitizensCartelNpcsTest {
+    @org.junit.jupiter.api.io.TempDir Path directory;
     private MockedStatic<CitizensAPI> citizens;
     private MockedStatic<Bukkit> bukkit;
     private DrugsV2 plugin;
@@ -56,6 +59,7 @@ class CitizensCartelNpcsTest {
         when(plugin.getName()).thenReturn("LumiDrugs");
         when(plugin.namespace()).thenReturn("lumidrugs");
         when(plugin.getLogger()).thenReturn(Logger.getAnonymousLogger());
+        when(plugin.getDataFolder()).thenReturn(directory.toFile());
         Server server = mock(Server.class);
         when(plugin.getServer()).thenReturn(server);
         plugins = mock(PluginManager.class);
@@ -71,6 +75,10 @@ class CitizensCartelNpcsTest {
         citizens.when(() -> CitizensAPI.createInMemoryNPCRegistry("lumidrugs-cartel-enforcers")).thenReturn(temporary);
         when(persistent.iterator()).thenAnswer(call -> Collections.emptyIterator());
         npc = mock(NPC.class);
+        when(npc.getUniqueId()).thenReturn(UUID.randomUUID());
+        when(npc.getId()).thenReturn(7);
+        when(persistent.getByUniqueId(npc.getUniqueId())).thenReturn(npc);
+        when(persistent.createNPC(eq(EntityType.PLAYER), any(UUID.class), anyInt(), anyString())).thenReturn(npc);
         metadata = mock(MetadataStore.class);
         when(npc.data()).thenReturn(metadata);
         skin = mock(SkinTrait.class);
@@ -84,6 +92,10 @@ class CitizensCartelNpcsTest {
         when(persistent.createNPC(eq(EntityType.PLAYER), anyString())).thenReturn(npc);
         when(temporary.createNPC(eq(EntityType.PLAYER), anyString())).thenReturn(npc);
         world = mock(World.class);
+        when(world.getUID()).thenReturn(UUID.randomUUID());
+        when(world.getName()).thenReturn("world");
+        bukkit.when(() -> Bukkit.getWorld(world.getUID())).thenReturn(world);
+        bukkit.when(() -> Bukkit.getWorld("world")).thenReturn(world);
         location = new Location(world, 1, 64, 1);
         when(world.isChunkLoaded(0, 0)).thenReturn(true);
         when(entity.getWorld()).thenReturn(world);
@@ -181,6 +193,63 @@ class CitizensCartelNpcsTest {
         service.reload();
         verify(npc, times(2)).spawn(location);
         verify(npc, never()).destroy();
+    }
+
+    @Test void restartRecreatesMissingBuyerFromItsOwnSavedRecord() {
+        assertNotNull(service.create(location, "buyer"));
+        service.shutdown();
+        when(persistent.getByUniqueId(npc.getUniqueId())).thenReturn(null);
+        var restarted = new CitizensCartelNpcs(plugin, dealer);
+        restarted.reload();
+        var restored = org.mockito.ArgumentCaptor.forClass(Location.class);
+        verify(persistent).createNPC(EntityType.PLAYER, npc.getUniqueId(), 7, "Pablo");
+        verify(npc, times(2)).spawn(restored.capture());
+        assertEquals(location, restored.getValue());
+    }
+
+    @Test void savedBuyerDoesNotDuplicateAnExistingCitizensNpc() {
+        assertNotNull(service.create(location, "buyer"));
+        var restarted = new CitizensCartelNpcs(plugin, dealer);
+        restarted.reload();
+        restarted.reload();
+        verify(persistent, never()).createNPC(eq(EntityType.PLAYER), any(UUID.class), anyInt(), anyString());
+    }
+
+    @Test void removedBuyerIsNotResurrectedAfterRestart() {
+        service.create(location, "buyer").destroy();
+        when(persistent.getByUniqueId(npc.getUniqueId())).thenReturn(null);
+        var restarted = new CitizensCartelNpcs(plugin, dealer);
+        restarted.reload();
+        verify(persistent, never()).createNPC(eq(EntityType.PLAYER), any(UUID.class), anyInt(), anyString());
+    }
+
+    @Test void missingBuyerWaitsForItsChunkBeforeRecreation() {
+        service.create(location, "buyer");
+        when(persistent.getByUniqueId(npc.getUniqueId())).thenReturn(null);
+        when(world.isChunkLoaded(0, 0)).thenReturn(false);
+        var restarted = new CitizensCartelNpcs(plugin, dealer);
+        restarted.reload();
+        verify(persistent, never()).createNPC(eq(EntityType.PLAYER), any(UUID.class), anyInt(), anyString());
+        when(world.isChunkLoaded(0, 0)).thenReturn(true);
+        Chunk chunk = mock(Chunk.class);
+        when(chunk.getWorld()).thenReturn(world);
+        when(chunk.getEntities()).thenReturn(new Entity[0]);
+        restarted.onChunkLoad(new org.bukkit.event.world.ChunkLoadEvent(chunk, false));
+        verify(persistent).createNPC(EntityType.PLAYER, npc.getUniqueId(), 7, "Pablo");
+        verify(world, never()).getChunkAt(anyInt(), anyInt());
+    }
+
+    @Test void reusedNumericIdDoesNotOverwriteAnotherCitizensNpc() {
+        service.create(location, "buyer");
+        when(persistent.getByUniqueId(npc.getUniqueId())).thenReturn(null);
+        var unrelated = mock(NPC.class);
+        when(unrelated.getId()).thenReturn(7);
+        when(persistent.getById(7)).thenReturn(unrelated);
+        when(persistent.iterator()).thenAnswer(call -> List.of(unrelated).iterator());
+        when(unrelated.data()).thenReturn(mock(MetadataStore.class));
+        new CitizensCartelNpcs(plugin, dealer).reload();
+        verify(persistent).createNPC(EntityType.PLAYER, npc.getUniqueId(), 8, "Pablo");
+        verify(unrelated, never()).destroy();
     }
 
     @Test void enforcersUseMemoryOnlyRegistryAndUsernameOverride() {
