@@ -146,6 +146,32 @@ public final class DrugItemMetadata {
         meta.getPersistentDataContainer().set(key("strain_id"), PersistentDataType.STRING, strainId.toLowerCase());
     }
 
+    /** Hidden item data only: never change a laced product's visible metadata. */
+    public static void setLacedDrug(ItemMeta meta, String drugId, String strainId) {
+        meta.getPersistentDataContainer().set(key("laced_drug"), PersistentDataType.STRING, drugId.toLowerCase(Locale.ROOT));
+        if (strainId == null) meta.getPersistentDataContainer().remove(key("laced_strain"));
+        else meta.getPersistentDataContainer().set(key("laced_strain"), PersistentDataType.STRING, strainId.toLowerCase(Locale.ROOT));
+        setLacingExpended(meta, false);
+    }
+
+    public static String getLacedDrug(ItemMeta meta) {
+        return meta == null ? null : meta.getPersistentDataContainer().get(key("laced_drug"), PersistentDataType.STRING);
+    }
+
+    public static String getLacedStrain(ItemMeta meta) {
+        return meta == null ? null : meta.getPersistentDataContainer().get(key("laced_strain"), PersistentDataType.STRING);
+    }
+
+    public static boolean isLacingExpended(ItemMeta meta) {
+        return meta != null && Byte.valueOf((byte) 1).equals(
+                meta.getPersistentDataContainer().get(key("laced_dose_used"), PersistentDataType.BYTE));
+    }
+
+    public static void setLacingExpended(ItemMeta meta, boolean expended) {
+        if (expended) meta.getPersistentDataContainer().set(key("laced_dose_used"), PersistentDataType.BYTE, (byte) 1);
+        else meta.getPersistentDataContainer().remove(key("laced_dose_used"));
+    }
+
     public static String getDrugId(ItemMeta meta) {
         if (meta == null) return null;
         return meta.getPersistentDataContainer().get(key("drug_id"), PersistentDataType.STRING);

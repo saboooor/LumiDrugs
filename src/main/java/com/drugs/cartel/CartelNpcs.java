@@ -6,6 +6,7 @@ import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import java.util.UUID;
 
 /** Keeps optional Citizens types out of the core plugin's class loading path. */
 public interface CartelNpcs {
@@ -13,6 +14,7 @@ public interface CartelNpcs {
         LivingEntity entity();
         boolean valid();
         void destroy();
+        default UUID id() { return entity().getUniqueId(); }
     }
 
     default String unavailableReason() { return null; }

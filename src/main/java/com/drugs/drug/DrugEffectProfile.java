@@ -72,7 +72,7 @@ public class DrugEffectProfile {
     public void applyEffects(Player player, ItemStack sourceItem) {
         int toleranceLevel = ToleranceTracker.getToleranceLevel(player, id);
         int max = ToleranceConfigLoader.getMaxTolerance(id);
-        double multiplier = ToleranceTracker.getEffectivenessMultiplier(player, id);
+        double multiplier = ToleranceTracker.getEffectivenessMultiplier(player, id) * DrugPurity.multiplier(sourceItem);
 
         spawnConsumptionParticles(player);
 
@@ -237,6 +237,7 @@ public class DrugEffectProfile {
                 DrugItemMetadata.applyCartDurabilityLore(meta, maxDurability, maxDurability);
             }
 
+            DrugPurity.set(meta, DrugPurity.BASELINE);
             item.setItemMeta(meta);
         }
         return item;

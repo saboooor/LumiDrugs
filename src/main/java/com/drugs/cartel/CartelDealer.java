@@ -133,6 +133,19 @@ public final class CartelDealer implements Listener, CommandExecutor, TabComplet
         String name = config.getString("npc.name", "Pablo").trim();
         if (name.isEmpty()) name = "Pablo";
         player.sendMessage(ChatColor.GREEN + name + ": Throw the goods to me, within two blocks, and I'll pay you.");
+        var offer = offer(entity);
+        if (offer != null) {
+            long minutes = Math.max(1, (offer.changesAt() - System.currentTimeMillis() + 59_999) / 60_000);
+            player.sendMessage(ChatColor.GOLD + "Current preference: " + offer.drug().replace('_', ' ')
+                    + (offer.strain() == null ? "" : " (" + offer.strain() + ")")
+                    + " — " + String.format(Locale.ROOT, "%.2fx", offer.multiplier())
+                    + " normal price. Changes in " + minutes + " minutes.");
+        }
+    }
+
+    private DealerPreferences.Offer offer(Entity entity) {
+        var buyer = npcs == null ? null : npcs.find(entity, "buyer");
+        return buyer == null ? null : DealerPreferences.current(config, buyer.id(), System.currentTimeMillis());
     }
 
     @EventHandler
@@ -148,7 +161,7 @@ public final class CartelDealer implements Listener, CommandExecutor, TabComplet
                 Payments payments = payments();
                 if (payments == null) {
                     player.sendMessage(ChatColor.RED + "The buyer cannot pay right now. Your items remain on the ground.");
-                } else sellDropped(player, item, item.getItemStack().getAmount(), payments);
+                } else sellDropped(player, item, item.getItemStack().getAmount(), payments, offer(entity));
                 return true;
             }
         }
@@ -172,15 +185,22 @@ public final class CartelDealer implements Listener, CommandExecutor, TabComplet
         double value = prices.getDouble("prices." + drug, 0);
         String strain = DrugItemMetadata.getStrainId(meta);
         if (strain != null) value = prices.getDouble("strain-prices." + drug + "." + strain, value);
+        value *= com.drugs.drug.DrugPurity.multiplier(item);
         return Double.isFinite(value) && value > 0 ? value : 0;
     }
 
     int sellDropped(Player player, Item item, int limit, Payments payments) {
+        // Enforcer delivery contracts retain their agreed base prices.
+        return sellDropped(player, item, limit, payments, null);
+    }
+
+    int sellDropped(Player player, Item item, int limit, Payments payments, DealerPreferences.Offer offer) {
         if (!item.isValid() || limit <= 0 || !sellingDrops.add(item.getUniqueId())) return 0;
         int pickupDelay = item.getPickupDelay();
         try {
             ItemStack original = item.getItemStack();
             double unit = price(original, config);
+            if (unit > 0 && offer != null && offer.matches(original)) unit *= offer.multiplier();
             int count = Math.min(limit, original.getAmount());
             double total = unit * count;
             if (unit == 0 || count <= 0 || !Double.isFinite(total)) return 0;

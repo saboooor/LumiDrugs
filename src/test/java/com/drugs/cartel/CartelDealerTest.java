@@ -142,6 +142,76 @@ class CartelDealerTest {
         verify(item).setPickupDelay(10);
     }
 
+    @Test void preferredProductReceivesBonusAndOtherProductsKeepTheirPrice() {
+        var dealer = new CartelDealer(plugin);
+        var player = mock(Player.class);
+        var matching = new DealerPreferences.Offer("joint", null, 1.5, Long.MAX_VALUE);
+        var payment = mock(CartelDealer.Payments.class);
+        when(payment.deposit(player, 67.5)).thenReturn(true);
+        assertEquals(3, dealer.sellDropped(player, dropped(drug("joint", "joint", null)), 3, payment, matching));
+        verify(payment).deposit(player, 67.5);
+        var otherOffer = new DealerPreferences.Offer("meth", null, 1.5, Long.MAX_VALUE);
+        when(payment.deposit(player, 45)).thenReturn(true);
+        assertEquals(3, dealer.sellDropped(player, dropped(drug("joint", "joint", null)), 3, payment, otherOffer));
+        verify(payment).deposit(player, 45);
+    }
+
+    @Test void purityScalesStrainPriceBeforeDealerPreferenceBonus() {
+        var joint = drug("joint", "joint", "reggie");
+        when(joint.getItemMeta().getPersistentDataContainer().get(new NamespacedKey(plugin, "purity"), PersistentDataType.INTEGER)).thenReturn(100);
+        prices.set("strain-prices.joint.reggie", 18.0);
+        assertEquals(20.0, CartelDealer.price(joint, prices), 0.00001);
+        var player = mock(Player.class);
+        var payment = mock(CartelDealer.Payments.class);
+        when(payment.deposit(player, 75)).thenReturn(true);
+        var offer = new DealerPreferences.Offer("joint", null, 1.5, Long.MAX_VALUE);
+        assertEquals(3, new CartelDealer(plugin).sellDropped(player, dropped(joint), 3, payment, offer));
+        verify(payment).deposit(player, 75);
+    }
+
+    @Test void nearbyBuyerUsesItsOwnPreferenceWhenCollectingDrops() {
+        var dealer = spy(new CartelDealer(plugin));
+        var payment = mock(CartelDealer.Payments.class);
+        doReturn(payment).when(dealer).payments();
+        var player = mock(Player.class);
+        when(player.hasPermission("drugs.cartel.sell")).thenReturn(true);
+        var item = dropped(drug("joint", "joint", null));
+        var buyer = mock(org.bukkit.entity.LivingEntity.class);
+        var world = mock(org.bukkit.World.class);
+        var location = new org.bukkit.Location(world, 1, 64, 1);
+        when(item.getLocation()).thenReturn(location);
+        when(buyer.getLocation()).thenReturn(location);
+        when(buyer.hasLineOfSight(item)).thenReturn(true);
+        when(item.getNearbyEntities(2, 2, 2)).thenReturn(java.util.List.of(buyer));
+        var npcs = mock(CartelNpcs.class);
+        var character = mock(CartelNpcs.Character.class);
+        when(character.id()).thenReturn(UUID.randomUUID());
+        when(npcs.find(buyer, "buyer")).thenReturn(character);
+        dealer.setNpcs(npcs);
+        registry.when(DrugRegistry::getRegisteredDrugNames).thenReturn(java.util.Set.of("joint"));
+        when(payment.deposit(player, 67.5)).thenReturn(true);
+        assertTrue(dealer.acceptDrop(player, item));
+        verify(payment).deposit(player, 67.5);
+        verify(item).remove();
+    }
+
+    @Test void preferredPaymentFailureKeepsItemsAndDisabledProductsCannotEarnBonuses() throws Exception {
+        prices.set("prices.joint", 0);
+        prices.save(directory.resolve("cartel.yml").toFile());
+        var offer = new DealerPreferences.Offer("joint", null, 1.5, Long.MAX_VALUE);
+        var payment = mock(CartelDealer.Payments.class);
+        var item = dropped(drug("joint", "joint", null));
+        var dealer = new CartelDealer(plugin);
+        assertEquals(0, dealer.sellDropped(mock(Player.class), item, 3, payment, offer));
+        verifyNoInteractions(payment);
+        verify(item, never()).remove();
+        prices.set("prices.joint", 15);
+        prices.save(directory.resolve("cartel.yml").toFile());
+        assertEquals(0, new CartelDealer(plugin).sellDropped(mock(Player.class), item, 3, payment, offer));
+        verify(item, never()).remove();
+        verify(item, never()).setItemStack(any());
+    }
+
     @Test void failedAndThrowingDepositsLeaveDropUntouched() {
         for (boolean throwing : new boolean[]{false, true}) {
             Player player = mock(Player.class);

@@ -15,6 +15,9 @@ public final class MechanicsConfig {
     private static int workerTickInterval = 15;
     private static int maxHarvestPerCycle = 8;
     private static int maxPlantPerCycle = 8;
+    private static boolean purityEnabled = true;
+    private static int purityRefiningPoints = 5;
+    private static org.bukkit.Material purityRefiningIngredient = org.bukkit.Material.QUARTZ;
 
     private MechanicsConfig() {
     }
@@ -26,6 +29,11 @@ public final class MechanicsConfig {
         }
 
         YamlConfiguration yaml = YamlConfiguration.loadConfiguration(file);
+        purityEnabled = yaml.getBoolean("purity.enabled", true);
+        purityRefiningPoints = Math.clamp(yaml.getInt("purity.refining-points", 5), 1, 25);
+        var ingredient = org.bukkit.Material.matchMaterial(yaml.getString("purity.refining-ingredient", "QUARTZ"));
+        purityRefiningIngredient = ingredient != null && (ingredient == org.bukkit.Material.QUARTZ || ingredient.isItem())
+                && !com.drugs.items.DrugItemMetadata.isUnobtainableMaterial(ingredient) ? ingredient : org.bukkit.Material.QUARTZ;
         com.drugs.recipes.FlavorVariants.load(dataFolder);
         cannabisGrowthSeconds = Math.max(1, yaml.getInt("cannabis.growth-seconds", 600));
         vapeDurabilityUses = Math.max(1, yaml.getInt("vape.durability-uses", 32));
@@ -40,6 +48,10 @@ public final class MechanicsConfig {
     public static int getCannabisGrowthSeconds() {
         return cannabisGrowthSeconds;
     }
+
+    public static boolean isPurityEnabled() { return purityEnabled; }
+    public static int getPurityRefiningPoints() { return purityRefiningPoints; }
+    public static org.bukkit.Material getPurityRefiningIngredient() { return purityRefiningIngredient; }
 
     public static int getCartDurabilityUses() {
         return cartDurabilityUses;

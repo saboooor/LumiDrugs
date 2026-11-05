@@ -338,3 +338,46 @@ CBD; awkward potion produces cannabis extract. Ordinary sugar cannot replace nic
 Processed liquids and dough are recipe ingredients, not consumable drugs.
 Cannabis strains carry through dough, edibles, extracts, cartridges, and CBD.
 The old direct crafting recipes for these products have been replaced.
+
+
+### Dealer preferences
+
+Right-click a cartel buyer to see which drug it currently prefers and when that offer
+changes. The default bonus is **1.5× the normal sale price**, rotating every **24 hours**.
+Some servers also configure preferences for particular cannabis strains. Throw matching
+products near that buyer to receive the bonus; other products still sell at normal prices.
+Each buyer keeps the same offer across restarts. Temporary enforcer delivery contracts
+keep their normal prices.
+### Lacing
+
+Hold **one target drug** in your main hand and a **different drug** in your offhand,
+then sneak-right-click an empty or water cauldron. This consumes one offhand item.
+The target keeps its original name, lore, model, flavor, strain and remaining uses;
+there is no visible indicator of lacing or of the added drug.
+
+Using it applies both the target drug and one dose of the added drug, including the
+added drug's own strain, tolerance, addiction and overdose behavior. On a vape or
+cartridge, that added dose applies on the next puff only; later puffs remain normal.
+One item can carry one additional drug, and already-laced items cannot be laced again
+or used as lacing ingredients. Flavoring a product keeps its hidden lacing data.
+
+
+### Purity and refining
+
+Ordinary production starts at **90% purity**, which preserves the previous effect
+durations and prices. Older items without a purity tag also count as 90%.
+
+Hold one drug in your main hand and vanilla quartz in your offhand, then
+sneak-right-click an empty or water cauldron. Each quartz raises its purity by
+**5 points**, up to **100%**. The purity appears in its lore. Refining keeps its
+flavor, strain, remaining uses, and hidden lacing.
+
+Duration and sale value scale by `purity / 90`: 95% gives about **5.6%** more,
+and 100% gives about **11.1%** more. Dealer preference bonuses apply afterward.
+Crafting and processing carry ingredient quality forward. For example, refined
+95% nicotine makes 95% vape liquid, which makes a 95% vape. Equal-grade products
+stack normally. No extra random quality roll occurs when reopening a recipe.
+
+Lacing keeps the added dose's own quality separately; its identity stays hidden.
+Laced products cannot be processed into a different product that would erase
+that added dose. Flavoring and refining them preserve it.

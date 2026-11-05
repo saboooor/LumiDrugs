@@ -20,6 +20,18 @@ prices:
 #     reggie: 10.0
 strain-prices: {}
 
+# Each stationary buyer has a stable preference, rotating on fixed time boundaries.
+# Bonuses apply after strain-prices overrides; other products keep their normal prices.
+# Only registered drugs with a positive finite base price enter the rotation.
+# Existing configs without this section use these defaults. /cartel reload applies changes.
+preferences:
+  enabled: true
+  rotation-hours: 24
+  price-multiplier: 1.5
+  # Optional known cannabis strain IDs per product; empty means any strain is preferred.
+  # Example: joint: [reggie, blue_dream]
+  strains: {}
+
 # Player NPCs require Citizens. Blank uses the bundled camouflage-style cartel skin.
 # Set a Minecraft username here to use that account's skin instead, then /cartel reload.
 npc:

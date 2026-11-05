@@ -23,6 +23,15 @@ vape:
   # Number of puffs before a disposable nicotine vape is consumed.
   durability-uses: 32
 
+# Fictional quality mechanic. 90% is neutral for legacy items and normal production.
+# Grade carries through production. Duration and sale value scale by purity / 90.
+# Sneak-right-click an empty/water cauldron with one drug in the main hand and
+# a vanilla refining ingredient in the offhand; consumes one ingredient per step.
+purity:
+  enabled: true
+  refining-ingredient: QUARTZ
+  refining-points: 5             # 1–25 points per refinement, capped at 100%.
+
 # Infusion: sneak-right-click an empty/water cauldron with one unflavored
 # product in the main hand and its ingredient in the offhand. Uses one ingredient.
 # Effects, strain, and puff counts stay the same. Existing files without this
