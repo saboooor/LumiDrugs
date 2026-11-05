@@ -24,7 +24,7 @@ import com.drugs.farm.FarmItems;
  * Prevents interaction with both drug menu and recipe viewer.
  */
 public class DrugMenuListener implements Listener {
-    private final java.util.Set<java.util.UUID> openingGrowingGuide = new java.util.HashSet<>();
+    private final java.util.Set<java.util.UUID> openingRecipeView = new java.util.HashSet<>();
 
     /**
      * Detect clicks inside the Drugs Menu or Recipe GUI.
@@ -42,7 +42,8 @@ public class DrugMenuListener implements Listener {
 
         event.setCancelled(true); // Fully prevent item movement/dragging
 
-        if (clicked == null || clicked.getType() == Material.AIR || event.getRawSlot() >= inv.getSize()) return;
+        if (clicked == null || clicked.getType() == Material.AIR || event.getRawSlot() < 0) return;
+        if (!title.startsWith("Recipe: ") && event.getRawSlot() >= inv.getSize()) return;
 
         if (title.startsWith("Flavors: ")) {
             String product = title.substring("Flavors: ".length(), title.lastIndexOf(" (Page "));
@@ -59,17 +60,17 @@ public class DrugMenuListener implements Listener {
         }
 
         if (title.startsWith("Recipe: ")) {
-            // Only the three ingredient columns are interactive; the result is not an ingredient.
+            // Recipe ingredients and custom items in the player inventory can open recipes.
             int slot = event.getRawSlot();
-            if (slot < 0 || slot % 9 < 1 || slot % 9 > 3) return;
-            String ingredientRecipe = com.drugs.recipes.ProductionRecipes.ingredientRecipe(clicked);
+            if (slot < inv.getSize() && (slot % 9 < 1 || slot % 9 > 3)) return;
+            String ingredientRecipe = DrugRecipeViewer.recipeFor(clicked);
             if (ingredientRecipe != null) {
                 Bukkit.getScheduler().runTask(DrugsV2.getInstance(), () -> {
-                    openingGrowingGuide.add(player.getUniqueId());
+                    openingRecipeView.add(player.getUniqueId());
                     try {
                         DrugRecipeViewer.openRecipe(player, ingredientRecipe);
                     } finally {
-                        openingGrowingGuide.remove(player.getUniqueId());
+                        openingRecipeView.remove(player.getUniqueId());
                     }
                 });
                 return;
@@ -78,9 +79,9 @@ public class DrugMenuListener implements Listener {
             if (crop != null) {
                 String recipe = title.substring("Recipe: ".length());
                 Bukkit.getScheduler().runTask(DrugsV2.getInstance(), () -> {
-                    openingGrowingGuide.add(player.getUniqueId());
+                    openingRecipeView.add(player.getUniqueId());
                     player.closeInventory();
-                    openingGrowingGuide.remove(player.getUniqueId());
+                    openingRecipeView.remove(player.getUniqueId());
                     GrowingGuide.open(player, crop, recipe);
                 });
             }
@@ -160,7 +161,7 @@ public class DrugMenuListener implements Listener {
         String title = ChatColor.stripColor(event.getView().getTitle());
         if (title.startsWith("Recipe: ")) {
             Player player = (Player) event.getPlayer();
-            if (openingGrowingGuide.contains(player.getUniqueId())) return;
+            if (openingRecipeView.contains(player.getUniqueId())) return;
             Bukkit.getScheduler().runTaskLater(DrugsV2.getInstance(), () -> {
                 if (!player.isOnline()) return;
                 String recipe = title.substring("Recipe: ".length());

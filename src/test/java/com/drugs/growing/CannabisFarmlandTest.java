@@ -33,4 +33,28 @@ class CannabisFarmlandTest {
             registry.verifyNoInteractions();
         }
     }
+    @Test void onlyTaggedCannabisPlantsRegisterEvenOnHydratedFarmland() {
+        Block plant = mock(Block.class), soil = mock(Block.class);
+        when(plant.getRelative(0, -1, 0)).thenReturn(soil);
+        var farmland = mock(Farmland.class);
+        when(soil.getBlockData()).thenReturn(farmland);
+        when(farmland.getMoisture()).thenReturn(7);
+        ItemStack seed = mock(ItemStack.class);
+        when(seed.getType()).thenReturn(Material.FERN);
+        try (var registry = mockStatic(CannabisPlantRegistry.class);
+             var metadata = mockStatic(com.drugs.items.DrugItemMetadata.class)) {
+            assertFalse(CannabisPlantListener.applyPlacedCannabis(plant, seed));
+            var meta = mock(org.bukkit.inventory.meta.ItemMeta.class);
+            when(seed.hasItemMeta()).thenReturn(true);
+            when(seed.getItemMeta()).thenReturn(meta);
+            assertFalse(CannabisPlantListener.applyPlacedCannabis(plant, seed));
+            metadata.when(() -> com.drugs.items.DrugItemMetadata.getItemType(meta)).thenReturn("seed_salvia");
+            assertFalse(CannabisPlantListener.applyPlacedCannabis(plant, seed));
+            registry.verifyNoInteractions();
+            metadata.when(() -> com.drugs.items.DrugItemMetadata.getItemType(meta)).thenReturn("cannabis_plant");
+            assertTrue(CannabisPlantListener.applyPlacedCannabis(plant, seed));
+            registry.verify(() -> CannabisPlantRegistry.setPlant(null, com.drugs.items.DrugItemMetadata.DEFAULT_STRAIN_ID));
+        }
+    }
+
 }

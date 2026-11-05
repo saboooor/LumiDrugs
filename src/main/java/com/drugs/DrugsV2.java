@@ -177,6 +177,7 @@ public class DrugsV2 extends JavaPlugin {
         var manager = getServer().getPluginManager();
         manager.registerEvents(drugGrowing, this);
         manager.registerEvents(new DrugStatusTracker(), this);
+        manager.registerEvents(new com.drugs.effects.DrugChatEffects(), this);
         overdoseWarnings = new com.drugs.overdose.OverdoseWarnings(this);
         manager.registerEvents(overdoseWarnings, this);
         manager.registerEvents(new DrugMenuListener(), this);
@@ -264,6 +265,7 @@ public class DrugsV2 extends JavaPlugin {
         if (placeholderExpansion != null) savePhase("unregistering placeholders", placeholderExpansion::unregister);
         if (lsdEffectManager != null) savePhase("clearing LSD effects", lsdEffectManager::cleanupAll);
         if (salviaEffectManager != null) savePhase("clearing salvia effects", salviaEffectManager::cleanupAll);
+        com.drugs.effects.DrugChatEffects.cleanupAll();
         if (sensoryEffectManager != null) savePhase("clearing sensory effects", sensoryEffectManager::cleanupAll);
         // Save only successfully loaded stores; unloading during initialization must
         // not replace saved player data with an empty, partly initialized registry.

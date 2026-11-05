@@ -55,6 +55,7 @@ public class SalviaEffectManager implements Listener {
                 return;
             }
 
+            DrugChatEffects.trackSalvia(online, durationTicks);
             online.setInvisible(true);
 
             Location startLocation = online.getLocation();
@@ -122,6 +123,7 @@ public class SalviaEffectManager implements Listener {
     }
 
     private void cleanupPlayer(UUID uuid) {
+        DrugChatEffects.clearSalvia(uuid);
         activationTicks.remove(uuid);
         completionTicks.remove(uuid);
         BukkitTask movementTask = movementTasks.remove(uuid);

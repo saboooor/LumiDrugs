@@ -246,7 +246,7 @@ public final class DrugGrowing implements Listener {
     }
 
     public boolean plantSeed(Block block, ItemStack seed) {
-        if (seed.getType() == Material.FERN && block.isEmpty() && CannabisPlantListener.hasHydratedFarmland(block)) {
+        if (CannabisPlantListener.isCannabisItem(seed) && block.isEmpty() && CannabisPlantListener.hasHydratedFarmland(block)) {
             block.setType(Material.FERN, false);
             if (!CannabisPlantListener.applyPlacedCannabis(block, seed)) { block.setType(Material.AIR, false); return false; }
             trackCannabis(block);

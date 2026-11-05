@@ -53,6 +53,7 @@ public final class DrugStatusTracker implements Listener {
         }
         if (player.addPotionEffect(effect) && player.getPotionEffect(effect.getType()) != null) {
             player.getPersistentDataContainer().set(key(effect.getType()), PersistentDataType.STRING, drugId);
+            com.drugs.effects.DrugChatEffects.track(player, drugId, player.getPotionEffect(effect.getType()));
         }
     }
 

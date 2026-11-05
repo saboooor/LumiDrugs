@@ -122,15 +122,7 @@ public final class EnforcerGuide implements Listener {
             }
             default -> {}
         }
-        StringBuilder sb = new StringBuilder();
-        if (crop != null) {
-            sb.append("Growing guide for ").append(crop).append(":\n\n");
-        }
-        for (int i = 0; i < instructions.size(); i++) {
-            sb.append(i + 1).append(". ").append(instructions.get(i)).append("\n");
-        }
-
-        DialogBase base = Dialogs.base("Growing ingredients", sb.toString());
+        DialogBase base = GrowingGuide.formattedBase("Growing ingredients", instructions);
         List<ActionButton> actions = List.of(
                 Dialogs.button("Crafting recipe", "/drugs guide " + drug + " recipe", false, Icon.CRAFTING_TABLE, "View the crafting recipe for " + drug + "."),
                 Dialogs.button("Back to enforcer", "/drugs guide " + drug + " dialogue", false, Icon.ARROW, "Return to cartel enforcer instructions.")
@@ -194,13 +186,14 @@ public final class EnforcerGuide implements Listener {
     public static List<String> growingSteps(String crop) {
         if (crop == null) return List.of("This recipe does not require a grown ingredient.");
         if (crop.equals("cannabis")) return List.of(
-                "Plant a fern or cannabis plant on hydrated farmland. Keep it lit (light level 9+).",
+                "Craft a cannabis plant: 1 wheat seeds + 1 fern (shapeless).",
+                "Plant the cannabis plant on hydrated farmland. Keep it lit (light level 9+).",
                 "Leave air above it and keep the chunk loaded.",
                 "Wait for it to become a large fern (" + DrugGrowing.growthSeconds("cannabis") + "s of active growth). Right-click empty-handed to check progress.",
                 "Bone meal cannot speed up cannabis growth.",
                 "Break the mature large fern using shears.",
-                "Collect 2 Cannabis Buds and a planting fern. Mature plants have a 10% chance of an extra fern.",
-                "Replant the fern; its strain may mutate. Use buds, not planting ferns, in recipes.",
+                "Collect 2 Cannabis Buds and a cannabis plant. Mature plants have a 10% chance of an extra plant.",
+                "Replant the cannabis plant; its strain may mutate. Use buds in recipes.",
                 "If harvesting early, use shears to recover planting stock. Without shears, no buds or planting stock are returned.");
         DrugGrowing.Crop definition = DrugGrowing.crop(crop);
         if (definition == null) return List.of("Growing information is currently unavailable.");

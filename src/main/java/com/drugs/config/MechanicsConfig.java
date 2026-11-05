@@ -15,6 +15,7 @@ public final class MechanicsConfig {
     private static int workerTickInterval = 15;
     private static int maxHarvestPerCycle = 8;
     private static int maxPlantPerCycle = 8;
+    private static volatile boolean chatEffectsEnabled = true;
     private static boolean purityEnabled = true;
     private static boolean overdoseWarningsEnabled = true;
     private static int overdoseWarningSeconds = 60;
@@ -31,6 +32,7 @@ public final class MechanicsConfig {
         }
 
         YamlConfiguration yaml = YamlConfiguration.loadConfiguration(file);
+        chatEffectsEnabled = yaml.getBoolean("chat-effects.enabled", true);
         overdoseWarningsEnabled = yaml.getBoolean("overdose-warnings.enabled", true);
         overdoseWarningSeconds = Math.clamp(yaml.getInt("overdose-warnings.reminder-seconds", 60), 5, 3600);
         purityEnabled = yaml.getBoolean("purity.enabled", true);
@@ -53,6 +55,7 @@ public final class MechanicsConfig {
         return cannabisGrowthSeconds;
     }
 
+    public static boolean isChatEffectsEnabled() { return chatEffectsEnabled; }
     public static boolean isPurityEnabled() { return purityEnabled; }
     public static boolean isOverdoseWarningsEnabled() { return overdoseWarningsEnabled; }
     public static int getOverdoseWarningSeconds() { return overdoseWarningSeconds; }

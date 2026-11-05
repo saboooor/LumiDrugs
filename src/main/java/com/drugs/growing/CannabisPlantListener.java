@@ -35,10 +35,10 @@ public class CannabisPlantListener implements Listener {
                 && soil.getMoisture() > 0;
     }
 
-    private static boolean isCannabisItem(ItemStack item) {
+    static boolean isCannabisItem(ItemStack item) {
         if (item == null || item.getType() != Material.FERN) return false;
         String type = item.hasItemMeta() ? DrugItemMetadata.getItemType(item.getItemMeta()) : null;
-        return type == null || "cannabis_plant".equalsIgnoreCase(type);
+        return "cannabis_plant".equalsIgnoreCase(type);
     }
 
     @EventHandler(priority = org.bukkit.event.EventPriority.HIGHEST, ignoreCancelled = true)
@@ -117,7 +117,7 @@ public class CannabisPlantListener implements Listener {
     }
 
     public static boolean applyPlacedCannabis(Block placedBlock, ItemStack item) {
-        if (placedBlock == null || item == null || item.getType() != Material.FERN) {
+        if (placedBlock == null || !isCannabisItem(item)) {
             return false;
         }
 
@@ -125,8 +125,6 @@ public class CannabisPlantListener implements Listener {
 
         String strainId = DrugItemMetadata.DEFAULT_STRAIN_ID;
         if (item.hasItemMeta()) {
-            String itemType = DrugItemMetadata.getItemType(item.getItemMeta());
-            if (itemType != null && !"cannabis_plant".equalsIgnoreCase(itemType)) return false;
             strainId = DrugItemMetadata.getStrainId(item);
             if (strainId == null) {
                 strainId = DrugItemMetadata.DEFAULT_STRAIN_ID;

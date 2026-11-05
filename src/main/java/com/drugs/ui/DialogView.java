@@ -35,6 +35,8 @@ public final class DialogView {
         BOOK("item/book"), ENCHANTED_BOOK("item/enchanted_book"), BLAZE_ROD("item/blaze_rod"),
         SLIME_BALL("item/slime_ball"), BONE("item/bone"), LEATHER("item/leather"),
         BRICK("item/brick"), HONEY_BOTTLE("item/honey_bottle"), SNOWBALL("item/snowball"),
+        SHEARS("item/shears"), TORCH("item/glowstone_dust"), CLOCK("item/clock_00"),
+        FURNACE("item/blaze_powder"), BREWING_STAND("item/brewing_stand"),
         CRAFTING_TABLE("item/crafting_table"), SEEDS("item/wheat_seeds"), ARROW("item/arrow");
         final String sprite;
         Icon(String sprite) { this.sprite = sprite; }
@@ -89,10 +91,18 @@ public final class DialogView {
                 view.actions().stream().map(DialogView::button).toList(), button(view.exit()), view.columns())));
     }
     public static io.papermc.paper.registry.data.dialog.DialogBase paperBase(MultiActionDialog view) {
-        return io.papermc.paper.registry.data.dialog.DialogBase.builder(Component.text(view.getBase().title().toPlainText()))
-                .pause(false).canCloseWithEscape(view.getBase().canCloseWithEscape()).body(view.getBase().body().stream().map(body -> DialogBody.plainMessage(Component.text(body.contents().toPlainText()), body.width())).toList())
+        return io.papermc.paper.registry.data.dialog.DialogBase.builder(text(view.getBase().title()))
+                .pause(false).canCloseWithEscape(view.getBase().canCloseWithEscape()).body(view.getBase().body().stream().map(body -> DialogBody.plainMessage(text(body.contents()), body.width())).toList())
                 .inputs(view.getBase().inputs().stream().map(DialogView::input).toList()).build();
     }
+    public static Component text(TextComponent value) {
+        return value.paperText() == null ? Component.text(value.toPlainText()) : value.paperText();
+    }
+
+    public static Component sprite(Icon icon) {
+        return Component.object(ObjectContents.sprite(spriteAtlas(), Key.key("minecraft:" + icon.sprite())));
+    }
+
     private static DialogInput input(Input value) {
         if (value instanceof TextInput text) return DialogInput.text(text.key(), Component.text(text.label().toPlainText())).initial(text.initial()).maxLength(text.maxLength()).build();
         if (value instanceof NumberRangeInput number) return DialogInput.numberRange(number.key(), Component.text(number.label().toPlainText()), number.start(), number.end()).initial(number.initial()).step(number.step()).build();

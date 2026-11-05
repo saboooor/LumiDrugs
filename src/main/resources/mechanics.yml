@@ -98,3 +98,9 @@ flavors:
     name: "&dPeach"
     ingredient: PINK_DYE
     products: [vape, cart, edible]
+
+# Changes the first two words of public chat while drug potion effects are active.
+# Stimulants stutter, cannabis/opioids drawl, psychedelics add pauses.
+# Defaults to enabled in existing configs too; /drugs reload applies changes.
+chat-effects:
+  enabled: true

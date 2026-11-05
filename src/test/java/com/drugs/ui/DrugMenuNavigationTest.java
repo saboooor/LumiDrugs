@@ -58,4 +58,42 @@ class DrugMenuNavigationTest {
             menus.verifyNoInteractions();
         }
     }
+    @Test void recipeIngredientsAndInventoryItemsOpenTheirRecipeWithoutCloseRedirect() {
+        var scheduler = mock(org.bukkit.scheduler.BukkitScheduler.class);
+        doAnswer(call -> { ((Runnable) call.getArgument(1)).run(); return null; })
+                .when(scheduler).runTask(any(), any(Runnable.class));
+        try (var bukkit = mockStatic(org.bukkit.Bukkit.class);
+             var recipes = mockStatic(DrugRecipeViewer.class)) {
+            bukkit.when(org.bukkit.Bukkit::getScheduler).thenReturn(scheduler);
+            var listener = new DrugMenuListener();
+            for (int slot : new int[]{10, 40}) {
+                var event = click("Recipe: edible", slot, "Joint");
+                var player = (Player) event.getWhoClicked();
+                when(player.getUniqueId()).thenReturn(java.util.UUID.randomUUID());
+                recipes.when(() -> DrugRecipeViewer.recipeFor(event.getCurrentItem())).thenReturn("joint");
+                var close = mock(org.bukkit.event.inventory.InventoryCloseEvent.class);
+                var view = event.getView();
+                when(close.getView()).thenReturn(view);
+                when(close.getPlayer()).thenReturn(player);
+                recipes.when(() -> DrugRecipeViewer.openRecipe(player, "joint")).thenAnswer(call -> {
+                    listener.onRecipeClose(close);
+                    return null;
+                });
+                listener.onMenuClick(event);
+                verify(event).setCancelled(true);
+                recipes.verify(() -> DrugRecipeViewer.openRecipe(player, "joint"));
+            }
+            verify(scheduler, never()).runTaskLater(any(), any(Runnable.class), anyLong());
+        }
+    }
+
+    @Test void recipeResultAndStationCannotOpenIngredientRecipes() {
+        try (var recipes = mockStatic(DrugRecipeViewer.class)) {
+            var listener = new DrugMenuListener();
+            listener.onMenuClick(click("Recipe: edible", 13, "Station"));
+            listener.onMenuClick(click("Recipe: edible", 15, "Result"));
+            recipes.verifyNoInteractions();
+        }
+    }
+
 }

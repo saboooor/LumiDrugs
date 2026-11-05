@@ -281,9 +281,9 @@ planting fern. This applies to player harvests and farm workers; immature plants
 | Salvia | Lilac | Salvia | 10 minutes |
 | Resin | Bone meal | Glue | 10 minutes |
 
-Cannabis uses the existing fern growing system: plant a fern, wait for a large fern,
-and harvest with shears. Mature plants yield two Cannabis Buds plus one strain planting
-fern for replanting. Joint, blunt, edible, cart, and CBD recipes require buds, and bongs accept buds.
+Craft a cannabis plant with 1 wheat seeds + 1 fern (shapeless), then plant it on
+hydrated farmland. Ordinary ferns cannot be planted directly as cannabis. Wait for it to mature into a large fern and harvest with shears. Mature plants
+yield two Cannabis Buds plus one strain cannabis plant for replanting. Joint, blunt, edible, cart, and CBD recipes require buds, and bongs accept buds.
 Strain inheritance and mutations remain supported. Farm workers replant planting stock
 and deliver the harvested buds at their controller.
 

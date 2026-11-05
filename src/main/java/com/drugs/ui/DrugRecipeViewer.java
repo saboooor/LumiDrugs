@@ -14,7 +14,7 @@ import java.util.Map;
 public class DrugRecipeViewer {
     public static ItemStack decorateIngredient(ItemStack ingredient) {
         if (ingredient == null) return null;
-        String prompt = com.drugs.recipes.ProductionRecipes.ingredientRecipe(ingredient) != null
+        String prompt = recipeFor(ingredient) != null
                 ? "§eClick to view how to make this ingredient."
                 : GrowingGuide.cropFromIngredient(ingredient) != null
                 ? "§eClick to learn how to grow this ingredient." : null;
@@ -28,6 +28,22 @@ public class DrugRecipeViewer {
             copy.setItemMeta(meta);
         }
         return copy;
+    }
+
+    /** Resolves custom ingredients and products using the same rules as the menu. */
+    public static String recipeFor(ItemStack item) {
+        if (item == null || item.getType() == org.bukkit.Material.AIR || !item.hasItemMeta()) return null;
+        String flavor = com.drugs.recipes.FlavorVariants.recipeFor(item);
+        if (flavor != null) return flavor;
+        String intermediate = com.drugs.recipes.ProductionRecipes.ingredientRecipe(item);
+        if (intermediate != null) return intermediate;
+        var drug = com.drugs.drug.DrugRegistry.getProfileFromItem(item);
+        if (drug != null) return drug.getId();
+        var cure = com.drugs.addiction.CureRegistry.getProfileFromItem(item);
+        if (cure != null) return cure.getId();
+        if (com.drugs.bong.BongItemFactory.isBongItem(item)) return "bong";
+        if (com.drugs.farm.FarmItems.isControllerItem(item)) return "farm-controller";
+        return null;
     }
 
     public static void openRecipe(Player player, String drugId) {
@@ -89,8 +105,11 @@ public class DrugRecipeViewer {
         }
         if (registered instanceof ShapelessRecipe shapeless) {
             Inventory gui = Bukkit.createInventory(null, 27, "Recipe: " + drugId);
-            int slot = 10;
-            for (RecipeChoice choice : shapeless.getChoiceList()) gui.setItem(slot++, decorateIngredient(choice.getItemStack()));
+            int index = 0;
+            for (RecipeChoice choice : shapeless.getChoiceList()) {
+                gui.setItem(index / 3 * 9 + index % 3 + 1, decorateIngredient(choice.getItemStack()));
+                index++;
+            }
             gui.setItem(15, shapeless.getResult());
             player.openInventory(gui);
             return;
