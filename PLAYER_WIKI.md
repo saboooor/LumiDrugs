@@ -338,3 +338,17 @@ CBD; awkward potion produces cannabis extract. Ordinary sugar cannot replace nic
 Processed liquids and dough are recipe ingredients, not consumable drugs.
 Cannabis strains carry through dough, edibles, extracts, cartridges, and CBD.
 The old direct crafting recipes for these products have been replaced.
+
+
+### Lacing
+
+Hold **one target drug** in your main hand and a **different drug** in your offhand,
+then sneak-right-click an empty or water cauldron. This consumes one offhand item.
+The target keeps its original name, lore, model, flavor, strain and remaining uses;
+there is no visible indicator of lacing or of the added drug.
+
+Using it applies both the target drug and one dose of the added drug, including the
+added drug's own strain, tolerance, addiction and overdose behavior. On a vape or
+cartridge, that added dose applies on the next puff only; later puffs remain normal.
+One item can carry one additional drug, and already-laced items cannot be laced again
+or used as lacing ingredients. Flavoring a product keeps its hidden lacing data.

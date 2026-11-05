@@ -33,7 +33,7 @@ public class DrugUseListener implements Listener {
         EquipmentSlot hand = event.getHand();
         if (hand == null || !event.getAction().isRightClick()) return;
 
-        if (com.drugs.recipes.FlavorInfusionListener.isInfusionGesture(event)) return;
+        if (com.drugs.recipes.FlavorInfusionListener.isInfusionInteraction(event)) return;
 
         Player player = event.getPlayer();
         ItemStack item = player.getInventory().getItem(hand);
@@ -94,6 +94,31 @@ public class DrugUseListener implements Listener {
         // ----------------------------------------
         // 🧪 Apply effects
         // ----------------------------------------
+        applyDrugEffects(profile, player, item);
+        ItemStack addedDose = DrugLacing.additionalDose(item);
+        if (addedDose != null) {
+            DrugEffectProfile addedProfile = DrugRegistry.getProfileFromItem(addedDose);
+            if (addedProfile != null) applyDrugEffects(addedProfile, player, addedDose);
+        }
+
+        if (player.getGameMode() != GameMode.CREATIVE) {
+            if (drugId.equalsIgnoreCase("cart") || drugId.equalsIgnoreCase("vape")) {
+                // One ingredient supplies one dose, rather than one dose per remaining puff.
+                DrugLacing.expendDose(item);
+                handleCartDurability(player, item, drugId, hand);
+            } else {
+                int newAmount = item.getAmount() - 1;
+                if (newAmount <= 0) {
+                    player.getInventory().setItem(hand, null);
+                } else {
+                    item.setAmount(newAmount);
+                }
+            }
+        }
+    }
+
+    private void applyDrugEffects(DrugEffectProfile profile, Player player, ItemStack item) {
+        String drugId = profile.getId();
         profile.applyEffects(player, item);
 
         if (drugId.equalsIgnoreCase("lsd")) {
@@ -110,18 +135,6 @@ public class DrugUseListener implements Listener {
             }
         }
 
-        if (player.getGameMode() != GameMode.CREATIVE) {
-            if (drugId.equalsIgnoreCase("cart") || drugId.equalsIgnoreCase("vape")) {
-                handleCartDurability(player, item, drugId, hand);
-            } else {
-                int newAmount = item.getAmount() - 1;
-                if (newAmount <= 0) {
-                    player.getInventory().setItem(hand, null);
-                } else {
-                    item.setAmount(newAmount);
-                }
-            }
-        }
     }
     
 
@@ -149,6 +162,7 @@ public class DrugUseListener implements Listener {
                 item.setAmount(newAmount);
                 var refreshedMeta = item.getItemMeta();
                 if (refreshedMeta != null) {
+                    DrugItemMetadata.setLacingExpended(refreshedMeta, false);
                     DrugItemMetadata.setCartDurability(refreshedMeta, maxDurability);
                     DrugItemMetadata.applyCartDurabilityLore(refreshedMeta, maxDurability, maxDurability);
                     item.setItemMeta(refreshedMeta);

@@ -11,7 +11,11 @@ import org.bukkit.inventory.EquipmentSlot;
 /** Infuse one held product without registering any client recipe-book entries. */
 public final class FlavorInfusionListener implements Listener {
     public static boolean isInfusionGesture(PlayerInteractEvent event) {
-        if (event.getHand() != EquipmentSlot.HAND || event.getAction() != Action.RIGHT_CLICK_BLOCK
+        return event.getHand() == EquipmentSlot.HAND && isInfusionInteraction(event);
+    }
+
+    public static boolean isInfusionInteraction(PlayerInteractEvent event) {
+        if (event.getAction() != Action.RIGHT_CLICK_BLOCK
                 || !event.getPlayer().isSneaking() || event.getClickedBlock() == null) return false;
         Material type = event.getClickedBlock().getType();
         return type == Material.CAULDRON || type == Material.WATER_CAULDRON;
@@ -27,10 +31,24 @@ public final class FlavorInfusionListener implements Listener {
                 || com.drugs.items.DrugItemMetadata.getDrugId(product.getItemMeta()) == null) return;
         event.setCancelled(true);
         if (product.getAmount() != 1) {
-            player.sendMessage("§eHold just one product to infuse it.");
+            player.sendMessage("§eHold just one product in your main hand.");
             return;
         }
         var ingredient = inventory.getItemInOffHand();
+        if (ingredient != null && ingredient.hasItemMeta()
+                && com.drugs.items.DrugItemMetadata.getDrugId(ingredient.getItemMeta()) != null) {
+            var result = com.drugs.drug.DrugLacing.lace(product, ingredient);
+            if (result == null) {
+                player.sendMessage("§eThese items cannot be combined.");
+                return;
+            }
+            var remaining = ingredient.clone();
+            remaining.setAmount(ingredient.getAmount() - 1);
+            inventory.setItemInOffHand(remaining.getAmount() == 0 ? null : remaining);
+            inventory.setItemInMainHand(result);
+            player.sendMessage("§aItems combined.");
+            return;
+        }
         var flavor = FlavorVariants.matchingFlavor(product, ingredient);
         if (flavor == null) {
             player.sendMessage("§eUse an unflavored product and its matching ingredient in your offhand. See /drugs.");
