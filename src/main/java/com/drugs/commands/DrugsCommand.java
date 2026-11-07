@@ -375,13 +375,7 @@ public class DrugsCommand implements CommandExecutor {
                 DrugsV2.getInstance().reloadConfig();
                 DrugsV2.getInstance().reloadGrowing();
                 DrugsV2.getInstance().saveRecipesConfig();
-                DrugsV2.getInstance().saveToleranceConfig();
-                DrugsV2.getInstance().saveAchievementSettingsConfig();
                 DrugsV2.getInstance().saveAchievementsConfig();
-                DrugsV2.getInstance().saveOverdoseConfig();
-                DrugsV2.getInstance().saveAddictionConfig();
-                DrugsV2.getInstance().saveStrainsConfig();
-                DrugsV2.getInstance().saveBongConfig();
 
                 ToleranceConfigLoader.load(DrugsV2.getInstance().getDataFolder());
                 AchievementSettingsLoader.load(DrugsV2.getInstance().getDataFolder());
@@ -399,6 +393,7 @@ public class DrugsCommand implements CommandExecutor {
                 CustomAchievementLoader.load(DrugsV2.getInstance().getDataFolder());
                 CureRegistry.init(DrugsV2.getInstance());
                 AddictionManager.reload(DrugsV2.getInstance());
+                DrugsV2.getInstance().reloadCartelConfig();
             } finally { RecipeUpdates.end(); }
 
             sender.sendMessage(ChatColor.GREEN + "LumiDrugs configs reloaded successfully.");
@@ -436,7 +431,7 @@ public class DrugsCommand implements CommandExecutor {
             
             // We'd need to modify the config file directly to toggle achievements
             // For now, just inform the user to edit the config file
-            sender.sendMessage(ChatColor.YELLOW + "To enable/disable achievements, edit the achievement_settings.yml file");
+            sender.sendMessage(ChatColor.YELLOW + "To enable/disable achievements, edit the achievements.yml file");
             sender.sendMessage(ChatColor.YELLOW + "and set 'enabled' to true or false, then use /drugs reload.");
             return true;
         }

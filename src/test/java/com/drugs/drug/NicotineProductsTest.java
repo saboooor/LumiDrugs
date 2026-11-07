@@ -21,20 +21,15 @@ import static org.mockito.Mockito.*;
 
 class NicotineProductsTest {
     private YamlConfiguration resource(String name) throws Exception {
-        var yaml = new YamlConfiguration();
-        try (var reader = new InputStreamReader(Objects.requireNonNull(
-                getClass().getResourceAsStream("/" + name)), StandardCharsets.UTF_8)) {
-            yaml.load(reader);
-        }
-        return yaml;
+        return com.drugs.config.DrugFamilyConfigs.view(new File("src/main/resources"), name);
     }
 
     @Test void everyProductHasUsableRecipeAndRiskSettings() throws Exception {
-        var config = resource("config.yml");
-        var recipes = resource("recipes.yml");
-        var addiction = resource("addiction.yml");
-        var tolerance = resource("tolerance.yml");
-        var overdose = resource("overdose.yml");
+        var config = resource("items");
+        var recipes = resource("recipes");
+        var addiction = resource("addiction");
+        var tolerance = resource("tolerance");
+        var overdose = resource("overdose");
         for (String id : List.of("tobacco", "nicotine", "cigarette", "cigar", "chewing_tobacco", "vape")) {
             if (id.equals("vape")) assertNull(DrugGrowing.requirement(id));
             else assertEquals("tobacco", DrugGrowing.requirement(id), id);
@@ -70,11 +65,12 @@ class NicotineProductsTest {
     }
 
     @Test void noConfiguredDrugCureOrBongUsesUnobtainableMaterialsAndModelDataIsApplied() throws Exception {
-        var config = resource("config.yml");
-        var addiction = resource("addiction.yml");
-        var bong = resource("bong.yml");
+        var config = resource("items");
+        var addiction = resource("addiction");
+        var bong = YamlConfiguration.loadConfiguration(new File("src/main/resources/config.yml")).getConfigurationSection("bong");
 
         for (String id : config.getKeys(false)) {
+            if (id.equals("bong")) continue;
             Material material = Material.matchMaterial(config.getString(id + ".material", ""));
             assertNotNull(material, id);
             assertFalse(DrugItemMetadata.isUnobtainableMaterial(material), "Unobtainable material for " + id + ": " + material);

@@ -195,7 +195,7 @@ public class FarmManager {
         farmsById.clear();
         farmByController.clear();
         farmByVillager.clear();
-        File source = file.exists() ? file : new File(file.getParentFile(), "weed_farms.yml");
+        File source = file;
         if (!source.exists()) return;
 
         YamlConfiguration yaml = YamlConfiguration.loadConfiguration(source);

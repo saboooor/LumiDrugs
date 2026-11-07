@@ -1,3 +1,244 @@
+# Cannabis family. Hallucinations are optional named effects under drugs.<id>.hallucinations.
+# Set enabled: false on an entry, or hallucinations: {} to disable all for a drug.
+drugs:
+  joint:
+    item:
+      material: PAPER
+      display-name: '&2Joint'
+      lore:
+      - '&7Cannabis wrapped in paper'
+      - '&7OD Risk: &2&lNon-Lethal'
+      - '&7Abuse Potential: &3&lLow'
+    recipe:
+      shape:
+      - ' GF'
+      - '   '
+      - '   '
+      ingredients:
+        F: FERN
+        G: PAPER
+    tolerance:
+      max-tolerance: 16
+      decay-delay-minutes: 4
+      effectiveness-scaling:
+        0: 1.0
+        1: 0.9
+        2: 0.75
+        3: 0.5
+    addiction:
+      addictive: true
+      points_per_use: 1
+      addicted_at_points: 7
+      withdrawal_after_seconds: 360
+      decay:
+        enabled: true
+        points_decay_per_minute: 1.0
+      withdrawal_effects:
+      - type: WEAKNESS
+        amplifier: 1
+    overdose:
+      effects:
+      - type: effects
+        potion_effects:
+        - effect: CONFUSION
+          duration: 2400
+          amplifier: 10
+        - effect: SLOW
+          duration: 1200
+          amplifier: 1
+        - effect: HUNGER
+          duration: 1200
+          amplifier: 1
+    hallucinations:
+      high-tolerance:
+        type: phantom
+        near-tolerance-limit: true
+        chance: 1.0
+        duration-seconds: 4
+        mobs:
+        - CREEPER
+        - ENDERMAN
+        - CAVE_SPIDER
+        - PHANTOM
+        - WITHER_SKELETON
+        speed: 0.32
+  blunt:
+    item:
+      material: STICK
+      display-name: '&2Blunt'
+      lore:
+      - '&7Cannabis wrapped in a leaf'
+      - '&7OD Risk: &2&lNon-Lethal'
+      - '&7Abuse Potential: &3&lLow'
+    recipe:
+      shape:
+      - ' GF'
+      - '   '
+      - '   '
+      ingredients:
+        F: FERN
+        G: LEAF_LITTER
+    tolerance:
+      max-tolerance: 10
+      decay-delay-minutes: 4
+      effectiveness-scaling:
+        0: 1.0
+        1: 0.9
+        2: 0.75
+        3: 0.5
+    addiction:
+      addictive: true
+      points_per_use: 1
+      addicted_at_points: 5
+      withdrawal_after_seconds: 420
+      decay:
+        enabled: true
+        points_decay_per_minute: 1.0
+      withdrawal_effects:
+      - type: WEAKNESS
+        amplifier: 1
+    overdose:
+      effects:
+      - type: effects
+        potion_effects:
+        - effect: CONFUSION
+          duration: 2400
+          amplifier: 10
+        - effect: SLOW
+          duration: 1200
+          amplifier: 1
+        - effect: HUNGER
+          duration: 1200
+          amplifier: 1
+    hallucinations:
+      high-tolerance:
+        type: phantom
+        near-tolerance-limit: true
+        chance: 1.0
+        duration-seconds: 4
+        mobs:
+        - CREEPER
+        - ENDERMAN
+        - CAVE_SPIDER
+        - PHANTOM
+        - WITHER_SKELETON
+        speed: 0.32
+  cart:
+    item:
+      material: BLAZE_ROD
+      display-name: '&2Cart'
+      lore:
+      - '&7Digital Cannabis'
+      - '&7OD Risk: &2&lNon-Lethal'
+      - '&7Abuse Potential: &3&lLow'
+    recipe:
+      type: production
+    tolerance:
+      max-tolerance: 5
+      decay-delay-minutes: 4
+      effectiveness-scaling:
+        0: 1.0
+        1: 0.9
+        2: 0.75
+        3: 0.5
+        4: 0.3
+    addiction:
+      addictive: true
+      points_per_use: 2
+      addicted_at_points: 4
+      withdrawal_after_seconds: 300
+      decay:
+        enabled: true
+        points_decay_per_minute: 0.75
+      withdrawal_effects:
+      - type: WEAKNESS
+        amplifier: 1
+    overdose:
+      effects:
+      - type: effects
+        potion_effects:
+        - effect: CONFUSION
+          duration: 2400
+          amplifier: 10
+        - effect: SLOW
+          duration: 1200
+          amplifier: 1
+        - effect: DARKNESS
+          duration: 600
+          amplifier: 0
+    mechanics:
+      durability-uses: 16
+    hallucinations:
+      high-tolerance:
+        type: phantom
+        near-tolerance-limit: true
+        chance: 1.0
+        duration-seconds: 4
+        mobs:
+        - CREEPER
+        - ENDERMAN
+        - CAVE_SPIDER
+        - PHANTOM
+        - WITHER_SKELETON
+        speed: 0.32
+  edible:
+    item:
+      material: COOKIE
+      display-name: '&2Edible'
+      lore:
+      - '&7Cannabis without the lung damage'
+      - '&7OD Risk: &2&lNon-Lethal'
+      - '&7Abuse Potential: &3&lLow'
+    recipe:
+      type: production
+    tolerance:
+      max-tolerance: 32
+      decay-delay-minutes: 4
+      effectiveness-scaling:
+        0: 1.0
+        1: 0.9
+        2: 0.75
+        3: 0.5
+    addiction:
+      addictive: true
+      points_per_use: 1
+      addicted_at_points: 5
+      withdrawal_after_seconds: 420
+      decay:
+        enabled: true
+        points_decay_per_minute: 1.0
+      withdrawal_effects:
+      - type: WEAKNESS
+        amplifier: 1
+    overdose:
+      effects:
+      - type: effects
+        potion_effects:
+        - effect: CONFUSION
+          duration: 2400
+          amplifier: 10
+        - effect: SLOW
+          duration: 1800
+          amplifier: 2
+        - effect: BLINDNESS
+          duration: 600
+          amplifier: 0
+    hallucinations:
+      high-tolerance:
+        type: phantom
+        near-tolerance-limit: true
+        chance: 1.0
+        duration-seconds: 4
+        mobs:
+        - CREEPER
+        - ENDERMAN
+        - CAVE_SPIDER
+        - PHANTOM
+        - WITHER_SKELETON
+        speed: 0.32
+crops:
+  cannabis:
+    growth-seconds: 600
 strains:
   reggie:
     display-name: Reggie
@@ -1652,3 +1893,21 @@ strains:
       amplifier: 2
     mutationWeights:
       thai_stick: 100
+cures:
+  cbd:
+    enabled: true
+    material: LARGE_FERN
+    display-name: '&2CBD'
+    lore:
+    - '&7Contains less than 0.3% ∆9-THC.'
+    cures:
+    - blunt
+    - joint
+    - edible
+    - cart
+    clears_points: false
+    reduce_points: 2
+    block_withdrawal_seconds: 30
+recipes:
+  cbd:
+    type: production

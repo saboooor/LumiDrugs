@@ -37,7 +37,6 @@ class PackedFarmTest {
             assertTrue(manager.getFarms().isEmpty());
             assertNull(manager.getByController(farm.getControllerLocation()));
             assertNotNull(manager.getByFarmId(farm.getFarmId()));
-            java.nio.file.Files.move(directory.resolve("farms.yml"), directory.resolve("weed_farms.yml"));
             manager = new FarmManager(directory.toFile());
             manager.load();
             assertTrue(manager.getFarms().isEmpty());

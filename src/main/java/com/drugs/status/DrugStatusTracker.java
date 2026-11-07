@@ -47,7 +47,7 @@ public final class DrugStatusTracker implements Listener {
                     player.getPersistentDataContainer().get(key(effect.getType()), PersistentDataType.STRING),
                     drugId, current.getDuration(), effect.getDuration())) {
                 // Bukkit normally keeps the longer existing effect. Replace only our
-                // own oversized withdrawal timer, including legacy 99,999-tick effects.
+                // own withdrawal timer when treatment shortens the remaining duration.
                 player.removePotionEffect(effect.getType());
             }
         }

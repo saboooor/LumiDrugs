@@ -128,12 +128,6 @@ public class ToleranceTracker {
         return ToleranceConfigLoader.getEffectivenessMultiplier(drugId, level);
     }
 
-    public static void startDecayTask() {
-        // This is now handled by the PerformanceOptimizer
-        // We'll keep this method for backwards compatibility
-        Bukkit.getLogger().info("[LumiDrugs] Tolerance decay now managed by performance optimizer");
-    }
-    
     /**
      * Processes tolerance decay for a specific player
      * Called by the PerformanceOptimizer in batches

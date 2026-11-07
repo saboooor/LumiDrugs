@@ -45,15 +45,8 @@ public class OverdoseEffectManager {
      * Loads overdose configuration
      */
     public static void load(File dataFolder) {
-        File file = new File(dataFolder, "overdose.yml");
-        
-        // Create default file if it doesn't exist
-        if (!file.exists()) {
-            DrugsV2.getInstance().saveResource("overdose.yml", false);
-        }
-        
-        FileConfiguration config = YamlConfiguration.loadConfiguration(file);
-        
+        FileConfiguration config = com.drugs.config.DrugFamilyConfigs.view(dataFolder, "overdose");
+
         // Clear existing data
         defaultEffects.clear();
         drugSpecificEffects.clear();
@@ -259,12 +252,12 @@ public class OverdoseEffectManager {
      * @param player The player who overdosed
      * @param drugId The drug that caused the overdose
      * @param attemptCount How many times they've tried to use at max tolerance
-     * @return true if the player should die (for backward compatibility)
+     * @return true if the player should die
      */
     public static boolean processOverdose(Player player, String drugId, int attemptCount) {
         if (!enabled) {
-            // If disabled, use the old behavior (kill on 3+ attempts)
-            return attemptCount >= threshold;
+            // Disabled overdose effects cannot cause a fatal result.
+            return false;
         }
         
         // Track overdose counts for staged effects
@@ -317,9 +310,9 @@ public class OverdoseEffectManager {
         else if (!defaultEffects.isEmpty()) {
             effectsToApply.addAll(defaultEffects);
         }
-        // If no effects defined, use old behavior
+        // No configured overdose effects means no fatal result.
         else {
-            return true;
+            return false;
         }
         
         // Apply all effects

@@ -13,14 +13,14 @@ import org.bukkit.plugin.Plugin;
 
 
 /**
- * Loads crafting and block processing recipes from recipes.yml
+ * Loads crafting and block processing recipes from a family file’s recipe section
  */
 public class DrugRecipeHelper {
 
     /**
      * Registers a crafting or processing recipe from config for a given drug.
      *
-     * Expected format in recipes.yml:
+     * Expected format in a family file’s recipe section:
      *   drug_id:
      *     shape:
      *       - " A "
@@ -33,7 +33,7 @@ public class DrugRecipeHelper {
      *       D: APPLE
      *
      * @param id     The internal drug ID (e.g. "heroin")
-     * @param section The section for this drug in recipes.yml
+     * @param section The section for this drug in a family file’s recipe section
      * @param plugin The plugin instance for key registration
      */
     public static void registerDrugRecipe(String id, ConfigurationSection section, Plugin plugin) {
@@ -94,12 +94,10 @@ public class DrugRecipeHelper {
 
         String crop = DrugGrowing.requirement(id);
         if (crop != null) {
-            // Replace the first configured ingredient with the harvested crop when an old recipe
-            // has no matching material (for example custom recipes on an existing server).
+            // Require the configured harvested crop ingredient.
             char required = 0;
             for (String symbol : ingredients.getKeys(false)) {
                 if (shape.stream().noneMatch(row -> row.indexOf(symbol.charAt(0)) >= 0)) continue;
-                if (required == 0) required = symbol.charAt(0);
                 if (Material.matchMaterial(ingredients.getString(symbol)) == DrugGrowing.material(crop)) {
                     required = symbol.charAt(0);
                     break;

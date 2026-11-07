@@ -1,0 +1,452 @@
+# Stimulants family. Hallucinations are optional named effects under drugs.<id>.hallucinations.
+# Set enabled: false on an entry, or hallucinations: {} to disable all for a drug.
+drugs:
+  meth:
+    item:
+      material: QUARTZ
+      display-name: '&bCrystal Meth'
+      lore:
+      - '&7High octane, high voltage. Good for mining'
+      - '&a&oSpeed III'
+      - '&a&oHaste II'
+      - '&a&oNight Vision I'
+      - '&c&oHunger I'
+      - '&c&oWeakness II'
+      - '&7OD Risk: &e&lMedium'
+      - '&7Abuse Potential: &e&lMedium'
+      effects:
+        SPEED:
+          duration: 2000
+          amplifier: 2
+        HASTE:
+          duration: 3000
+          amplifier: 1
+        NIGHT_VISION:
+          duration: 2000
+          amplifier: 0
+        HUNGER:
+          duration: 1200
+          amplifier: 0
+        WEAKNESS:
+          duration: 3000
+          amplifier: 1
+    recipe:
+      shape:
+      - ' L '
+      - SBS
+      - ' L '
+      ingredients:
+        L: QUARTZ
+        S: AMETHYST_SHARD
+        B: SUSPICIOUS_STEW
+    tolerance:
+      max-tolerance: 10
+      decay-delay-minutes: 4
+      effectiveness-scaling:
+        0: 1.0
+        1: 0.8
+        2: 0.6
+        3: 0.4
+        4: 0.2
+    addiction:
+      addictive: true
+      points_per_use: 1
+      addicted_at_points: 4
+      withdrawal_after_seconds: 240
+      decay:
+        enabled: true
+        points_decay_per_minute: 2
+      withdrawal_effects:
+      - type: SLOW
+        amplifier: 1
+      - type: WEAKNESS
+        amplifier: 1
+      - type: SLOW_DIGGING
+        amplifier: 1
+      - type: HUNGER
+        amplifier: 0
+    overdose:
+      effects:
+      - type: effects
+        potion_effects:
+        - effect: NAUSEA
+          duration: 1200
+          amplifier: 0
+        - effect: WEAKNESS
+          duration: 1800
+          amplifier: 1
+        - effect: HUNGER
+          duration: 1200
+          amplifier: 1
+      - type: damage
+        amount: 16
+        message: '&cYou collapse from a meth overdose!'
+    hallucinations:
+      paranoia:
+        type: paranoia
+        duration-seconds: 20
+        scale-with-potency: true
+        interval-ticks: 60
+        shadow-chance: 0.65
+        phantom-chance: 0.55
+      high-tolerance:
+        type: phantom
+        near-tolerance-limit: true
+        chance: 1.0
+        duration-seconds: 4
+        mobs:
+        - CREEPER
+        - ENDERMAN
+        - CAVE_SPIDER
+        - PHANTOM
+        - WITHER_SKELETON
+        speed: 0.32
+  cocaine:
+    item:
+      material: SUGAR
+      display-name: '&fCocaine'
+      lore:
+      - '&7Only the Elite like to go skiing'
+      - '&a&oSaturation III'
+      - '&a&oSpeed IV'
+      - '&a&oStrength I'
+      - '&a&oNight Vision I'
+      - '&c&oHunger I'
+      - '&7OD Risk: &4&lHigh'
+      - '&7Abuse Potential: &4&lHigh'
+      effects:
+        SATURATION:
+          duration: 200
+          amplifier: 2
+        SPEED:
+          duration: 200
+          amplifier: 3
+        STRENGTH:
+          duration: 200
+          amplifier: 0
+        NIGHT_VISION:
+          duration: 200
+          amplifier: 0
+        HUNGER:
+          duration: 400
+          amplifier: 0
+    recipe:
+      shape:
+      - BSB
+      - SDS
+      - WBW
+      ingredients:
+        B: SNOWBALL
+        S: VINE
+        D: DRAGON_BREATH
+        W: WHITE_CONCRETE_POWDER
+    tolerance:
+      max-tolerance: 5
+      decay-delay-minutes: 5
+      effectiveness-scaling:
+        0: 1.0
+        1: 0.8
+        2: 0.4
+        3: 0.2
+        4: 0.1
+    addiction:
+      addictive: true
+      points_per_use: 2
+      addicted_at_points: 3
+      withdrawal_after_seconds: 120
+      decay:
+        enabled: true
+        points_decay_per_minute: 0.5
+      withdrawal_effects:
+      - type: SLOW
+        amplifier: 1
+      - type: WEAKNESS
+        amplifier: 1
+      - type: SLOW_DIGGING
+        amplifier: 0
+      - type: HUNGER
+        amplifier: 0
+    overdose:
+      effects:
+      - type: effects
+        potion_effects:
+        - effect: NAUSEA
+          duration: 600
+          amplifier: 0
+        - effect: SLOWNESS
+          duration: 600
+          amplifier: 1
+        - effect: WEAKNESS
+          duration: 1200
+          amplifier: 1
+      - type: damage
+        amount: 14
+        message: '&cYou collapse from a cocaine overdose!'
+    hallucinations:
+      high-tolerance:
+        type: phantom
+        near-tolerance-limit: true
+        chance: 1.0
+        duration-seconds: 4
+        mobs:
+        - CREEPER
+        - ENDERMAN
+        - CAVE_SPIDER
+        - PHANTOM
+        - WITHER_SKELETON
+        speed: 0.32
+  molly:
+    item:
+      material: POPPED_CHORUS_FRUIT
+      display-name: '&dMolly'
+      lore:
+      - '&7MDMA, Ecstacy'
+      - '&a&oRegeneration II'
+      - '&a&oAbsorption II'
+      - '&a&oSpeed I'
+      - '&a&oNight Vision I'
+      - '&c&oGlowing I'
+      - '&c&oHunger I'
+      - '&7OD Risk: &3&lLow'
+      - '&7Abuse Potential: &3&lLow'
+      effects:
+        REGENERATION:
+          duration: 300
+          amplifier: 1
+        GLOWING:
+          duration: 1200
+          amplifier: 0
+        ABSORPTION:
+          duration: 1000
+          amplifier: 1
+        SPEED:
+          duration: 1000
+          amplifier: 0
+        NIGHT_VISION:
+          duration: 1200
+          amplifier: 0
+        HUNGER:
+          duration: 600
+          amplifier: 0
+    recipe:
+      shape:
+      - QQQ
+      - EGE
+      - MPM
+      ingredients:
+        Q: QUARTZ
+        E: SPIDER_EYE
+        G: GOLDEN_APPLE
+        M: MAGENTA_DYE
+        P: PUFFERFISH
+    tolerance:
+      max-tolerance: 15
+      decay-delay-minutes: 4
+      effectiveness-scaling:
+        0: 1.0
+        1: 0.9
+        2: 0.75
+        3: 0.5
+        4: 0.3
+    addiction:
+      addictive: true
+      points_per_use: 1
+      addicted_at_points: 4
+      withdrawal_after_seconds: 420
+      decay:
+        enabled: true
+        points_decay_per_minute: 0.75
+      withdrawal_effects:
+      - type: HUNGER
+        amplifier: 1
+      - type: WEAKNESS
+        amplifier: 0
+      - type: DARKNESS
+        amplifier: 0
+    overdose:
+      effects:
+      - type: effects
+        potion_effects:
+        - effect: NAUSEA
+          duration: 1200
+          amplifier: 0
+        - effect: WEAKNESS
+          duration: 1800
+          amplifier: 1
+        - effect: HUNGER
+          duration: 1800
+          amplifier: 1
+      - type: damage
+        amount: 10
+        message: '&cYou collapse from a molly overdose!'
+    hallucinations:
+      high-tolerance:
+        type: phantom
+        near-tolerance-limit: true
+        chance: 1.0
+        duration-seconds: 4
+        mobs:
+        - CREEPER
+        - ENDERMAN
+        - CAVE_SPIDER
+        - PHANTOM
+        - WITHER_SKELETON
+        speed: 0.32
+  caffeine:
+    item:
+      material: GLOWSTONE_DUST
+      display-name: '&ePure Caffeine'
+      lore:
+      - '&7Refined anhydrous caffeine powder.'
+      - '&a&oSpeed II'
+      - '&a&oHaste II'
+      - '&a&oSaturation I'
+      - '&c&oHeart Attack Risk if Binged'
+      - '&7OD Risk: &4&lCardiac Arrest'
+      - '&7Abuse Potential: &e&lMedium'
+      effects:
+        SPEED:
+          duration: 600
+          amplifier: 1
+        HASTE:
+          duration: 600
+          amplifier: 1
+        SATURATION:
+          duration: 60
+          amplifier: 0
+    recipe:
+      type: furnace
+      input-crop: coffee
+      cooking-time: 200
+      experience: 0.1
+    tolerance:
+      max-tolerance: 4
+      decay-delay-minutes: 3
+      effectiveness-scaling:
+        0: 1.0
+        1: 0.85
+        2: 0.65
+        3: 0.4
+        4: 0.15
+    addiction:
+      addictive: true
+      points_per_use: 1
+      addicted_at_points: 4
+      withdrawal_after_seconds: 240
+      decay:
+        enabled: true
+        points_decay_per_minute: 1.0
+      withdrawal_effects:
+      - type: SLOW
+        amplifier: 0
+      - type: SLOW_DIGGING
+        amplifier: 0
+      - type: WEAKNESS
+        amplifier: 0
+    overdose:
+      effects:
+      - type: message
+        text: '&4&l💔 HEART ATTACK! &cYour heart stopped from a massive caffeine overdose!'
+        broadcast: false
+      - type: death
+        message: '&4%player% suffered a fatal heart attack from too much caffeine!'
+    hallucinations:
+      high-tolerance:
+        type: phantom
+        near-tolerance-limit: true
+        chance: 1.0
+        duration-seconds: 4
+        mobs:
+        - CREEPER
+        - ENDERMAN
+        - CAVE_SPIDER
+        - PHANTOM
+        - WITHER_SKELETON
+        speed: 0.32
+  energy_drink:
+    item:
+      material: HONEY_BOTTLE
+      display-name: '&b⚡ Energy Drink'
+      lore:
+      - '&7Loaded with caffeine, taurine, and sugar.'
+      - '&a&oSpeed III'
+      - '&a&oHaste II'
+      - '&a&oJump Boost I'
+      - '&a&oSaturation II'
+      - '&c&oHeart Attack Risk if Binged'
+      - '&7OD Risk: &4&lCardiac Arrest'
+      - '&7Abuse Potential: &e&lMedium'
+      effects:
+        SPEED:
+          duration: 900
+          amplifier: 2
+        HASTE:
+          duration: 900
+          amplifier: 1
+        JUMP:
+          duration: 600
+          amplifier: 0
+        SATURATION:
+          duration: 80
+          amplifier: 1
+    recipe:
+      type: production
+    tolerance:
+      max-tolerance: 4
+      decay-delay-minutes: 3
+      effectiveness-scaling:
+        0: 1.0
+        1: 0.85
+        2: 0.65
+        3: 0.4
+        4: 0.15
+    addiction:
+      addictive: true
+      points_per_use: 1
+      addicted_at_points: 3
+      withdrawal_after_seconds: 240
+      decay:
+        enabled: true
+        points_decay_per_minute: 1.0
+      withdrawal_effects:
+      - type: SLOW
+        amplifier: 1
+      - type: SLOW_DIGGING
+        amplifier: 0
+      - type: WEAKNESS
+        amplifier: 0
+      - type: HUNGER
+        amplifier: 0
+    overdose:
+      effects:
+      - type: message
+        text: '&4&l💔 HEART ATTACK! &cYour heart couldn''t handle another energy drink!'
+        broadcast: false
+      - type: death
+        message: '&4%player% suffered a fatal heart attack from chugging too many energy drinks!'
+    hallucinations:
+      high-tolerance:
+        type: phantom
+        near-tolerance-limit: true
+        chance: 1.0
+        duration-seconds: 4
+        mobs:
+        - CREEPER
+        - ENDERMAN
+        - CAVE_SPIDER
+        - PHANTOM
+        - WITHER_SKELETON
+        speed: 0.32
+crops:
+  ephedra:
+    plant-block: DEAD_BUSH
+    growth-seconds: 900
+  coca:
+    plant-block: AZALEA
+    growth-seconds: 900
+  sassafras:
+    plant-block: OAK_SAPLING
+    growth-seconds: 900
+  coffee:
+    plant-block: OAK_SAPLING
+    growth-seconds: 480

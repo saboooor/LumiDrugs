@@ -1,0 +1,237 @@
+# Opioids family. Hallucinations are optional named effects under drugs.<id>.hallucinations.
+# Set enabled: false on an entry, or hallucinations: {} to disable all for a drug.
+drugs:
+  heroin:
+    item:
+      material: DRIED_KELP
+      display-name: '&8Black Tar Heroin'
+      lore:
+      - '&7A high-risk, high-reward combat enhancer.'
+      - '&a&oStrength II'
+      - '&a&oResistance III'
+      - '&c&oSlowness II'
+      - '&c&oMining Fatigue I'
+      - '&c&oDarkness I'
+      - '&c&oNausea I'
+      - '&7OD Risk: &4&lHigh'
+      - '&7Abuse Potential: &4&lHigh'
+      effects:
+        STRENGTH:
+          duration: 1200
+          amplifier: 1
+        SLOW:
+          duration: 2400
+          amplifier: 1
+        RESISTANCE:
+          duration: 2000
+          amplifier: 2
+        SLOW_DIGGING:
+          duration: 1600
+          amplifier: 0
+        DARKNESS:
+          duration: 600
+          amplifier: 0
+        CONFUSION:
+          duration: 200
+          amplifier: 0
+    recipe:
+      shape:
+      - ' S '
+      - GAG
+      - ' B '
+      ingredients:
+        S: POPPY
+        G: GUNPOWDER
+        A: WITHER_ROSE
+        B: CHARCOAL
+    tolerance:
+      max-tolerance: 4
+      decay-delay-minutes: 4
+      effectiveness-scaling:
+        0: 1.0
+        1: 0.8
+        2: 0.6
+        3: 0.4
+        4: 0.2
+    addiction:
+      addictive: true
+      points_per_use: 2
+      addicted_at_points: 3
+      withdrawal_after_seconds: 300
+      decay:
+        enabled: false
+      withdrawal_effects:
+      - type: POISON
+        amplifier: 1
+      - type: WEAKNESS
+        amplifier: 1
+      - type: SLOW
+        amplifier: 0
+      - type: CONFUSION
+        amplifier: 0
+    overdose:
+      effects:
+      - type: effects
+        potion_effects:
+        - effect: SLOWNESS
+          duration: 1200
+          amplifier: 2
+        - effect: WEAKNESS
+          duration: 1200
+          amplifier: 1
+        - effect: DARKNESS
+          duration: 400
+          amplifier: 0
+      - type: death
+        message: '&4%player% died from a heroin overdose!'
+    hallucinations:
+      high-tolerance:
+        type: phantom
+        near-tolerance-limit: true
+        chance: 1.0
+        duration-seconds: 4
+        mobs:
+        - CREEPER
+        - ENDERMAN
+        - CAVE_SPIDER
+        - PHANTOM
+        - WITHER_SKELETON
+        speed: 0.32
+  fent:
+    item:
+      material: IRON_NUGGET
+      display-name: '&8Fent'
+      lore:
+      - '&7Cheap, strong painkiller, but deadly'
+      - '&a&oStrength I'
+      - '&a&oAbsorption II'
+      - '&a&oResistance III'
+      - '&c&oSlowness IV'
+      - '&c&oMining Fatigue II'
+      - '&c&oDarkness I'
+      - '&c&oNausea I'
+      - '&7OD Risk: &4&lVERY HIGH'
+      - '&7Abuse Potential: &4&lVERY HIGH'
+      effects:
+        STRENGTH:
+          duration: 200
+          amplifier: 0
+        SLOW:
+          duration: 2400
+          amplifier: 3
+        ABSORPTION:
+          duration: 100
+          amplifier: 1
+        RESISTANCE:
+          duration: 1000
+          amplifier: 2
+        SLOW_DIGGING:
+          duration: 1600
+          amplifier: 1
+        DARKNESS:
+          duration: 800
+          amplifier: 0
+        CONFUSION:
+          duration: 240
+          amplifier: 0
+    recipe:
+      shape:
+      - ' G '
+      - GHG
+      - ' R '
+      ingredients:
+        G: POPPY
+        H: CHARCOAL
+        R: GUNPOWDER
+    tolerance:
+      max-tolerance: 2
+      decay-delay-minutes: 6
+      effectiveness-scaling:
+        0: 1.0
+        1: 0.3
+        2: 0.1
+    addiction:
+      addictive: true
+      points_per_use: 1
+      addicted_at_points: 1
+      withdrawal_after_seconds: 240
+      decay:
+        enabled: false
+      withdrawal_effects:
+      - type: POISON
+        amplifier: 1
+      - type: WEAKNESS
+        amplifier: 1
+      - type: SLOW
+        amplifier: 1
+      - type: CONFUSION
+        amplifier: 0
+    overdose:
+      effects:
+      - type: effects
+        potion_effects:
+        - effect: BLINDNESS
+          duration: 400
+          amplifier: 0
+        - effect: SLOWNESS
+          duration: 1200
+          amplifier: 3
+      - type: death
+        message: '&4%player% died from a fentanyl overdose!'
+    hallucinations:
+      high-tolerance:
+        type: phantom
+        near-tolerance-limit: true
+        chance: 1.0
+        duration-seconds: 4
+        mobs:
+        - CREEPER
+        - ENDERMAN
+        - CAVE_SPIDER
+        - PHANTOM
+        - WITHER_SKELETON
+        speed: 0.32
+crops:
+  poppy:
+    plant-block: POPPY
+    growth-seconds: 600
+cures:
+  suboxone:
+    enabled: true
+    material: BLUE_EGG
+    display-name: '&eSuboxone'
+    lore:
+    - '&7Treats opiod withdrawal.'
+    cures:
+    - heroin
+    - fent
+    - glue
+    clears_points: true
+    reduce_points: 0
+    block_withdrawal_seconds: 1
+  sleep:
+    enabled: true
+    item_enabled: false
+    material: WHITE_BED
+    display-name: '&bRest'
+    lore:
+    - '&7Sleeping helps ease withdrawal.'
+    cures:
+    - cocaine
+    - molly
+    - meth
+    - caffeine
+    - energy_drink
+    clears_points: true
+    reduce_points: 0
+    block_withdrawal_seconds: 1
+recipes:
+  suboxone:
+    shape:
+    - ' P '
+    - GSG
+    - ' P '
+    ingredients:
+      G: GOLDEN_APPLE
+      S: SUGAR
+      P: POPPY

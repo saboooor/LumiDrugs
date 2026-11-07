@@ -1,4 +1,11 @@
+# Achievement system and native advancement notifications
+enabled: true
+notifications:
+  chat_message: true
+  sound: true  # Native unlock toast and sound
+
 # Achievement definitions
+# Each achievement supports enabled: false to disable it (default: true).
 # Each achievement needs:
 #   - title: Display name (supports color codes with &)
 #   - description: Description text (supports color codes)
@@ -39,6 +46,7 @@
 
 # Default achievements
 first-dose:
+  enabled: true
   title: "&aFirst Dose"
   description: "&7Use your first drug"
   trigger: "first_drug_use"
@@ -46,6 +54,7 @@ first-dose:
   completed_icon: "BOOK"
 
 connoisseur:
+  enabled: true
   title: "&bChem Connoisseur"
   description: "&7Try every drug at least once"
   trigger: "all_drugs_used"
@@ -53,6 +62,7 @@ connoisseur:
   completed_icon: "KNOWLEDGE_BOOK"
 
 risky:
+  enabled: true
   title: "&6Risky Business"
   description: "&7Use a drug while at max tolerance"
   trigger: "use_at_max"
@@ -60,6 +70,7 @@ risky:
   completed_icon: "REDSTONE"
 
 maxed-three:
+  enabled: true
   title: "&dI Can Stop Anytime"
   description: "&7Hit max tolerance on 3 drugs"
   trigger: "maxed_three"
@@ -67,6 +78,7 @@ maxed-three:
   completed_icon: "DIAMOND"
 
 clean-slate:
+  enabled: true
   title: "&eClean Slate"
   description: "&7Let a maxed drug's tolerance decay to 0"
   trigger: "decay_full"
@@ -75,6 +87,7 @@ clean-slate:
 
 # Growing & Strains achievements
 green-thumb:
+  enabled: true
   title: "&aGreen Thumb"
   description: "&7Plant your first drug crop on hydrated farmland"
   trigger: "plant_crop"
@@ -82,6 +95,7 @@ green-thumb:
   completed_icon: "WHEAT_SEEDS"
 
 first-harvest:
+  enabled: true
   title: "&2First Harvest"
   description: "&7Harvest a mature drug crop"
   trigger: "harvest_crop"
@@ -89,6 +103,7 @@ first-harvest:
   completed_icon: "SHEARS"
 
 master-botanist:
+  enabled: true
   title: "&aMaster Botanist"
   description: "&7Harvest every type of drug crop at least once"
   trigger: "all_crops_harvested"
@@ -96,6 +111,7 @@ master-botanist:
   completed_icon: "SPORE_BLOSSOM"
 
 strain-mutator:
+  enabled: true
   title: "&dGeneticist"
   description: "&7Harvest a mutated cannabis strain from a mature plant"
   trigger: "mutate_strain"
@@ -103,6 +119,7 @@ strain-mutator:
   completed_icon: "LARGE_FERN"
 
 rare-strain:
+  enabled: true
   title: "&5Exotic Cultivator"
   description: "&7Harvest or mutate a rare, epic, or legendary cannabis strain"
   trigger: "harvest_rare_strain"
@@ -111,6 +128,7 @@ rare-strain:
 
 # Farm Automation achievements
 industrial-grower:
+  enabled: true
   title: "&6Industrial Grower"
   description: "&7Place a Farm Controller to automate crop production"
   trigger: "place_farm_controller"
@@ -118,6 +136,7 @@ industrial-grower:
   completed_icon: "BARREL"
 
 hired-help:
+  enabled: true
   title: "&eHired Help"
   description: "&7Assign a villager worker to a farm using a Work Contract"
   trigger: "assign_farm_worker"
@@ -126,6 +145,7 @@ hired-help:
 
 # Production, Chemistry & Infusions achievements
 home-chemist:
+  enabled: true
   title: "&bHome Chemist"
   description: "&7Craft a drug item for the first time"
   trigger: "craft_drug"
@@ -133,6 +153,7 @@ home-chemist:
   completed_icon: "CRAFTING_TABLE"
 
 pure-product:
+  enabled: true
   title: "&bCrystal Clear"
   description: "&7Refine a drug to increase its purity at a cauldron"
   trigger: "refine_purity"
@@ -140,6 +161,7 @@ pure-product:
   completed_icon: "QUARTZ"
 
 master-refiner:
+  enabled: true
   title: "&9Heisenberg"
   description: "&7Refine a drug to 100% purity"
   trigger: "max_purity"
@@ -147,6 +169,7 @@ master-refiner:
   completed_icon: "DIAMOND"
 
 flavor-infuser:
+  enabled: true
   title: "&dConfections & Terpenes"
   description: "&7Infuse a product with a flavor variant at a cauldron"
   trigger: "infuse_flavor"
@@ -154,6 +177,7 @@ flavor-infuser:
   completed_icon: "SWEET_BERRIES"
 
 secret-ingredient:
+  enabled: true
   title: "&8Secret Ingredient"
   description: "&7Lace one drug with another at a cauldron"
   trigger: "lace_drug"
@@ -162,6 +186,7 @@ secret-ingredient:
 
 # Consumption, Recovery & Cartel achievements
 bong-rip:
+  enabled: true
   title: "&3Bong Rip"
   description: "&7Take a hit from a placed glass bong"
   trigger: "bong_hit"
@@ -169,6 +194,7 @@ bong-rip:
   completed_icon: "GLASS_BOTTLE"
 
 road-to-recovery:
+  enabled: true
   title: "&aRoad to Recovery"
   description: "&7Treat withdrawal using a cure item or rest"
   trigger: "use_cure"
@@ -176,6 +202,7 @@ road-to-recovery:
   completed_icon: "GOLDEN_CARROT"
 
 street-dealer:
+  enabled: true
   title: "&2Street Dealer"
   description: "&7Sell drugs to a cartel buyer"
   trigger: "cartel_sale"
@@ -183,6 +210,7 @@ street-dealer:
   completed_icon: "EMERALD_BLOCK"
 
 cartel-associate:
+  enabled: true
   title: "&4Cartel Associate"
   description: "&7Fulfill a cartel enforcer's delivery demand"
   trigger: "cartel_enforcer_complete"
@@ -190,6 +218,7 @@ cartel-associate:
   completed_icon: "TOTEM_OF_UNDYING"
 
 cut-the-middleman:
+  enabled: true
   title: "&6Cut Out the Middleman"
   description: "&7Deliver an enforcer demand directly to the cartel's shaded hideout for 3x pay"
   trigger: "cartel_cut_middleman"
@@ -197,6 +226,7 @@ cut-the-middleman:
   completed_icon: "GOLD_BLOCK"
 
 contract-fulfilled:
+  enabled: true
   title: "&6Reliable Supplier"
   description: "&7Complete a cartel supply contract"
   trigger: "supply_contract_complete"
@@ -222,28 +252,22 @@ contract-fulfilled:
 
 # Overdose-related achievements
 overdose_death:
+  enabled: true
   title: "Flatline"
   description: "Die from a drug overdose"
   icon: "REDSTONE"
   trigger: "overdose_death"
   hidden: false
-  notification:
-    chat: true
-    sound: "ENTITY_WITHER_DEATH"
-    firework: false
   conditions:
     - "drug_id != null"
 
 overdose_survive:
+  enabled: true
   title: "Close Call"
   description: "Survive an overdose attempt"
   icon: "GOLDEN_APPLE"
   trigger: "overdose_survive"
   hidden: false
-  notification:
-    chat: true
-    sound: "ENTITY_PLAYER_LEVELUP"
-    firework: false
   conditions:
     - "drug_id != null"
     - "attempt > 0"

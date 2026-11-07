@@ -159,7 +159,7 @@ public final class CartelEnforcer implements Listener {
         if (!manual && cooldowns.getOrDefault(player.getUniqueId(), 0L) > now) return "The target is on an encounter cooldown.";
         double price = config().getDouble("prices." + drug, 0);
         if (!Double.isFinite(price) || price <= 0)
-            return "prices." + drug + " must be positive and finite in cartel.yml. Run /cartel reload after editing.";
+            return "prices." + drug + " must be positive and finite in prices.yml. Run /drugs reload after editing.";
         if (dealer.payments() == null) return "Vault has no enabled economy provider. Check Vault and EssentialsX startup logs.";
         CartelNpcs npcs = dealer.npcs();
         if (npcs == null) return "Cartel NPC support is not initialized. Check the startup log.";

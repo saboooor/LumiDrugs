@@ -1,458 +1,220 @@
-heroin:
-  material: DRIED_KELP
-  display-name: "&8Black Tar Heroin"
-  lore:
-    - "&7A high-risk, high-reward combat enhancer."
-    - "&a&oStrength II"
-    - "&a&oResistance III"
-    - "&c&oSlowness II"
-    - "&c&oMining Fatigue I"
-    - "&c&oDarkness I"
-    - "&c&oNausea I"
-    - "&7OD Risk: &4&lHigh"
-    - "&7Abuse Potential: &4&lHigh"
-  effects:
-    STRENGTH:
-      duration: 1200
-      amplifier: 1
-    SLOW:
-      duration: 2400
-      amplifier: 1
-    RESISTANCE:
-      duration: 2000
-      amplifier: 2
-    SLOW_DIGGING:
-      duration: 1600
-      amplifier: 0
-    DARKNESS:
-      duration: 600
-      amplifier: 0
-    CONFUSION:
-      duration: 200
-      amplifier: 0
-
-fent:
-  material: IRON_NUGGET
-  display-name: "&8Fent"
-  lore:
-    - "&7Cheap, strong painkiller, but deadly"
-    - "&a&oStrength I"
-    - "&a&oAbsorption II"
-    - "&a&oResistance III"
-    - "&c&oSlowness IV"
-    - "&c&oMining Fatigue II"
-    - "&c&oDarkness I"
-    - "&c&oNausea I"
-    - "&7OD Risk: &4&lVERY HIGH"
-    - "&7Abuse Potential: &4&lVERY HIGH"
-  effects:
-    STRENGTH:
-      duration: 200
-      amplifier: 0
-    SLOW:
-      duration: 2400
-      amplifier: 3
-    ABSORPTION:
-      duration: 100
-      amplifier: 1
-    RESISTANCE:
-      duration: 1000
-      amplifier: 2
-    SLOW_DIGGING:
-      duration: 1600
-      amplifier: 1
-    DARKNESS:
-      duration: 800
-      amplifier: 0
-    CONFUSION:
-      duration: 240
-      amplifier: 0
-
-
-shrooms:
-  material: BROWN_MUSHROOM
-  display-name: "&dShrooms"
-  lore:
-    - "&7Trippppyyyy"
-    - "&a&oJump Boost II"
-    - "&a&oLuck X"
-    - "&a&oNight Vision I"
-    - "&a&oSlow Falling I"
-    - "&c&oNausea X"
-    - "&7OD Risk: &2&lNon-Lethal"
-    - "&7Abuse Potential: &2&lNon-Addictive"
-  effects:
-    JUMP:
-      duration: 400
-      amplifier: 1
-    LUCK:
-      duration: 1200
-      amplifier: 9
-    NIGHT_VISION:
-      duration: 1200
-      amplifier: 0
-    SLOW_FALLING:
-      duration: 600
-      amplifier: 0
-    CONFUSION:
-      duration: 1200
-      amplifier: 9
-
-meth:
-  material: QUARTZ
-  display-name: "&bCrystal Meth"
-  lore:
-    - "&7High octane, high voltage. Good for mining"
-    - "&a&oSpeed III"
-    - "&a&oHaste II"
-    - "&a&oNight Vision I"
-    - "&c&oHunger I"
-    - "&c&oWeakness II"
-    - "&7OD Risk: &e&lMedium"
-    - "&7Abuse Potential: &e&lMedium"
-  effects:
-    SPEED:
-      duration: 2000
-      amplifier: 2
-    HASTE:
-      duration: 3000
-      amplifier: 1
-    NIGHT_VISION:
-      duration: 2000
-      amplifier: 0
-    HUNGER:
-      duration: 1200
-      amplifier: 0
-    WEAKNESS:
-      duration: 3000
-      amplifier: 1
-
-blunt:
-  material: STICK
-  display-name: "&2Blunt"
-  lore:
-    - "&7Cannabis wrapped in a leaf"
-    - "&7OD Risk: &2&lNon-Lethal"
-    - "&7Abuse Potential: &3&lLow"
-
-cocaine:
-  material: SUGAR
-  display-name: "&fCocaine"
-  lore:
-    - "&7Only the Elite like to go skiing"
-    - "&a&oSaturation III"
-    - "&a&oSpeed IV"
-    - "&a&oStrength I"
-    - "&a&oNight Vision I"
-    - "&c&oHunger I"
-    - "&7OD Risk: &4&lHigh"
-    - "&7Abuse Potential: &4&lHigh"
-  effects:
-    SATURATION:
-      duration: 200
-      amplifier: 2
-    SPEED:
-      duration: 200
-      amplifier: 3
-    STRENGTH:
-      duration: 200
-      amplifier: 0
-    NIGHT_VISION:
-      duration: 200
-      amplifier: 0
-    HUNGER:
-      duration: 400
-      amplifier: 0
-      
-      
-      
-joint:
-  material: PAPER
-  display-name: "&2Joint"
-  lore:
-    - "&7Cannabis wrapped in paper"
-    - "&7OD Risk: &2&lNon-Lethal"
-    - "&7Abuse Potential: &3&lLow"
-      
-      
-      
-cart:
-  material: BLAZE_ROD
-  display-name: "&2Cart"
-  lore:
-    - "&7Digital Cannabis"
-    - "&7OD Risk: &2&lNon-Lethal"
-    - "&7Abuse Potential: &3&lLow"
-
-      
-edible:
-  material: COOKIE
-  display-name: "&2Edible"
-  lore:
-    - "&7Cannabis without the lung damage" 
-    - "&7OD Risk: &2&lNon-Lethal"
-    - "&7Abuse Potential: &3&lLow"
-
-      
-      
-glue:
-  material: MILK_BUCKET
-  display-name: "&fGlue"
-  lore:
-    - "&7Ever wanted to sniff glue in Minecraft?"
-    - "&a&oSlow Falling I"
-    - "&c&oNausea II"
-    - "&c&oDarkness I"
-    - "&c&oPoison I"
-    - "&c&oMining Fatigue II"
-    - "&7OD Risk: &4&lHigh"
-    - "&7Abuse Potential: &4&lHigh"
-  effects:
-    SLOW_FALLING:
-      duration: 160
-      amplifier: 0
-    CONFUSION:
-      duration: 400
-      amplifier: 1
-    DARKNESS:
-      duration: 300
-      amplifier: 0
-    POISON:
-      duration: 800
-      amplifier: 0
-    SLOW_DIGGING:
-      duration: 1200
-      amplifier: 1
-
-molly:
-  material: POPPED_CHORUS_FRUIT
-  display-name: "&dMolly"
-  lore:
-    - "&7MDMA, Ecstacy"
-    - "&a&oRegeneration II"
-    - "&a&oAbsorption II"
-    - "&a&oSpeed I"
-    - "&a&oNight Vision I"
-    - "&c&oGlowing I"
-    - "&c&oHunger I"
-    - "&7OD Risk: &3&lLow"
-    - "&7Abuse Potential: &3&lLow"
-  effects:
-    REGENERATION:
-      duration: 300
-      amplifier: 1
-    GLOWING:
-      duration: 1200
-      amplifier: 0
-    ABSORPTION:
-      duration: 1000
-      amplifier: 1
-    SPEED:
-      duration: 1000
-      amplifier: 0
-    NIGHT_VISION:
-      duration: 1200
-      amplifier: 0
-    HUNGER:
-      duration: 600
-      amplifier: 0
-
-lsd:
-  material: PURPLE_DYE
-  display-name: "&5LSD"
-  lore:
-    - "&7A vivid hallucinogenic tab"
-    - "&d&oNausea I"
-    - "&7OD Risk: &2&lNon-Lethal"
-    - "&7Abuse Potential: &3&lLow"
-  delay: 5
-  duration: 180
-  effects: {}
-
-salvia:
-  material: FERN
-  display-name: "&2Salvia"
-  lore:
-    - "&7Reality bends and you become the block."
-    - "&8&oDisguise: Dirt Block"
-    - "&7OD Risk: &2&lNon-Lethal"
-    - "&7Abuse Potential: &3&lLow"
-  delay: 3
-  duration: 45
-  effects: {}
-
-tobacco:
-  material: DRIED_KELP
-  display-name: "&6Tobacco"
-  lore:
-    - "&7Loose tobacco leaves."
-    - "&a&oHaste I"
-    - "&a&oSpeed I"
-    - "&a&oSaturation I"
-    - "&7Abuse Potential: &cHigh"
-  effects:
-    HASTE:
-      duration: 200
-      amplifier: 0
-    SPEED:
-      duration: 140
-      amplifier: 0
-    SATURATION:
-      duration: 40
-      amplifier: 0
-
-nicotine:
-  material: SUGAR
-  display-name: "&eNicotine"
-  lore:
-    - "&7A concentrated nicotine dose."
-    - "&a&oHaste I"
-    - "&a&oSpeed I"
-    - "&a&oSaturation I"
-    - "&c&oNausea I"
-    - "&7Abuse Potential: &cHigh"
-  effects:
-    HASTE:
-      duration: 400
-      amplifier: 0
-    SPEED:
-      duration: 240
-      amplifier: 0
-    SATURATION:
-      duration: 60
-      amplifier: 0
-    CONFUSION:
-      duration: 100
-      amplifier: 0
-
-cigarette:
-  material: PAPER
-  display-name: "&fCigarette"
-  lore:
-    - "&7A paper-wrapped tobacco smoke."
-    - "&a&oHaste I"
-    - "&a&oSpeed I"
-    - "&a&oSaturation I"
-    - "&7Abuse Potential: &cHigh"
-  effects:
-    HASTE:
-      duration: 300
-      amplifier: 0
-    SPEED:
-      duration: 200
-      amplifier: 0
-    SATURATION:
-      duration: 40
-      amplifier: 0
-
-cigar:
-  material: STICK
-  display-name: "&6Cigar"
-  lore:
-    - "&7A slow-burning tobacco roll."
-    - "&a&oHaste I"
-    - "&a&oSpeed I"
-    - "&a&oSaturation I"
-    - "&7Abuse Potential: &cHigh"
-  effects:
-    HASTE:
-      duration: 600
-      amplifier: 0
-    SPEED:
-      duration: 300
-      amplifier: 0
-    SATURATION:
-      duration: 60
-      amplifier: 0
-
-chewing_tobacco:
-  material: BROWN_DYE
-  display-name: "&6Chewing Tobacco"
-  lore:
-    - "&7A pinch of chewing tobacco."
-    - "&a&oHaste I"
-    - "&a&oSpeed I"
-    - "&a&oSaturation I"
-    - "&c&oNausea I"
-    - "&7Abuse Potential: &cHigh"
-  effects:
-    HASTE:
-      duration: 400
-      amplifier: 0
-    SPEED:
-      duration: 200
-      amplifier: 0
-    SATURATION:
-      duration: 40
-      amplifier: 0
-    CONFUSION:
-      duration: 80
-      amplifier: 0
-
-vape:
-  material: BLAZE_ROD
-  display-name: "&bNicotine Vape"
-  lore:
-    - "&7A disposable nicotine vape with limited puffs."
-    - "&a&oHaste I"
-    - "&a&oSpeed I"
-    - "&a&oSaturation I"
-    - "&7Abuse Potential: &cHigh"
-  effects:
-    HASTE:
-      duration: 240
-      amplifier: 0
-    SPEED:
-      duration: 160
-      amplifier: 0
-    SATURATION:
-      duration: 40
-      amplifier: 0
-
-caffeine:
-  material: GLOWSTONE_DUST
-  display-name: "&ePure Caffeine"
-  lore:
-    - "&7Refined anhydrous caffeine powder."
-    - "&a&oSpeed II"
-    - "&a&oHaste II"
-    - "&a&oSaturation I"
-    - "&c&oHeart Attack Risk if Binged"
-    - "&7OD Risk: &4&lCardiac Arrest"
-    - "&7Abuse Potential: &e&lMedium"
-  effects:
-    SPEED:
-      duration: 600
-      amplifier: 1
-    HASTE:
-      duration: 600
-      amplifier: 1
-    SATURATION:
-      duration: 60
-      amplifier: 0
-
-energy_drink:
-  material: HONEY_BOTTLE
-  display-name: "&b⚡ Energy Drink"
-  lore:
-    - "&7Loaded with caffeine, taurine, and sugar."
-    - "&a&oSpeed III"
-    - "&a&oHaste II"
-    - "&a&oJump Boost I"
-    - "&a&oSaturation II"
-    - "&c&oHeart Attack Risk if Binged"
-    - "&7OD Risk: &4&lCardiac Arrest"
-    - "&7Abuse Potential: &e&lMedium"
-  effects:
-    SPEED:
-      duration: 900
-      amplifier: 2
-    HASTE:
-      duration: 900
-      amplifier: 1
-    JUMP:
-      duration: 600
-      amplifier: 0
-    SATURATION:
-      duration: 80
-      amplifier: 1
+# Shared settings. Drug definitions live in drugs/<family>.yml.
+# overdose.settings controls global limits; each drug has its own overdose.effects.
+bong:
+  enabled: true
+  base-drug-id: blunt
+  cooldown-ms: 1500
+  item:
+    material: GLASS_BOTTLE
+    display-name: '&bGlass Bong'
+    custom-model-data: 1024
+  durability-uses: 24
+farm:
+  worker-tick-interval: 30
+  max-harvest-per-cycle: 1
+  max-plant-per-cycle: 2
+purity:
+  enabled: true
+  refining-ingredient: QUARTZ
+  refining-points: 5
+overdose-warnings:
+  enabled: true
+  reminder-seconds: 60
+flavors:
+  berry:
+    name: '&dBerry'
+    ingredient: SWEET_BERRIES
+    products:
+    - vape
+    - cart
+    - edible
+    - joint
+    - blunt
+    - energy_drink
+  apple:
+    name: '&cApple'
+    ingredient: APPLE
+    products:
+    - vape
+    - cart
+    - edible
+    - energy_drink
+  melon:
+    name: '&aMelon'
+    ingredient: MELON_SLICE
+    products:
+    - vape
+    - cart
+    - edible
+    - energy_drink
+  honey:
+    name: '&6Honey'
+    ingredient: HONEYCOMB
+    products:
+    - vape
+    - edible
+    - joint
+    - blunt
+    - tobacco
+    - chewing_tobacco
+    - cigar
+    - cigarette
+  chocolate:
+    name: '&6Chocolate'
+    ingredient: COCOA_BEANS
+    products:
+    - edible
+    - cigar
+    - tobacco
+  vanilla:
+    name: '&fVanilla'
+    ingredient: SUGAR
+    products:
+    - vape
+    - edible
+    - cigar
+  cherry:
+    name: '&cCherry'
+    ingredient: GLOW_BERRIES
+    products:
+    - vape
+    - cart
+    - edible
+    - tobacco
+  citrus:
+    name: '&6Citrus'
+    ingredient: ORANGE_DYE
+    products:
+    - vape
+    - cart
+    - energy_drink
+  mint:
+    name: '&aMint'
+    ingredient: KELP
+    products:
+    - vape
+    - chewing_tobacco
+    - joint
+  cinnamon:
+    name: '&6Cinnamon'
+    ingredient: BROWN_DYE
+    products:
+    - edible
+    - tobacco
+    - cigar
+  coffee:
+    name: '&6Coffee'
+    ingredient: COCOA_BEANS
+    ingredient-crop: coffee
+    products:
+    - vape
+    - edible
+    - tobacco
+  grape:
+    name: '&5Grape'
+    ingredient: PURPLE_DYE
+    products:
+    - vape
+    - cart
+    - blunt
+    - energy_drink
+  peach:
+    name: '&dPeach'
+    ingredient: PINK_DYE
+    products:
+    - vape
+    - cart
+    - edible
+chat-effects:
+  enabled: true
+hud:
+  enabled: true
+recipes:
+  bong:
+    shape:
+    - ' G '
+    - BGF
+    - ' W '
+    ingredients:
+      G: GLASS
+      B: BLAZE_ROD
+      F: FLINT_AND_STEEL
+      W: WATER_BUCKET
+  farm-controller:
+    shape:
+    - IRI
+    - CBC
+    - IRI
+    ingredients:
+      I: IRON_INGOT
+      R: REDSTONE
+      C: COPPER_INGOT
+      B: BARREL
+tolerance:
+  default:
+    max-tolerance: 5
+    decay-delay-minutes: 3
+    effectiveness-scaling:
+      0: 1.0
+      1: 0.9
+      2: 0.75
+      3: 0.5
+      4: 0.3
+      5: 0.1
+addiction:
+  settings:
+    enabled: true
+    milk_clears_withdrawal: false
+    heartbeat_ticks: 20
+overdose:
+  settings:
+    enabled: true
+    threshold: 3
+    track-per-drug: true
+    attempt-expiry: 15
+    broadcast-messages: true
+  default:
+    effects:
+    - type: death
+      message: '&4%player% died from a drug overdose!'
+    - type: message
+      text: '&cYou overdosed and died!'
+      broadcast: true
+  staged:
+    enabled: false
+    first:
+      effects:
+      - type: message
+        text: '&eYou feel sick from the overdose, but survive.'
+      - type: effects
+        potion_effects:
+        - effect: CONFUSION
+          duration: 600
+          amplifier: 0
+    second:
+      effects:
+      - type: message
+        text: '&cYou barely survive another overdose!'
+      - type: damage
+        amount: 10
+      - type: effects
+        potion_effects:
+        - effect: WEAKNESS
+          duration: 1200
+          amplifier: 1
+    third:
+      effects:
+      - type: death
+        message: '&4%player% couldn''t handle another overdose and died!'
+  random_effects:
+    enabled: false
+    effects:
+    - type: effects
+      potion_effects:
+      - effect: BLINDNESS
+        duration: 600
+        amplifier: 1
+    - type: damage
+      amount: 15
+    - type: death
+      message: '&4Bad luck! %player% died from an overdose!'

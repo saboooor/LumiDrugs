@@ -154,10 +154,6 @@ class NativeAdvancementsTest {
 
     @Test void defaultAchievementConfigsContainValidMaterialsAndExpectedGrowingAchievements() {
         YamlConfiguration achievementsYaml = YamlConfiguration.loadConfiguration(new File("src/main/resources/achievements.yml"));
-        YamlConfiguration settingsYaml = YamlConfiguration.loadConfiguration(new File("src/main/resources/achievement_settings.yml"));
-        ConfigurationSection settingsSection = settingsYaml.getConfigurationSection("achievements");
-        assertNotNull(settingsSection, "Missing achievements section in achievement_settings.yml");
-
         for (String key : List.of(
                 "first-dose", "connoisseur", "risky", "maxed-three", "clean-slate",
                 "green-thumb", "first-harvest", "master-botanist", "strain-mutator",
@@ -174,9 +170,7 @@ class NativeAdvancementsTest {
             assertNotNull(Material.matchMaterial(ach.getString("icon", "")), "Invalid icon for " + key);
             assertNotNull(Material.matchMaterial(ach.getString("completed_icon", "")), "Invalid completed_icon for " + key);
 
-            ConfigurationSection setting = settingsSection.getConfigurationSection(key);
-            assertNotNull(setting, "Missing achievement " + key + " in achievement_settings.yml");
-            assertTrue(setting.getBoolean("enabled"), "Achievement " + key + " should be enabled by default");
+            assertTrue(ach.getBoolean("enabled"), "Achievement " + key + " should be enabled by default");
         }
     }
 }

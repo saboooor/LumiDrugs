@@ -12,7 +12,7 @@ import org.bukkit.persistence.PersistentDataType;
 
 import java.util.*;
 
-/** A predictable quality grade: legacy items and ordinary production are neutral at 90%. */
+/** A predictable quality grade: ordinary production are neutral at 90%. */
 public final class DrugPurity {
     public static final int BASELINE = 90;
     private DrugPurity() {}

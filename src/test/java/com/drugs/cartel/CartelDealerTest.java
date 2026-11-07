@@ -41,7 +41,7 @@ class CartelDealerTest {
         registry.when(() -> DrugRegistry.isDrugRegistered("joint")).thenReturn(true);
         prices = new YamlConfiguration();
         prices.set("prices.joint", 15.0);
-        prices.save(directory.resolve("cartel.yml").toFile());
+        prices.save(directory.resolve("prices.yml").toFile());
     }
 
     @AfterEach void cleanup() { registry.close(); }
@@ -56,7 +56,7 @@ class CartelDealerTest {
         verify(enforcer).reject(player);
         CartelNpcs npcs = mock(CartelNpcs.class);
         dealer.setNpcs(npcs);
-        for (String action : java.util.List.of("create", "remove", "reload", "enforcer")) {
+        for (String action : java.util.List.of("link", "unlink", "create", "remove", "reload", "enforcer")) {
             assertTrue(dealer.onCommand(player, command, "cartel", new String[]{action}));
         }
         verifyNoInteractions(npcs);
@@ -72,6 +72,36 @@ class CartelDealerTest {
         dealer.onCommand(mock(Player.class), command, "cartel", new String[]{"reject", "OtherPlayer"});
         dealer.onCommand(mock(org.bukkit.command.ConsoleCommandSender.class), command, "cartel", new String[]{"reject"});
         verifyNoInteractions(enforcer);
+    }
+
+    @Test void adminsLinkAndUnlinkExistingNpcByIdWithoutCreatingOrDestroying() {
+        CartelDealer dealer = new CartelDealer(plugin);
+        CartelNpcs npcs = mock(CartelNpcs.class);
+        dealer.setNpcs(npcs);
+        var sender = mock(org.bukkit.command.ConsoleCommandSender.class);
+        when(sender.hasPermission("drugs.cartel.admin")).thenReturn(true);
+        var command = mock(org.bukkit.command.Command.class);
+        when(npcs.linkBuyer(7)).thenReturn(true);
+        when(npcs.unlinkBuyer(7)).thenReturn(true);
+        assertTrue(dealer.onCommand(sender, command, "cartel", new String[]{"link", "7"}));
+        assertTrue(dealer.onCommand(sender, command, "cartel", new String[]{"unlink", "7"}));
+        verify(npcs).linkBuyer(7);
+        verify(npcs).unlinkBuyer(7);
+        verifyNoMoreInteractions(npcs);
+    }
+
+    @Test void invalidIdsAndOldCommandsCannotCreateOrDeleteNpcs() {
+        CartelDealer dealer = new CartelDealer(plugin);
+        CartelNpcs npcs = mock(CartelNpcs.class);
+        dealer.setNpcs(npcs);
+        var sender = mock(org.bukkit.command.ConsoleCommandSender.class);
+        when(sender.hasPermission("drugs.cartel.admin")).thenReturn(true);
+        var command = mock(org.bukkit.command.Command.class);
+        for (String[] args : new String[][]{{"link"}, {"link", "bad"}, {"unlink", "-1"},
+                {"link", "999999999999999"}}) {
+            assertTrue(dealer.onCommand(sender, command, "cartel", args));
+        }
+        verifyNoInteractions(npcs);
     }
 
     private ItemStack drug(String id, String type, String strain) {
@@ -197,7 +227,7 @@ class CartelDealerTest {
 
     @Test void preferredPaymentFailureKeepsItemsAndDisabledProductsCannotEarnBonuses() throws Exception {
         prices.set("prices.joint", 0);
-        prices.save(directory.resolve("cartel.yml").toFile());
+        prices.save(directory.resolve("prices.yml").toFile());
         var offer = new DealerPreferences.Offer("joint", null, 1.5, Long.MAX_VALUE);
         var payment = mock(CartelDealer.Payments.class);
         var item = dropped(drug("joint", "joint", null));
@@ -206,7 +236,7 @@ class CartelDealerTest {
         verifyNoInteractions(payment);
         verify(item, never()).remove();
         prices.set("prices.joint", 15);
-        prices.save(directory.resolve("cartel.yml").toFile());
+        prices.save(directory.resolve("prices.yml").toFile());
         assertEquals(0, new CartelDealer(plugin).sellDropped(mock(Player.class), item, 3, payment, offer));
         verify(item, never()).remove();
         verify(item, never()).setItemStack(any());

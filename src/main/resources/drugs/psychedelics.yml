@@ -1,0 +1,208 @@
+# Psychedelics family. Hallucinations are optional named effects under drugs.<id>.hallucinations.
+# Set enabled: false on an entry, or hallucinations: {} to disable all for a drug.
+drugs:
+  shrooms:
+    item:
+      material: BROWN_MUSHROOM
+      display-name: '&dShrooms'
+      lore:
+      - '&7Trippppyyyy'
+      - '&a&oJump Boost II'
+      - '&a&oLuck X'
+      - '&a&oNight Vision I'
+      - '&a&oSlow Falling I'
+      - '&c&oNausea X'
+      - '&7OD Risk: &2&lNon-Lethal'
+      - '&7Abuse Potential: &2&lNon-Addictive'
+      effects:
+        JUMP:
+          duration: 400
+          amplifier: 1
+        LUCK:
+          duration: 1200
+          amplifier: 9
+        NIGHT_VISION:
+          duration: 1200
+          amplifier: 0
+        SLOW_FALLING:
+          duration: 600
+          amplifier: 0
+        CONFUSION:
+          duration: 1200
+          amplifier: 9
+    recipe:
+      shape:
+      - ' M '
+      - SBS
+      - ' M '
+      ingredients:
+        M: RED_MUSHROOM
+        S: BROWN_MUSHROOM
+        B: BLAZE_POWDER
+    overdose:
+      effects:
+      - type: effects
+        potion_effects:
+        - effect: CONFUSION
+          duration: 2400
+          amplifier: 10
+        - effect: DARKNESS
+          duration: 1200
+          amplifier: 0
+        - effect: WEAKNESS
+          duration: 1200
+          amplifier: 0
+    hallucinations:
+      visuals:
+        type: psychedelic
+        duration-seconds: 40
+        interval-ticks: 20
+      paranoia:
+        type: paranoia
+        duration-seconds: 20
+        scale-with-potency: true
+        interval-ticks: 60
+        shadow-chance: 0.65
+        phantom-chance: 0.55
+      high-tolerance:
+        type: phantom
+        near-tolerance-limit: true
+        chance: 1.0
+        duration-seconds: 4
+        mobs:
+        - CREEPER
+        - ENDERMAN
+        - CAVE_SPIDER
+        - PHANTOM
+        - WITHER_SKELETON
+        speed: 0.32
+  lsd:
+    item:
+      material: PURPLE_DYE
+      display-name: '&5LSD'
+      lore:
+      - '&7A vivid hallucinogenic tab'
+      - '&d&oNausea I'
+      - '&7OD Risk: &2&lNon-Lethal'
+      - '&7Abuse Potential: &3&lLow'
+      effects: {}
+    recipe:
+      shape:
+      - PPP
+      - SES
+      - PPP
+      ingredients:
+        P: PAPER
+        S: SPORE_BLOSSOM
+        E: ENDER_EYE
+    overdose:
+      effects:
+      - type: effects
+        potion_effects:
+        - effect: CONFUSION
+          duration: 2400
+          amplifier: 10
+        - effect: DARKNESS
+          duration: 1200
+          amplifier: 0
+        - effect: BLINDNESS
+          duration: 400
+          amplifier: 0
+    hallucinations:
+      visuals:
+        type: psychedelic
+        duration-seconds: 60
+        interval-ticks: 20
+      paranoia:
+        type: paranoia
+        duration-seconds: 20
+        scale-with-potency: true
+        interval-ticks: 60
+        shadow-chance: 0.65
+        phantom-chance: 0.55
+      portal:
+        type: portal
+        delay-seconds: 5
+        duration-seconds: 180
+        blocks:
+        - NETHER_PORTAL
+      high-tolerance:
+        type: phantom
+        near-tolerance-limit: true
+        chance: 1.0
+        duration-seconds: 4
+        mobs:
+        - CREEPER
+        - ENDERMAN
+        - CAVE_SPIDER
+        - PHANTOM
+        - WITHER_SKELETON
+        speed: 0.32
+  salvia:
+    item:
+      material: FERN
+      display-name: '&2Salvia'
+      lore:
+      - '&7Reality bends and you become the block.'
+      - '&8&oDisguise: Dirt Block'
+      - '&7OD Risk: &2&lNon-Lethal'
+      - '&7Abuse Potential: &3&lLow'
+      effects: {}
+    recipe:
+      type: campfire
+      input-crop: salvia
+      cooking-time: 600
+      experience: 0.1
+    overdose:
+      effects:
+      - type: effects
+        potion_effects:
+        - effect: CONFUSION
+          duration: 1200
+          amplifier: 10
+        - effect: BLINDNESS
+          duration: 600
+          amplifier: 0
+        - effect: SLOW
+          duration: 600
+          amplifier: 2
+    hallucinations:
+      visuals:
+        type: psychedelic
+        duration-seconds: 40
+        interval-ticks: 20
+      paranoia:
+        type: paranoia
+        duration-seconds: 20
+        scale-with-potency: true
+        interval-ticks: 60
+        shadow-chance: 0.65
+        phantom-chance: 0.55
+      disguise:
+        type: block-disguise
+        delay-seconds: 3
+        duration-seconds: 45
+        blocks:
+        - DIRT
+      high-tolerance:
+        type: phantom
+        near-tolerance-limit: true
+        chance: 1.0
+        duration-seconds: 4
+        mobs:
+        - CREEPER
+        - ENDERMAN
+        - CAVE_SPIDER
+        - PHANTOM
+        - WITHER_SKELETON
+        speed: 0.32
+crops:
+  mushroom:
+    plant-block: RED_MUSHROOM
+    growth-seconds: 480
+  ergot:
+    plant-block: WHEAT
+    growth-seconds: 1200
+  salvia:
+    plant-block: LILAC
+    growth-seconds: 600

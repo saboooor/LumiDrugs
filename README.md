@@ -23,13 +23,13 @@ Compared to a basic consumable-effects plugin, this version includes:
   - Configurable cooldown.
   - Configurable durability/uses.
 - Cart durability/uses mechanic.
-- Tobacco and nicotine products: `tobacco`, `nicotine`, `cigarette`, `cigar`, `chewing_tobacco`, and `vape`. All have crafting recipes, Haste/Hunger effects, tolerance, addiction, and nausea/weakness overdose penalties. Vapes provide 32 puffs by default (`mechanics.yml` → `vape.durability-uses`).
+- Tobacco and nicotine products: `tobacco`, `nicotine`, `cigarette`, `cigar`, `chewing_tobacco`, and `vape`. All have crafting recipes, Haste/Hunger effects, tolerance, addiction, and nausea/weakness overdose penalties. Vapes provide 32 puffs by default (`drugs/nicotine.yml` → `drugs.vape.mechanics.durability-uses`).
 - Lacing: hold one drug in your main hand and a different drug in your offhand, then sneak-right-click an empty or water cauldron. One offhand item is consumed and its dose is stored only as persistent item data: no name, lore, model or other visible lacing marker is added. The added drug keeps its own strain, effects, tolerance, addiction and overdose behavior. Single-use products apply both drugs when consumed; vapes/carts apply the added dose on their next puff only, preserving remaining puffs. Each item can carry one added drug; already-laced items cannot be combined again or used as additives. Flavor infusion preserves the hidden data.
-- Purity: ordinary production and legacy items are neutral at **90%**. Sneak-right-click an empty/water cauldron with one drug in your main hand and vanilla quartz in your offhand to refine it by **5 points**, up to **100%**, consuming one quartz. A visible purity line shows the grade; hidden lacing is never revealed. Effect duration and sale value scale by `purity / 90` (100% is about 11.1% above baseline), before dealer preference bonuses. Grade carries through crafting, brewing, cooking, and automatic crafting from the mean grade of consumed drug/harvest/intermediate slots; stack size does not weight a one-item recipe input. Flavoring, refining and lacing preserve the host's grade; an added drug retains its own hidden purity. Production refuses laced inputs that would otherwise strip their added dose. Configure `mechanics.yml` → `purity.enabled`, `refining-ingredient` and `refining-points`; disabling the mechanic makes duration/pricing neutral and stops refining. No random rerolls or unique batch IDs are used, so equal-grade products stack normally.
-- Flavored products: sneak-right-click an empty or water cauldron with one unflavored product in your main hand and a matching flavor ingredient in your offhand. One ingredient is consumed; strain, effects, and remaining puffs are preserved, including on partly used vapes/carts. `/drugs` groups flavors under each base product. Click a product to browse its flavors, open infusion instructions, or view the unflavored recipe. Ingredients: sweet berries (Berry), apple (Apple), melon slice (Melon), honeycomb (Honey), cocoa beans (Chocolate), sugar (Vanilla), glow berries (Cherry), orange dye (Citrus), kelp (Mint), brown dye (Cinnamon), harvested Coffee Beans (Coffee), purple dye (Grape), pink dye (Peach). Configure names, ingredients, and products under `mechanics.yml` → `flavors`; reload with `/drugs reload`. `flavors: {}` disables infusion. Flavors add no crafting recipes or recipe-book entries. After upgrading from flavor crafting, fully restart to remove old recipe registrations.
+- Purity: ordinary production is neutral at **90%**. Sneak-right-click an empty/water cauldron with one drug in your main hand and vanilla quartz in your offhand to refine it by **5 points**, up to **100%**, consuming one quartz. A visible purity line shows the grade; hidden lacing is never revealed. Effect duration and sale value scale by `purity / 90` (100% is about 11.1% above baseline), before dealer preference bonuses. Grade carries through crafting, brewing, cooking, and automatic crafting from the mean grade of consumed drug/harvest/intermediate slots; stack size does not weight a one-item recipe input. Flavoring, refining and lacing preserve the host's grade; an added drug retains its own hidden purity. Production refuses laced inputs that would otherwise strip their added dose. Configure `config.yml` → `purity.enabled`, `refining-ingredient` and `refining-points`; disabling the mechanic makes duration/pricing neutral and stops refining. No random rerolls or unique batch IDs are used, so equal-grade products stack normally.
+- Flavored products: sneak-right-click an empty or water cauldron with one unflavored product in your main hand and a matching flavor ingredient in your offhand. One ingredient is consumed; strain, effects, and remaining puffs are preserved, including on partly used vapes/carts. `/drugs` groups flavors under each base product. Click a product to browse its flavors, open infusion instructions, or view the unflavored recipe. Ingredients: sweet berries (Berry), apple (Apple), melon slice (Melon), honeycomb (Honey), cocoa beans (Chocolate), sugar (Vanilla), glow berries (Cherry), orange dye (Citrus), kelp (Mint), brown dye (Cinnamon), harvested Coffee Beans (Coffee), purple dye (Grape), pink dye (Peach). Configure names, ingredients, and products under `config.yml` → `flavors`; reload with `/drugs reload`. `flavors: {}` disables infusion. Flavors add no crafting recipes or recipe-book entries.
 
 
-  Existing servers should merge the new entries from the bundled `config.yml`, `recipes.yml`, `addiction.yml`, `tolerance.yml`, `overdose.yml`, and `growing.yml` into their saved files, then run `/drugs reload`. Tobacco products require custom Tobacco Leaves: craft seeds from wheat seeds + dried kelp, plant on hydrated farmland with light level 9+, and harvest after 600 seconds of active growth. Ordinary dried kelp cannot substitute for harvested leaves. See `/drugs growing tobacco`.
+  Configure this family in `drugs/nicotine.yml` and apply edits with `/drugs reload`. Tobacco products require custom Tobacco Leaves: craft seeds from wheat seeds + dried kelp, plant on hydrated farmland with light level 9+, and harvest after 600 seconds of active growth. Ordinary dried kelp cannot substitute for harvested leaves. See `/drugs growing tobacco`.
 - Native Minecraft advancements + configurable triggers.
 - PlaceholderAPI expansion for tolerance/effectiveness placeholders.
 - Admin tooling for reloading configs, purging player data, listing drugs, and resetting overdose counters.
@@ -126,7 +126,7 @@ Plugin enable initializes one phase per server tick; commands show an initializi
   Resets overdose attempt counters for a player.
 
 - `/drugs achievements toggle`  
-  Admin helper command that instructs editing `achievement_settings.yml` (`enabled`) and then using `/drugs reload`.
+  Admin helper command that instructs editing `achievements.yml` (`enabled`) and then using `/drugs reload`.
 
 ---
 
@@ -152,13 +152,52 @@ Plugin enable initializes one phase per server tick; commands show an initializi
 - Cannabis variants: `blunt`, `joint`, `edible`, `cart`
 - Hallucinogens / psychedelic: `shrooms`, `lsd`, `salvia`
 
-Each drug profile is fully configurable in `config.yml` (material, display name, lore, potion effects).
+Each drug is configured in its family file under `drugs.<id>`. Its `item`, `recipe`, `tolerance`, `addiction`, `overdose`, `hallucinations`, and `mechanics` settings stay together. Omitted tolerance settings use the shared defaults.
+
+---
+
+## Configurable hallucinations
+
+Assign named hallucinations under `drugs.<id>.hallucinations` in any family file. Names are arbitrary, so the same effect type can be used more than once. No entry means no hallucinations; use `hallucinations: {}` to remove all assignments or `enabled: false` to disable one. `/drugs reload` applies changes to subsequent uses; running effects finish with their original settings.
+
+```yaml
+drugs:
+  nicotine:
+    # Keep the drug's item, recipe, addiction, and other settings alongside this.
+    hallucinations:
+      strange-blocks:
+        type: psychedelic
+        chance: 0.25
+        duration-seconds: 30
+        delay-seconds: 2
+        interval-ticks: 20
+        blocks: [AMETHYST_BLOCK, SHROOMLIGHT, WARPED_NYLIUM]
+      stalking-mob:
+        type: phantom
+        near-tolerance-limit: true
+        chance: 0.5
+        duration-seconds: 4
+        mobs: [ENDERMAN, CREEPER]
+        speed: 0.32
+```
+
+| Type | Behavior and options |
+| --- | --- |
+| `psychedelic` | Private block morphs, sky shifts, and particles; `blocks` chooses the palette and `interval-ticks` sets the pulse interval. |
+| `paranoia` | Shadow figures and private stalking mobs; configure `interval-ticks`, `shadow-chance`, `phantom-chance`, `mobs`, `mob-lifetime-seconds`, and `speed`. |
+| `phantom` | One private stalking mob on activation; configure `mobs`, `speed`, and `duration-seconds`. At most two hallucination mobs are active per player. |
+| `portal` | A fake block follows the player, with nausea; the first `blocks` entry selects the block (default `NETHER_PORTAL`). |
+| `block-disguise` | The original Salvia effect: hides the player and follows them with a block display; the first `blocks` entry selects the disguise (default `DIRT`). |
+
+All types support `enabled` (default true), `chance` (0–1 per use, default 1), `duration-seconds` (1–3600, default 40), and `delay-seconds` (0–3600, default 0). `near-tolerance-limit: true` requires tolerance within one level of that drug’s maximum. `scale-with-potency: true` scales the duration with drug potency/tolerance (minimum five seconds). `interval-ticks` is 1–1200; `speed` is 0–2 blocks per stalking step. `mob-lifetime-seconds` is 1–60 (default 4), and shadow/phantom chances are 0–1. Block palettes must contain block materials; mob lists must contain spawnable mobs (players, non-mob entities, Withers, and Ender Dragons are excluded). Invalid values report the drug and entry name.
+
+Defaults preserve psychedelic visuals and paranoia for shrooms, LSD, and Salvia; meth paranoia; LSD's delayed portal; Salvia's delayed disguise; and high-tolerance phantoms for every bundled drug. The administrator psychosis command remains independent of drug assignments.
 
 ---
 
 ## Recovery / Cure System
 
-Defined in `addiction.yml` and craftable through `recipes.yml` where enabled:
+Defined under `cures` and `recipes` in the relevant drug family file:
 
 - **Suboxone**: cures configured opioid-related addictions.
 - **CBD**: cannabis-focused cure behavior.
@@ -171,10 +210,10 @@ Withdrawal behavior (effect types, timings, point decay) is per-drug and configu
 
 ## Cannabis Systems
 
-- `strains.yml` ships with an extensive strain tree, rarity, and mutation weights.
-- `growing.yml` controls fixed active growth times for cannabis and all ingredient crops.
-- `bong.yml` controls bong enable state, base-drug behavior, cooldown, and bong item settings.
-- `mechanics.yml` also controls cart and bong durability uses.
+- `drugs/cannabis.yml` contains the strain tree, rarity, mutation weights, and cannabis growth settings.
+- Each family’s `crops` section controls its ingredient plant models and active growth times.
+- `config.yml → bong` controls bong enable state, base-drug behavior, cooldown, and bong item settings.
+- Cart durability is in `drugs/cannabis.yml` → `drugs.cart.mechanics`; bong durability is in `config.yml` → `bong`.
 
 ---
 
@@ -191,13 +230,13 @@ Automated drug crop farming is available through Farm Controllers:
 - New controllers are barrels; existing composter controllers remain usable. Breaking a controller drops a barrel item containing its farm ID, area, worker links, and start/stop setting. Workers that cannot be found as living, valid villagers when the controller is placed again are removed (including workers in unloaded chunks). The farm pauses until placed again; its area moves by the same offset as the controller. Contracts remain valid while packed. Packed farms survive server restarts. Contracts for genuinely missing farms are exchanged for one emerald each when the player joins or an invalid contract is used.
 - Dead/invalid villagers are removed from farm assignment data automatically.
 
-Worker throughput scales by reachable workers per cycle (1 to 5 workers), based on `mechanics.yml` farm settings.
+Worker throughput scales by reachable workers per cycle (1 to 5 workers), based on `config.yml` farm settings.
 
 ---
 
 ## Overdose System
 
-`overdose.yml` supports:
+Each drug’s `overdose.effects` defines its overdose outcome. Shared `config.yml` → `overdose` supports:
 
 - Global enable/disable.
 - Attempt threshold.
@@ -205,21 +244,18 @@ Worker throughput scales by reachable workers per cycle (1 to 5 workers), based 
 - Attempt expiry windows.
 - Broadcast toggles.
 - Default fallback effects.
-- Drug-specific overrides.
+- Drug-specific effects take priority over shared default, staged, and random pools.
 - Optional staged progression and random effect pools.
 
-Default config includes non-lethal confusion/nausea overdose behavior for cannabis variants while preserving lethal behavior pathways for other drugs depending on configuration.
+All 21 bundled drugs have explicit overdose effects. Cannabis, nicotine, and psychedelic products use status penalties; stimulants and inhalants can also deal damage. Opioids and caffeine products include fatal outcomes. These are configurable game effects.
 
 ---
 
 ## Achievement System
 
-Drug milestones appear in the Drugs tab of Minecraft’s native Advancements screen, with vanilla unlock toasts and server-managed progress. Existing YAML unlocks and connoisseur tracking migrate when players join. Configuration is split into:
+Drug milestones appear in the Drugs tab of Minecraft’s native Advancements screen, with vanilla unlock toasts and server-managed progress. Progress is stored in native advancements; Configure the system in `achievements.yml`: top-level `enabled` and `notifications` control the system and native announcements. Each achievement section contains its own `enabled`, title, description, icon and trigger settings.
 
-- `achievement_settings.yml` (system toggles + notifications + quick defaults)
-- `achievements.yml` (trigger definitions and custom achievements)
-
-The `notifications.chat_message` setting controls vanilla chat announcements, and `notifications.sound` controls native unlock toasts (including their sound). Legacy fireworks and unlock prefixes are no longer used.
+The `notifications.chat_message` setting controls vanilla chat announcements, and `notifications.sound` controls native unlock toasts (including their sound). Achievement announcements use Minecraft’s native formatting.
 
 Supported trigger styles include first use, all drugs used, max tolerance behavior, overdose outcomes, using addiction cures, hitting bongs, planting and harvesting crops (including harvesting all crop types), mutating and harvesting rare cannabis strains, automating farms (placing controllers and assigning workers), crafting drugs, refining purity (including reaching 100% purity), infusing flavors, lacing drugs, and cartel activities (street sales, fulfilling enforcer demands, and completing supply contracts).
 
@@ -237,17 +273,52 @@ If PlaceholderAPI is installed, this plugin registers `%drugs_...%` placeholders
 
 ## Files and Configuration Map
 
-- `config.yml` → drug item/effect definitions
-- `recipes.yml` → crafting recipes
-- `tolerance.yml` → tolerance caps, decay delay, scaling
-- `addiction.yml` → addiction points, withdrawal rules, cures
-- `overdose.yml` → overdose effects and policy
-- `strains.yml` → cannabis strains and mutation graph
-- `bong.yml` → bong behavior and item settings
-- `mechanics.yml` → growth + durability mechanics + farm cycle caps
-- `achievement_settings.yml` → achievement master toggles
-- `achievements.yml` → achievement definitions/triggers
-- `farms.yml` → persisted farm controller/region/worker data
+| File | Contents |
+| --- | --- |
+| `drugs/cannabis.yml` | Joint, blunt, cart, edible, cannabis crops, strains, and CBD |
+| `drugs/opioids.yml` | Heroin, fentanyl, poppy, and opioid cures |
+| `drugs/stimulants.yml` | Meth, cocaine, molly, caffeine, energy drinks, and their crops |
+| `drugs/psychedelics.yml` | Shrooms, LSD, salvia, mushrooms, and ergot |
+| `drugs/nicotine.yml` | Tobacco, nicotine, cigarettes, cigars, chewing tobacco, vapes, and tobacco crops |
+| `drugs/inhalants.yml` | Glue and resin crops |
+| `config.yml` | Shared farm, bong, purity, flavor, HUD, chat, addiction, tolerance, and overdose policy; shared item recipes |
+| `prices.yml` | Drug sale prices and strain price overrides |
+| `cartel.yml` | Citizens integration, enforcer encounters, and supply contracts |
+| `achievements.yml` | Achievement definitions, toggles, and native notifications |
+| `farms.yml` | Saved farm controller, region, and worker data |
+
+Drug prices belong to `prices.<id>` in `prices.yml`. Strain price overrides are under `strain-prices.<drug>.<strain>` in the same file. Shared tolerance defaults are at `config.yml` → `tolerance.default`; addiction and overdose global settings are at `addiction.settings` and `overdose.settings`.
+
+Run `/drugs reload` to apply family and shared settings, including cartel prices. Family files are installed on first startup. Existing family files are preserved; intentionally deleted family files are not recreated. Custom family `.yml` files are read from the same directory; duplicate drug IDs are rejected with the source filename. The former mechanic-specific files are no longer read or generated.
+
+Example from `drugs/opioids.yml`:
+
+```yaml
+drugs:
+  heroin:
+    item:
+      material: DRIED_KELP
+      display-name: "&8Black Tar Heroin"
+      effects: {}
+    recipe:
+      shape: [" S ", "GAG", " B "]
+      ingredients: {S: POPPY, G: GUNPOWDER, A: WITHER_ROSE, B: CHARCOAL}
+    tolerance:
+      max-tolerance: 4
+      decay-delay-minutes: 4
+    addiction:
+      addictive: true
+      points_per_use: 1
+      addicted_at_points: 1
+    overdose:
+      effects:
+        - type: death
+          message: "&4%player% died from a heroin overdose!"
+crops:
+  poppy:
+    plant-block: POPPY
+    growth-seconds: 600
+```
 
 ---
 
@@ -268,11 +339,11 @@ If PlaceholderAPI is installed, this plugin registers `%drugs_...%` placeholders
 
 Drug recipes require custom harvested ingredients. Ordinary flowers, minerals, vines,
 ferns, and planting stock cannot substitute for a harvest, including in automatic crafters.
-Existing `recipes.yml` files receive the requirement at registration, without being overwritten.
+Each drug’s family `recipe` section must include its required harvested crop.
 Use `/drugs growing` to open the crop guide dialog, or `/drugs growing <crop>` for a specific crop. Click a drug in `/drugs` to view its current recipe, then click a harvested ingredient to open its growing dialog. The guide includes a Back to recipe button.
 
 Craft one crop seed by combining wheat seeds with the starter below (shapeless).
-Right click hydrated farmland to plant. Crops use distinct plant blocks configured by `plant-block` in `growing.yml`. Right-click empty-handed to see a progress bar, percentage, remaining active growth time, and any paused conditions. Existing wheat crops convert automatically in loaded chunks; growth pauses in unloaded chunks, dry soil, or light below 9.
+Right click hydrated farmland to plant. Crops use distinct plant blocks configured by `crops.<id>.plant-block` in the family file. Right-click empty-handed to see a progress bar, percentage, remaining active growth time, and any paused conditions. Growth pauses in unloaded chunks, dry soil, or light below 9.
 Break a fully mature crop to receive two harvested ingredients and one reusable seed.
 Breaking early returns only its seed. Bone meal cannot skip growing.
 Every mature crop, including cannabis, has a 10% chance to return one extra seed or
@@ -296,21 +367,21 @@ Strain inheritance and mutations remain supported. Farm workers replant planting
 and deliver the harvested buds at their controller.
 
 Ingredient crop progress is saved in `ingredient_plants.yml` on planting, harvesting,
-every minute, and shutdown. Configure crop durations in `growing.yml`; `/drugs reload`
-applies changes. Cannabis uses the same saved growth timer, percentage readout, water/light checks, and farm worker path as other crops. Set `cannabis.growth-seconds` in `growing.yml` (600 seconds by default). The old mechanics setting is a fallback when the new setting is absent. Existing cannabis plants retain their strains; legacy immature plants start their timed growth when loaded, while mature plants stay ready to harvest.
+every minute, and shutdown. Configure crop durations in each family’s `crops` section; `/drugs reload`
+applies changes. Cannabis uses the same saved growth timer, percentage readout, water/light checks, and farm worker path as other crops. Set `crops.cannabis.growth-seconds` in `drugs/cannabis.yml` (600 seconds by default).
 Finished items remain available through the existing admin give command.
 
 ## Cartel NPC Buyers
 
-Install **Citizens** (a build compatible with your Minecraft server), **Vault**, and an economy provider such as **EssentialsX Economy**, then restart the server. Cartel buyers and enforcers are player NPCs with a bundled camouflage-style cartel skin. Other drug features work without Citizens; cartel NPCs require it.
+Install **Citizens** (a build compatible with your Minecraft server), **Vault**, and an economy provider such as **EssentialsX Economy**, then restart the server. Buyers link to NPCs managed through Citizens; temporary enforcers use the signed skin configured in `cartel.yml` → `npc.skin`. Other drug features work without Citizens; cartel NPCs require it.
 
-- `/cartel create` — spawn a stationary, protected player NPC buyer at your position.
-- `/cartel remove` — remove the buyer you are looking at within five blocks.
-- `/cartel reload` — reload prices from `plugins/LumiDrugs/cartel.yml`.
+- `/cartel link <npc-id>` — link an existing Citizens NPC as a buyer.
+- `/cartel unlink <npc-id>` — stop treating that NPC as a buyer; keep the NPC.
+- `/cartel reload` — reload `prices.yml` and cartel settings.
 
-Players **throw drug items within two blocks of the buyer** to sell the dropped stack. Right-clicking the buyer explains how to deliver; there is no selling menu. Buyers persist in Citizens' NPC storage and a separate `plugins/LumiDrugs/cartel-buyers.yml` fallback record across restarts. Missing buyer entries are restored with the same NPC UUID when their world and chunk become available; recovery does not load or generate chunks. `/cartel remove` also deletes the fallback record. Existing buyers are adopted automatically on startup/reload. A buyer already lost before installing this update must be recreated once. Existing villager buyers migrate at their original locations when their chunks load with Citizens enabled. Players must remain near the buyer to sell.
+Players **throw drug items within two blocks of the buyer** to sell the dropped stack. Right-clicking the buyer explains how to deliver; there is no selling menu. Create an NPC with Citizens, then run `/cartel link <npc-id>`. Move it, set its name and skin, or remove it through Citizens. The buyer link persists in Citizens metadata across restarts. Existing tagged buyers remain linked automatically. LumiDrugs does not create, respawn, teleport, rename, reskin, or delete linked buyers. Players must remain near the buyer to sell.
 
-Review the example unit prices in `cartel.yml` before opening sales. Missing, zero, negative, or non-finite prices disable a drug's sales. Optional `strain-prices.<drug>.<strain>` entries override its base unit price. Only registered drug items carrying the plugin's metadata are accepted; renamed vanilla items, planting stock, and partially used cartridges are rejected. Cartridges have no default sale price. Failed economy deposits leave the dropped items untouched on the ground. Only genuine player drops are accepted; tracked drops cannot merge with other stacks, preserving the seller attribution.
+Review `prices.<id>` in `prices.yml` before opening sales. Missing, zero, negative, or non-finite prices disable a drug's sales. Optional `strain-prices.<drug>.<strain>` entries in `prices.yml` override its base unit price. Only registered drug items carrying the plugin's metadata are accepted; renamed vanilla items, planting stock, and partially used cartridges are rejected. Cartridges have no default sale price. Failed economy deposits leave the dropped items untouched on the ground. Only genuine player drops are accepted; tracked drops cannot merge with other stacks, preserving the seller attribution.
 
 Each buyer now has a **rotating preference**. Right-click it to see the preferred drug (and optional strain), payout multiplier and time until rotation. The default is **1.5× the normal price**, rotating every **24 hours** on fixed time boundaries. Different buyers use their stable NPC UUID to select offers; restarting does not reroll them. Other products retain their normal prices. Preference bonuses apply after strain price overrides and never enable a disabled/unpriced item. Enforcer delivery contracts retain their agreed normal prices.
 
@@ -334,9 +405,7 @@ LumiDrugs creates `plugins/BeautyQuests/quests/lumidrugs-cartel.yml` automatical
 BeautyQuests loads its quests. It chooses an unused ID starting at 9000 and reuses that
 file on future starts, preserving edits to its name, prerequisites and rewards. The selected
 ID is printed in the startup log; use `/quests edit <id>` to customize it. A setup error is
-logged clearly and disables encounters until fixed. Existing quest settings are preserved;
-legacy generated quests gain the missing `options.lumi-follow` section with an original-file
-backup at `lumidrugs-cartel.yml.pre-follow.backup`. Custom quests are not migrated.
+logged clearly and disables encounters until fixed. Existing quest files are left unchanged.
 
 For everyday tuning, change the quantity range, spawn chance, cooldown and delivery deadline
 in `cartel.yml`, then use `/cartel reload`. Movement is controlled by the quest stage's
@@ -377,7 +446,7 @@ Cartel enforcers can spawn on nearby walkable ground, walk toward a survival/adv
 
 Use `/cartel enforcer` to test a random demand on yourself, or `/cartel enforcer <player> <drug> <amount>` to choose the player, registered drug ID, and quantity. Both commands require `drugs.cartel.admin`. Manual encounters ignore the player's cooldown and the automatic-spawning toggle, but still require an eligible player, working economy, positive base price, safe spawn location, a startable configured BeautyQuests quest, and no existing encounter for that player.
 
-Configure the `enforcer` section in `cartel.yml`, then run `/cartel reload`. Automatic checks default to every 300 seconds, with a 25% chance per eligible player, a 30-minute per-player cooldown after each encounter, and at most eight active NPCs. `min-amount` and `max-amount` set the inclusive random quantity range (clamped to 1–2304). Drugs are chosen uniformly from registered drugs with positive, finite base prices; missing or disabled prices exclude them. The chosen drug and quantity stay fixed for that encounter. Legacy `enforcer.drug` and `enforcer.amount` entries are ignored. Explicit admin commands still accept a chosen drug and quantity. Set `enabled: false` to disable automatic encounters. Existing config files use the same defaults when the section is missing; copy the `enforcer` section from the bundled [cartel.yml](src/main/resources/cartel.yml) to expose all settings.
+Configure the `enforcer` section in `cartel.yml`, then run `/cartel reload`. Automatic checks default to every 300 seconds, with a 25% chance per eligible player, a 30-minute per-player cooldown after each encounter, and at most eight active NPCs. `min-amount` and `max-amount` set the inclusive random quantity range (clamped to 1–2304). Drugs are chosen uniformly from registered drugs with positive, finite base prices; missing or disabled prices exclude them. The chosen drug and quantity stay fixed for that encounter. Explicit admin commands still accept a chosen drug and quantity. Set `enabled: false` to disable automatic encounters. Existing config files use the same defaults when the section is missing; copy the `enforcer` section from the bundled [cartel.yml](src/main/resources/cartel.yml) to expose all settings.
 
 Choose **Reject demand** in the enforcer dialogue, or run `/cartel reject`, to refuse immediately and make the enforcer leave. Rejection counts exactly like an expired demand: it adds one refusal, applies the configured failure consequences, and starts the normal cooldown. Partial deliveries already paid remain paid. Closing the dialogue does not reject a demand. This command only affects your own encounter and does not require admin permission.
 
@@ -389,18 +458,18 @@ Enforcers use Citizens player NPCs and navigation. They cancel without a penalty
 
 ### Cartel NPC skins
 
-Both buyers and enforcers use the bundled signed camouflage-style skin by default (a snapshot of the public Minecraft skin for `ElChapo`). It does not require a skin lookup at spawn. To use another Minecraft account's skin, add this to `cartel.yml` and run `/cartel reload`:
+Linked buyer skins are configured directly through Citizens and remain unchanged on `/cartel reload`. Temporary enforcers use the bundled signed camouflage-style skin by default (a snapshot of the public Minecraft skin for `ElChapo`). It does not require a skin lookup at spawn. To use another Minecraft account's skin, add this to `cartel.yml` and run `/cartel reload`:
 
 ```yaml
 npc:
   skin-name: "MinecraftUsername"
 ```
 
-Leave `skin-name` blank to restore the bundled skin. Reload updates existing buyers and calls off active enforcer demands; subsequent enforcers use the updated skin. Username-based skins require Citizens to fetch the account's skin from Mojang.
+Leave `skin-name` blank to use the signed texture under `npc.skin` in `cartel.yml`. Reload calls off active enforcer demands; subsequent enforcers use the updated skin. Username-based skins require Citizens to fetch the account's skin from Mojang.
 
 If `/cartel enforcer` cannot start, its error identifies the failed requirement: player mode/permissions, an existing encounter, pricing, economy, NPC provider, safe ground, or NPC spawning. For a Citizens spawn failure, check the console for the associated spawn rejection or exception. Enforcers now attempt navigation without rejecting a new NPC on Citizens' preliminary path check; unreachable players are handled by the approach timeout.
 
-Farm data now saves to `farms.yml`; existing `weed_farms.yml` is read automatically when the new file is absent. Legacy `weed-farm` mechanics settings remain supported when no `farm` section exists.
+Farm data saves to `farms.yml` and farm settings are under `config.yml` → `farm`.
 
 ## Java source layout
 
@@ -423,7 +492,7 @@ guard for laced items. Active risk/withdrawal reminders repeat every 60 seconds 
 default; escalating risk warns immediately. Messages do not name hidden added drugs.
 Withdrawals warn that temporary relief from another dose is not proof that further use
 is safe. The existing overdose calculation is unchanged. Use `/drugstatus` for current
-effects. Configure `mechanics.yml` → `overdose-warnings.enabled` and `reminder-seconds`.
+effects. Configure `config.yml` → `overdose-warnings.enabled` and `reminder-seconds`.
 
 
 ### Withdrawal recovery timers
@@ -433,8 +502,7 @@ the configured threshold. They decrease as time passes and are not restarted by 
 withdrawal heartbeat or milk reapplication. Naturally decaying withdrawal ends once
 that threshold is crossed. Drugs with `decay.enabled: false` (or no positive decay
 rate) instead display **until treated (no natural recovery)**; their potion effects
-use a true infinite duration. The old `infinite_duration_ticks` setting no longer
-creates a repeatedly resetting fake countdown. Existing cure/decay rules are unchanged.
+use a true infinite duration.
 
 
 ## Production learning quests and voluntary supply contracts

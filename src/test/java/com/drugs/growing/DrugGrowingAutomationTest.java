@@ -65,10 +65,11 @@ class DrugGrowingAutomationTest {
                 assertTrue(growing.harvestMature(block).isEmpty());
                 plants.put(id + ":0:0:0", constructor.newInstance(crop, 10));
                 growing.preventVanillaFarmerHarvest(farmerChange);
-                assertTrue(growing.isMature(block)); // Legacy wheat is still recognized.
+                when(block.getType()).thenReturn(Material.STONE);
+                assertFalse(growing.isMature(block)); // An unrelated block is never harvested.
                 appearances.put(crop, Material.POPPY);
                 when(block.getType()).thenReturn(Material.POPPY);
-                assertTrue(growing.isMature(block)); // Native plant model is recognized too.
+                assertTrue(growing.isMature(block));
                 growing.inspect(inspect);
                 verify(player).sendActionBar(contains(crop + " "));
                 clearInvocations(player);

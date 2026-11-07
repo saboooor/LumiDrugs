@@ -8,7 +8,6 @@ import java.io.File;
 
 public final class MechanicsConfig {
 
-    private static int cannabisGrowthSeconds = 600;
     private static int cartDurabilityUses = 16;
     private static int vapeDurabilityUses = 32;
     private static int bongDurabilityUses = 24;
@@ -27,12 +26,8 @@ public final class MechanicsConfig {
     }
 
     public static void load(File dataFolder) {
-        File file = new File(dataFolder, "mechanics.yml");
-        if (!file.exists()) {
-            DrugsV2.getInstance().saveResource("mechanics.yml", false);
-        }
+        YamlConfiguration yaml = com.drugs.config.DrugFamilyConfigs.view(dataFolder, "mechanics");
 
-        YamlConfiguration yaml = YamlConfiguration.loadConfiguration(file);
         chatEffectsEnabled = yaml.getBoolean("chat-effects.enabled", true);
         hudEnabled = yaml.getBoolean("hud.enabled", true);
         overdoseWarningsEnabled = yaml.getBoolean("overdose-warnings.enabled", true);
@@ -43,19 +38,15 @@ public final class MechanicsConfig {
         purityRefiningIngredient = ingredient != null && (ingredient == org.bukkit.Material.QUARTZ || ingredient.isItem())
                 && !com.drugs.items.DrugItemMetadata.isUnobtainableMaterial(ingredient) ? ingredient : org.bukkit.Material.QUARTZ;
         com.drugs.recipes.FlavorVariants.load(dataFolder);
-        cannabisGrowthSeconds = Math.max(1, yaml.getInt("cannabis.growth-seconds", 600));
         vapeDurabilityUses = Math.max(1, yaml.getInt("vape.durability-uses", 32));
         cartDurabilityUses = Math.max(1, yaml.getInt("cart.durability-uses", 16));
         bongDurabilityUses = Math.max(1, yaml.getInt("bong.durability-uses", 24));
-        String farmSection = yaml.isConfigurationSection("farm") ? "farm." : "weed-farm.";
+        String farmSection = "farm.";
         workerTickInterval = Math.max(10, yaml.getInt(farmSection + "worker-tick-interval", 15));
         maxHarvestPerCycle = Math.max(1, yaml.getInt(farmSection + "max-harvest-per-cycle", 8));
         maxPlantPerCycle = Math.max(1, yaml.getInt(farmSection + "max-plant-per-cycle", 8));
     }
 
-    public static int getCannabisGrowthSeconds() {
-        return cannabisGrowthSeconds;
-    }
 
     public static boolean isChatEffectsEnabled() { return chatEffectsEnabled; }
     public static boolean isHudEnabled() { return hudEnabled; }

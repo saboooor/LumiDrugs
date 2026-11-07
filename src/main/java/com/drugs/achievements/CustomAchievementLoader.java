@@ -47,7 +47,7 @@ public class CustomAchievementLoader {
             if (key.startsWith("#")) continue;
             
             ConfigurationSection section = config.getConfigurationSection(key);
-            if (section == null) continue;
+            if (section == null || !section.contains("trigger")) continue;
             
             try {
                 String title = section.getString("title", "&7Unnamed Achievement");

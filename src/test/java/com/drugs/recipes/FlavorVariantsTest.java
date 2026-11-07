@@ -29,7 +29,7 @@ class FlavorVariantsTest {
     }
     @AfterEach void reset() throws Exception {
         FlavorVariants.clear();
-        Files.deleteIfExists(folder.resolve("mechanics.yml"));
+        Files.deleteIfExists(folder.resolve("config.yml"));
         FlavorVariants.load(folder.toFile());
     }
 
@@ -115,7 +115,7 @@ class FlavorVariantsTest {
     @Test void bundledConfigIncludesEveryDefaultAndCoffeeRequiresHarvest() throws Exception {
         var yaml = new org.bukkit.configuration.file.YamlConfiguration();
         try (var reader = new java.io.InputStreamReader(
-                java.util.Objects.requireNonNull(getClass().getResourceAsStream("/mechanics.yml")),
+                java.util.Objects.requireNonNull(getClass().getResourceAsStream("/config.yml")),
                 java.nio.charset.StandardCharsets.UTF_8)) {
             yaml.load(reader);
         }
@@ -130,7 +130,7 @@ class FlavorVariantsTest {
     }
 
     @Test void explicitlyEmptyFlavorConfigDisablesRecipes() throws Exception {
-        Files.writeString(folder.resolve("mechanics.yml"), "flavors: {}\n");
+        Files.writeString(folder.resolve("config.yml"), "flavors: {}\n");
         FlavorVariants.load(folder.toFile());
         try (var registry = mockStatic(DrugRegistry.class); var strains = mockStatic(StrainConfigLoader.class)) {
             FlavorVariants.initialize();

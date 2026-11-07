@@ -7,14 +7,14 @@ import org.bukkit.plugin.Plugin;
 import java.io.File;
 
 /**
- * Utility for loading external YAML config files like recipes.yml
+ * Utility for loading external YAML config files like a family file’s recipe section
  */
 public class YamlFileLoader {
 
     /**
      * Loads a YAML file from the plugin's data folder.
      *
-     * @param filename The name of the file to load (e.g. "recipes.yml")
+     * @param filename The name of the file to load (e.g. "a family file’s recipe section")
      * @param plugin   The plugin instance
      * @return The loaded FileConfiguration
      */

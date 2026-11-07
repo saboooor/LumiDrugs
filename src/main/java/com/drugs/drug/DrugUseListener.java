@@ -46,14 +46,6 @@ public class DrugUseListener implements Listener {
 
         String drugId = profile.getId();
 
-        if (item.hasItemMeta() && !DrugItemMetadata.hasDrugId(item.getItemMeta())) {
-            ItemStack migrated = DrugRegistry.getDrugItem(drugId, item.getAmount(), DrugItemMetadata.getStrainId(item));
-            if (migrated != null) {
-                player.getInventory().setItem(hand, migrated);
-                item = migrated;
-            }
-        }
-
         // Only cancel the event if we've confirmed this is a valid drug use
         event.setCancelled(true);
 
@@ -118,23 +110,7 @@ public class DrugUseListener implements Listener {
     }
 
     private void applyDrugEffects(DrugEffectProfile profile, Player player, ItemStack item) {
-        String drugId = profile.getId();
         profile.applyEffects(player, item);
-
-        if (drugId.equalsIgnoreCase("lsd")) {
-            DrugsV2 instance = DrugsV2.getInstance();
-            if (instance != null && instance.getLsdEffectManager() != null) {
-                instance.getLsdEffectManager().startEffect(player);
-            }
-        }
-
-        if (drugId.equalsIgnoreCase("salvia")) {
-            DrugsV2 instance = DrugsV2.getInstance();
-            if (instance != null && instance.getSalviaEffectManager() != null) {
-                instance.getSalviaEffectManager().startEffect(player);
-            }
-        }
-
     }
     
 

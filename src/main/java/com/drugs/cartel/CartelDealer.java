@@ -31,7 +31,14 @@ public final class CartelDealer implements Listener, CommandExecutor, TabComplet
         this.plugin = plugin;
         File file = new File(plugin.getDataFolder(), "cartel.yml");
         if (!file.exists()) plugin.saveResource("cartel.yml", false);
-        config = YamlConfiguration.loadConfiguration(file);
+        com.drugs.config.DrugFamilyConfigs.saveDefaults(plugin);
+        config = com.drugs.config.DrugFamilyConfigs.view(plugin.getDataFolder(), "cartel");
+    }
+
+    public void reloadSettings() {
+        config = com.drugs.config.DrugFamilyConfigs.view(plugin.getDataFolder(), "cartel");
+        if (enforcer != null) enforcer.reload();
+        if (npcs != null) npcs.reload();
     }
 
     public void setNpcs(CartelNpcs npcs) { this.npcs = npcs; }
@@ -92,36 +99,37 @@ public final class CartelDealer implements Listener, CommandExecutor, TabComplet
         if (args.length > 0 && args[0].equalsIgnoreCase("enforcer")) {
             return enforcer != null && enforcer.onCommand(sender, args);
         }
+        if (args.length > 0 && (args[0].equalsIgnoreCase("link") || args[0].equalsIgnoreCase("unlink"))) {
+            if (args.length != 2) {
+                sender.sendMessage("Usage: /cartel " + args[0].toLowerCase(Locale.ROOT) + " <npc-id>");
+                return true;
+            }
+            int id;
+            try {
+                id = Integer.parseInt(args[1]);
+                if (id < 0) throw new NumberFormatException();
+            } catch (NumberFormatException ex) {
+                sender.sendMessage(ChatColor.RED + "NPC ID must be a non-negative integer.");
+                return true;
+            }
+            boolean link = args[0].equalsIgnoreCase("link");
+            if (npcs == null || !(link ? npcs.linkBuyer(id) : npcs.unlinkBuyer(id))) {
+                sender.sendMessage(ChatColor.RED + "Could not " + (link ? "link" : "unlink")
+                        + " buyer. Check Citizens and the NPC ID" + (link ? "." : " is a linked buyer."));
+            } else {
+                sender.sendMessage(ChatColor.GREEN + "Citizens NPC " + id + (link
+                        ? " linked as a cartel buyer. Move and customize it through Citizens."
+                        : " unlinked. The Citizens NPC is still available."));
+            }
+            return true;
+        }
         if (args.length != 1) return false;
         if (args[0].equalsIgnoreCase("reload")) {
-            config = YamlConfiguration.loadConfiguration(new File(plugin.getDataFolder(), "cartel.yml"));
-            if (enforcer != null) enforcer.reload();
-            if (npcs != null) npcs.reload();
+            reloadSettings();
             sender.sendMessage(ChatColor.GREEN + "Cartel prices and encounters reloaded.");
             return true;
         }
-        if (!(sender instanceof Player player)) {
-            sender.sendMessage("Run this command in game.");
-            return true;
-        }
-        switch (args[0].toLowerCase(Locale.ROOT)) {
-            case "create" -> {
-                if (npcs == null || npcs.create(player.getLocation(), "buyer") == null) {
-                    player.sendMessage(ChatColor.RED + "Could not create buyer. Install and enable Citizens for your server version.");
-                    return true;
-                }
-                player.sendMessage(ChatColor.GREEN + "Cartel buyer created. Throw drugs near the buyer to sell.");
-            }
-            case "remove" -> {
-                Entity target = player.getTargetEntity(5);
-                if (target != null && isDealer(target)) {
-                    npcs.find(target, "buyer").destroy();
-                    player.sendMessage(ChatColor.GREEN + "Cartel buyer removed.");
-                } else player.sendMessage(ChatColor.RED + "Look directly at a cartel buyer within five blocks.");
-            }
-            default -> { return false; }
-        }
-        return true;
+        return false;
     }
 
     @Override
@@ -143,7 +151,7 @@ public final class CartelDealer implements Listener, CommandExecutor, TabComplet
                     .startsWith(args[args.length - 1].toLowerCase(Locale.ROOT))).toList();
         }
         if (args.length != 1) return List.of();
-        return List.of("create", "remove", "reload", "enforcer", "reject", "locate", "hideout").stream()
+        return List.of("link", "unlink", "reload", "enforcer", "reject", "locate", "hideout").stream()
                 .filter(s -> s.startsWith(args[0].toLowerCase(Locale.ROOT))).toList();
     }
 

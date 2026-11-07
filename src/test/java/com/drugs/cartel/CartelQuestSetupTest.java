@@ -43,20 +43,15 @@ class CartelQuestSetupTest {
         try (var files = Files.list(folder)) { assertEquals(1, files.count()); }
     }
 
-    @Test void upgradesLegacyQuestWithBackupAndPreservesAdminSettings() throws Exception {
+    @Test void existingQuestWithoutFollowOptionsIsLeftUnchanged() throws Exception {
         Path file = folder.resolve(CartelQuestSetup.FILE_NAME);
         String legacy = "id: 9012\nname: My errands\nrepeatable: true\ncancellable: true\n"
                 + "manager:\n  branches:\n    '0':\n      stages:\n        '0':\n          stageType: lumidrugs-cartel-delivery\n"
                 + "      endingStages: {}\n";
         Files.writeString(file, legacy);
         assertEquals(9012, CartelQuestSetup.prepare(folder));
-        assertEquals(legacy, Files.readString(folder.resolve(CartelQuestSetup.FILE_NAME + ".pre-follow.backup")));
-        var saved = YamlConfiguration.loadConfiguration(file.toFile());
-        assertEquals("My errands", saved.getString("name"));
-        assertTrue(saved.getBoolean("manager.branches.0.stages.0.options.lumi-follow.enabled"));
-        String upgraded = Files.readString(file);
-        assertEquals(9012, CartelQuestSetup.prepare(folder));
-        assertEquals(upgraded, Files.readString(file));
+        assertEquals(legacy, Files.readString(file));
+        assertFalse(Files.exists(folder.resolve(CartelQuestSetup.FILE_NAME + ".pre-follow.backup")));
     }
 
     @Test void preservesExplicitlyDisabledFollowing() throws Exception {

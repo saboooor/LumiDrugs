@@ -23,29 +23,26 @@ import static org.mockito.Mockito.*;
 class DrugUseListenerTest {
     @Test void consumesFromEitherHand() {
         for (EquipmentSlot hand : new EquipmentSlot[]{EquipmentSlot.HAND, EquipmentSlot.OFF_HAND}) {
-            useDrug(hand, "joint", false);
+            useDrug(hand, "joint");
         }
     }
 
     @Test void removesExhaustedVapeFromOffhand() {
-        useDrug(EquipmentSlot.OFF_HAND, "vape", false);
+        useDrug(EquipmentSlot.OFF_HAND, "vape");
     }
 
-    @Test void migratesLegacyOffhandItemBeforeConsumingIt() {
-        useDrug(EquipmentSlot.OFF_HAND, "joint", true);
-    }
 
     @Test void lacedProductsApplyBothProfilesFromEitherHand() {
         for (EquipmentSlot hand : new EquipmentSlot[]{EquipmentSlot.HAND, EquipmentSlot.OFF_HAND})
-            useDrug(hand, "joint", false, "meth", 1, 1);
+            useDrug(hand, "joint", "meth", 1, 1);
     }
 
     @Test void lacedVapeExpendsOneDoseAndPreservesItsRemainingPuffs() {
-        useDrug(EquipmentSlot.OFF_HAND, "vape", false, "meth", 7, 1);
+        useDrug(EquipmentSlot.OFF_HAND, "vape", "meth", 7, 1);
     }
 
     @Test void nextVapeInStackRestoresItsOwnAddedDose() {
-        useDrug(EquipmentSlot.HAND, "vape", false, "meth", 1, 2);
+        useDrug(EquipmentSlot.HAND, "vape", "meth", 1, 2);
     }
 
     @Test void infusionGestureNeverConsumesTheOffhandDrug() {
@@ -62,11 +59,11 @@ class DrugUseListenerTest {
         verify(player, never()).getInventory();
     }
 
-    private void useDrug(EquipmentSlot hand, String id, boolean legacy) {
-        useDrug(hand, id, legacy, null, 1, 1);
+    private void useDrug(EquipmentSlot hand, String id) {
+        useDrug(hand, id, null, 1, 1);
     }
 
-    private void useDrug(EquipmentSlot hand, String id, boolean legacy, String addedId, int durability, int amount) {
+    private void useDrug(EquipmentSlot hand, String id, String addedId, int durability, int amount) {
         Player player = mock(Player.class);
         PlayerInventory inventory = mock(PlayerInventory.class);
         ItemStack item = mock(ItemStack.class);
@@ -96,7 +93,7 @@ class DrugUseListenerTest {
              var advancements = mockStatic(NativeAdvancements.class);
              var tolerance = mockStatic(ToleranceTracker.class)) {
             registry.when(() -> DrugRegistry.getProfileFromItem(item)).thenReturn(profile);
-            metadata.when(() -> DrugItemMetadata.hasDrugId(meta)).thenReturn(!legacy);
+            metadata.when(() -> DrugItemMetadata.hasDrugId(meta)).thenReturn(true);
             metadata.when(() -> DrugItemMetadata.getCartDurability(meta)).thenReturn(durability);
             ItemStack dose = mock(ItemStack.class);
             DrugEffectProfile addedProfile = mock(DrugEffectProfile.class);
@@ -109,19 +106,11 @@ class DrugUseListenerTest {
             }
             achievements.when(AchievementManager::createContext).thenAnswer(invocation -> new HashMap<>());
             ItemStack consumed = item;
-            if (legacy) {
-                consumed = mock(ItemStack.class);
-                when(consumed.getAmount()).thenReturn(1);
-                ItemStack migrated = consumed;
-                registry.when(() -> DrugRegistry.getDrugItem(id, 1, null)).thenReturn(migrated);
-            }
-
             new DrugUseListener().onDrugUse(event);
 
             verify(event).setCancelled(true);
             verify(profile).applyEffects(player, consumed);
             if (addedId != null) verify(addedProfile).applyEffects(player, dose);
-            if (legacy) verify(inventory).setItem(hand, consumed);
             boolean reusable = id.equals("vape") || id.equals("cart");
             if (reusable && addedId != null) {
                 metadata.verify(() -> DrugItemMetadata.setLacingExpended(meta, true));

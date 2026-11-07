@@ -22,12 +22,13 @@ public final class BongConfigLoader {
     }
 
     public static void load(File dataFolder) {
-        File file = new File(dataFolder, "bong.yml");
+        File file = new File(dataFolder, "config.yml");
         if (!file.exists()) {
-            DrugsV2.getInstance().saveResource("bong.yml", false);
+            DrugsV2.getInstance().saveResource("config.yml", false);
         }
 
-        YamlConfiguration yaml = YamlConfiguration.loadConfiguration(file);
+        var yaml = YamlConfiguration.loadConfiguration(file).getConfigurationSection("bong");
+        if (yaml == null) throw new IllegalArgumentException("config.yml requires a bong section");
         enabled = yaml.getBoolean("enabled", true);
         baseDrugId = yaml.getString("base-drug-id", "blunt").toLowerCase();
         cooldownMillis = Math.max(0L, yaml.getLong("cooldown-ms", 1500L));

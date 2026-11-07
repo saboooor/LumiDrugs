@@ -24,6 +24,10 @@ import java.util.concurrent.ConcurrentHashMap;
 public class DrugRegistry {
 
     // Stores all loaded drug profiles, keyed by their ID
+    private static FileConfiguration itemSettings = new org.bukkit.configuration.file.YamlConfiguration();
+
+    public static int setting(String path, int defaultValue) { return itemSettings.getInt(path, defaultValue); }
+
     private static final Map<String, DrugEffectProfile> drugProfiles = new ConcurrentHashMap<>();
     
     // Cache for item matching to avoid expensive lookups
@@ -41,7 +45,9 @@ public class DrugRegistry {
      * @param plugin The plugin instance (for loading configs and namespaced keys)
      */
     public static void init(Plugin plugin) {
-        FileConfiguration config = plugin.getConfig();
+        FileConfiguration config = com.drugs.config.DrugFamilyConfigs.view(plugin.getDataFolder(), "items");
+        com.drugs.effects.HallucinationSettings.load(plugin.getDataFolder());
+        itemSettings = config;
         FileConfiguration recipes = plugin instanceof DrugsV2 dp ? dp.getRecipesConfig() : null;
 
         // Clear existing data
@@ -55,7 +61,9 @@ public class DrugRegistry {
     }
 
     public static List<PluginStartup.Step> startupSteps(Plugin plugin) {
-        FileConfiguration config = plugin.getConfig();
+        FileConfiguration config = com.drugs.config.DrugFamilyConfigs.view(plugin.getDataFolder(), "items");
+        com.drugs.effects.HallucinationSettings.load(plugin.getDataFolder());
+        itemSettings = config;
         FileConfiguration recipes = plugin instanceof DrugsV2 dp ? dp.getRecipesConfig() : null;
         drugProfiles.clear();
         itemMatchCache.clear();

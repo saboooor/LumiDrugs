@@ -40,7 +40,6 @@ public class DrugEffectProfile {
     private final List<String> lore;
     
     // Pre-computed values for performance
-    private final String strippedDisplayName;
     private final ItemStack cachedItem;
     private final List<String> formattedLore;
     private final Random random = new Random();
@@ -53,7 +52,6 @@ public class DrugEffectProfile {
         this.lore = new ArrayList<>(lore); // Make a copy to prevent modification
         
         // Pre-compute values for performance
-        this.strippedDisplayName = ChatColor.stripColor(ChatColor.translateAlternateColorCodes('&', displayName));
         
         // Pre-format lore for reuse
         List<String> tempLore = new ArrayList<>();
@@ -255,13 +253,7 @@ public class DrugEffectProfile {
         if (meta == null) return false;
 
         String taggedDrugId = DrugItemMetadata.getDrugId(meta);
-        if (taggedDrugId != null) {
-            return taggedDrugId.equalsIgnoreCase(id);
-        }
-        if (!meta.hasDisplayName()) return false;
-
-        String itemName = ChatColor.stripColor(meta.getDisplayName());
-        return itemName.equalsIgnoreCase(strippedDisplayName);
+        return taggedDrugId != null && taggedDrugId.equalsIgnoreCase(id);
     }
 
     public String getId() {

@@ -21,8 +21,8 @@ public class CustomAchievement {
      * Creates a new custom achievement
      * 
      * @param id The unique identifier for this achievement
-     * @param defaultTitle The default title (can be overridden in settings)
-     * @param defaultDescription The default description (can be overridden in settings)
+     * @param defaultTitle The default title
+     * @param defaultDescription The default description
      * @param trigger The trigger type that grants this achievement
      * @param icon The icon to display in the GUI when locked
      * @param completedIcon The icon to display when unlocked
@@ -54,17 +54,17 @@ public class CustomAchievement {
     }
     
     /**
-     * Gets the title from settings, or default if not configured
+     * Gets the title from achievements.yml
      */
     public String getTitle() {
-        return AchievementSettingsLoader.getAchievementTitle(id, defaultTitle);
+        return defaultTitle;
     }
     
     /**
-     * Gets the description from settings, or default if not configured
+     * Gets the description from achievements.yml
      */
     public String getDescription() {
-        return AchievementSettingsLoader.getAchievementDescription(id, defaultDescription);
+        return defaultDescription;
     }
     
     /**

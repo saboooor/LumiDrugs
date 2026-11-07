@@ -130,8 +130,9 @@ class HarvestCraftingListenerTest {
         verify(event).setCancelled(true);
     }
     @Test void everyConfiguredDrugHasGrowingRequirement() {
-        var config = org.bukkit.configuration.file.YamlConfiguration.loadConfiguration(new java.io.File("src/main/resources/config.yml"));
+        var config = com.drugs.config.DrugFamilyConfigs.view(new java.io.File("src/main/resources"), "items");
         for (String drug : config.getKeys(false)) {
+            if (drug.equals("bong")) continue;
             if (!drug.equals("vape")) assertNotNull(DrugGrowing.requirement(drug), drug);
         }
     }

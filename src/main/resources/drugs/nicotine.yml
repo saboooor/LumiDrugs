@@ -1,0 +1,468 @@
+# Nicotine family. Hallucinations are optional named effects under drugs.<id>.hallucinations.
+# Set enabled: false on an entry, or hallucinations: {} to disable all for a drug.
+drugs:
+  tobacco:
+    item:
+      material: DRIED_KELP
+      display-name: '&6Tobacco'
+      lore:
+      - '&7Loose tobacco leaves.'
+      - '&a&oHaste I'
+      - '&a&oSpeed I'
+      - '&a&oSaturation I'
+      - '&7Abuse Potential: &cHigh'
+      effects:
+        HASTE:
+          duration: 200
+          amplifier: 0
+        SPEED:
+          duration: 140
+          amplifier: 0
+        SATURATION:
+          duration: 40
+          amplifier: 0
+    recipe:
+      type: smoker
+      input-crop: tobacco
+      cooking-time: 200
+      experience: 0.1
+    tolerance:
+      max-tolerance: 8
+      decay-delay-minutes: 3
+      effectiveness-scaling:
+        0: 1.0
+        1: 0.9
+        2: 0.8
+        3: 0.7
+        4: 0.6
+        5: 0.5
+        6: 0.4
+        7: 0.3
+        8: 0.1
+    addiction:
+      addictive: true
+      points_per_use: 1
+      addicted_at_points: 4
+      withdrawal_after_seconds: 180
+      decay:
+        enabled: true
+        points_decay_per_minute: 0.5
+      withdrawal_effects:
+      - type: SLOW_DIGGING
+        amplifier: 0
+      - type: HUNGER
+        amplifier: 0
+      - type: WEAKNESS
+        amplifier: 0
+    overdose:
+      effects:
+      - type: effects
+        potion_effects:
+        - effect: NAUSEA
+          duration: 300
+          amplifier: 0
+        - effect: WEAKNESS
+          duration: 600
+          amplifier: 0
+    hallucinations:
+      high-tolerance:
+        type: phantom
+        near-tolerance-limit: true
+        chance: 1.0
+        duration-seconds: 4
+        mobs:
+        - CREEPER
+        - ENDERMAN
+        - CAVE_SPIDER
+        - PHANTOM
+        - WITHER_SKELETON
+        speed: 0.32
+  nicotine:
+    item:
+      material: SUGAR
+      display-name: '&eNicotine'
+      lore:
+      - '&7A concentrated nicotine dose.'
+      - '&a&oHaste I'
+      - '&a&oSpeed I'
+      - '&a&oSaturation I'
+      - '&c&oNausea I'
+      - '&7Abuse Potential: &cHigh'
+      effects:
+        HASTE:
+          duration: 400
+          amplifier: 0
+        SPEED:
+          duration: 240
+          amplifier: 0
+        SATURATION:
+          duration: 60
+          amplifier: 0
+        CONFUSION:
+          duration: 100
+          amplifier: 0
+    recipe:
+      type: furnace
+      input-crop: tobacco
+      cooking-time: 400
+      experience: 0.1
+    tolerance:
+      max-tolerance: 8
+      decay-delay-minutes: 3
+      effectiveness-scaling:
+        0: 1.0
+        1: 0.9
+        2: 0.8
+        3: 0.7
+        4: 0.6
+        5: 0.5
+        6: 0.4
+        7: 0.3
+        8: 0.1
+    addiction:
+      addictive: true
+      points_per_use: 1
+      addicted_at_points: 4
+      withdrawal_after_seconds: 180
+      decay:
+        enabled: true
+        points_decay_per_minute: 0.5
+      withdrawal_effects:
+      - type: SLOW_DIGGING
+        amplifier: 0
+      - type: HUNGER
+        amplifier: 0
+      - type: WEAKNESS
+        amplifier: 0
+    overdose:
+      effects:
+      - type: effects
+        potion_effects:
+        - effect: NAUSEA
+          duration: 300
+          amplifier: 0
+        - effect: WEAKNESS
+          duration: 600
+          amplifier: 0
+    hallucinations:
+      high-tolerance:
+        type: phantom
+        near-tolerance-limit: true
+        chance: 1.0
+        duration-seconds: 4
+        mobs:
+        - CREEPER
+        - ENDERMAN
+        - CAVE_SPIDER
+        - PHANTOM
+        - WITHER_SKELETON
+        speed: 0.32
+  cigarette:
+    item:
+      material: PAPER
+      display-name: '&fCigarette'
+      lore:
+      - '&7A paper-wrapped tobacco smoke.'
+      - '&a&oHaste I'
+      - '&a&oSpeed I'
+      - '&a&oSaturation I'
+      - '&7Abuse Potential: &cHigh'
+      effects:
+        HASTE:
+          duration: 300
+          amplifier: 0
+        SPEED:
+          duration: 200
+          amplifier: 0
+        SATURATION:
+          duration: 40
+          amplifier: 0
+    recipe:
+      type: production
+    tolerance:
+      max-tolerance: 8
+      decay-delay-minutes: 3
+      effectiveness-scaling:
+        0: 1.0
+        1: 0.9
+        2: 0.8
+        3: 0.7
+        4: 0.6
+        5: 0.5
+        6: 0.4
+        7: 0.3
+        8: 0.1
+    addiction:
+      addictive: true
+      points_per_use: 1
+      addicted_at_points: 4
+      withdrawal_after_seconds: 180
+      decay:
+        enabled: true
+        points_decay_per_minute: 0.5
+      withdrawal_effects:
+      - type: SLOW_DIGGING
+        amplifier: 0
+      - type: HUNGER
+        amplifier: 0
+      - type: WEAKNESS
+        amplifier: 0
+    overdose:
+      effects:
+      - type: effects
+        potion_effects:
+        - effect: NAUSEA
+          duration: 300
+          amplifier: 0
+        - effect: WEAKNESS
+          duration: 600
+          amplifier: 0
+    hallucinations:
+      high-tolerance:
+        type: phantom
+        near-tolerance-limit: true
+        chance: 1.0
+        duration-seconds: 4
+        mobs:
+        - CREEPER
+        - ENDERMAN
+        - CAVE_SPIDER
+        - PHANTOM
+        - WITHER_SKELETON
+        speed: 0.32
+  cigar:
+    item:
+      material: STICK
+      display-name: '&6Cigar'
+      lore:
+      - '&7A slow-burning tobacco roll.'
+      - '&a&oHaste I'
+      - '&a&oSpeed I'
+      - '&a&oSaturation I'
+      - '&7Abuse Potential: &cHigh'
+      effects:
+        HASTE:
+          duration: 600
+          amplifier: 0
+        SPEED:
+          duration: 300
+          amplifier: 0
+        SATURATION:
+          duration: 60
+          amplifier: 0
+    recipe:
+      type: production
+    tolerance:
+      max-tolerance: 8
+      decay-delay-minutes: 3
+      effectiveness-scaling:
+        0: 1.0
+        1: 0.9
+        2: 0.8
+        3: 0.7
+        4: 0.6
+        5: 0.5
+        6: 0.4
+        7: 0.3
+        8: 0.1
+    addiction:
+      addictive: true
+      points_per_use: 1
+      addicted_at_points: 4
+      withdrawal_after_seconds: 180
+      decay:
+        enabled: true
+        points_decay_per_minute: 0.5
+      withdrawal_effects:
+      - type: SLOW_DIGGING
+        amplifier: 0
+      - type: HUNGER
+        amplifier: 0
+      - type: WEAKNESS
+        amplifier: 0
+    overdose:
+      effects:
+      - type: effects
+        potion_effects:
+        - effect: NAUSEA
+          duration: 300
+          amplifier: 0
+        - effect: WEAKNESS
+          duration: 600
+          amplifier: 0
+    hallucinations:
+      high-tolerance:
+        type: phantom
+        near-tolerance-limit: true
+        chance: 1.0
+        duration-seconds: 4
+        mobs:
+        - CREEPER
+        - ENDERMAN
+        - CAVE_SPIDER
+        - PHANTOM
+        - WITHER_SKELETON
+        speed: 0.32
+  chewing_tobacco:
+    item:
+      material: BROWN_DYE
+      display-name: '&6Chewing Tobacco'
+      lore:
+      - '&7A pinch of chewing tobacco.'
+      - '&a&oHaste I'
+      - '&a&oSpeed I'
+      - '&a&oSaturation I'
+      - '&c&oNausea I'
+      - '&7Abuse Potential: &cHigh'
+      effects:
+        HASTE:
+          duration: 400
+          amplifier: 0
+        SPEED:
+          duration: 200
+          amplifier: 0
+        SATURATION:
+          duration: 40
+          amplifier: 0
+        CONFUSION:
+          duration: 80
+          amplifier: 0
+    recipe:
+      shape:
+      - ' KS'
+      - ' P '
+      - '   '
+      ingredients:
+        K: DRIED_KELP
+        S: SUGAR
+        P: PAPER
+    tolerance:
+      max-tolerance: 8
+      decay-delay-minutes: 3
+      effectiveness-scaling:
+        0: 1.0
+        1: 0.9
+        2: 0.8
+        3: 0.7
+        4: 0.6
+        5: 0.5
+        6: 0.4
+        7: 0.3
+        8: 0.1
+    addiction:
+      addictive: true
+      points_per_use: 1
+      addicted_at_points: 4
+      withdrawal_after_seconds: 180
+      decay:
+        enabled: true
+        points_decay_per_minute: 0.5
+      withdrawal_effects:
+      - type: SLOW_DIGGING
+        amplifier: 0
+      - type: HUNGER
+        amplifier: 0
+      - type: WEAKNESS
+        amplifier: 0
+    overdose:
+      effects:
+      - type: effects
+        potion_effects:
+        - effect: NAUSEA
+          duration: 300
+          amplifier: 0
+        - effect: WEAKNESS
+          duration: 600
+          amplifier: 0
+    hallucinations:
+      high-tolerance:
+        type: phantom
+        near-tolerance-limit: true
+        chance: 1.0
+        duration-seconds: 4
+        mobs:
+        - CREEPER
+        - ENDERMAN
+        - CAVE_SPIDER
+        - PHANTOM
+        - WITHER_SKELETON
+        speed: 0.32
+  vape:
+    item:
+      material: BLAZE_ROD
+      display-name: '&bNicotine Vape'
+      lore:
+      - '&7A disposable nicotine vape with limited puffs.'
+      - '&a&oHaste I'
+      - '&a&oSpeed I'
+      - '&a&oSaturation I'
+      - '&7Abuse Potential: &cHigh'
+      effects:
+        HASTE:
+          duration: 240
+          amplifier: 0
+        SPEED:
+          duration: 160
+          amplifier: 0
+        SATURATION:
+          duration: 40
+          amplifier: 0
+    recipe:
+      type: production
+    tolerance:
+      max-tolerance: 8
+      decay-delay-minutes: 3
+      effectiveness-scaling:
+        0: 1.0
+        1: 0.9
+        2: 0.8
+        3: 0.7
+        4: 0.6
+        5: 0.5
+        6: 0.4
+        7: 0.3
+        8: 0.1
+    addiction:
+      addictive: true
+      points_per_use: 1
+      addicted_at_points: 4
+      withdrawal_after_seconds: 180
+      decay:
+        enabled: true
+        points_decay_per_minute: 0.5
+      withdrawal_effects:
+      - type: SLOW_DIGGING
+        amplifier: 0
+      - type: HUNGER
+        amplifier: 0
+      - type: WEAKNESS
+        amplifier: 0
+    overdose:
+      effects:
+      - type: effects
+        potion_effects:
+        - effect: NAUSEA
+          duration: 300
+          amplifier: 0
+        - effect: WEAKNESS
+          duration: 600
+          amplifier: 0
+    mechanics:
+      durability-uses: 32
+    hallucinations:
+      high-tolerance:
+        type: phantom
+        near-tolerance-limit: true
+        chance: 1.0
+        duration-seconds: 4
+        mobs:
+        - CREEPER
+        - ENDERMAN
+        - CAVE_SPIDER
+        - PHANTOM
+        - WITHER_SKELETON
+        speed: 0.32
+crops:
+  tobacco:
+    plant-block: AZALEA
+    growth-seconds: 600

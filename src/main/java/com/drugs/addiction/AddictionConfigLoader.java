@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Loads addiction settings, drug profiles, and cure profiles from addiction.yml.
+ * Loads addiction settings, drug profiles, and cure profiles from drug family files.
  */
 public class AddictionConfigLoader {
 
@@ -23,12 +23,7 @@ public class AddictionConfigLoader {
     private static final Map<String, CureProfile> cureProfiles = new HashMap<>();
 
     public static void load(Plugin plugin) {
-        File file = new File(plugin.getDataFolder(), "addiction.yml");
-        if (!file.exists()) {
-            plugin.saveResource("addiction.yml", false);
-        }
-
-        FileConfiguration config = YamlConfiguration.loadConfiguration(file);
+        FileConfiguration config = com.drugs.config.DrugFamilyConfigs.view(plugin.getDataFolder(), "addiction");
 
         loadSettings(config.getConfigurationSection("settings"));
         loadCures(config.getConfigurationSection("cures"));
@@ -44,7 +39,6 @@ public class AddictionConfigLoader {
         settings = new AddictionSettings(
                 section.getBoolean("enabled", true),
                 section.getBoolean("milk_clears_withdrawal", false),
-                section.getInt("infinite_duration_ticks", 99999),
                 section.getInt("heartbeat_ticks", 20)
         );
     }

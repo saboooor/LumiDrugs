@@ -67,7 +67,7 @@ class CitizensCartelNpcsTest {
         when(plugins.isPluginEnabled("Citizens")).thenReturn(true);
         when(server.getScheduler()).thenReturn(mock(BukkitScheduler.class));
         dealer = mock(CartelDealer.class);
-        config = new YamlConfiguration();
+        config = YamlConfiguration.loadConfiguration(new java.io.File("src/main/resources/cartel.yml"));
         when(dealer.settings()).thenReturn(config);
         persistent = mock(NPCRegistry.class);
         temporary = mock(NPCRegistry.class);
@@ -105,152 +105,29 @@ class CitizensCartelNpcsTest {
 
     @AfterEach void cleanup() { citizens.close(); bukkit.close(); }
 
-    @Test void buyersAreProtectedPlayerNpcsWithBundledSignedSkinAndPersistence() {
-        CartelNpcs.Character buyer = service.create(location, "buyer");
-        assertNotNull(buyer);
-        assertSame(entity, buyer.entity());
-        assertTrue(buyer.valid());
-        verify(persistent).createNPC(EntityType.PLAYER, "Pablo");
-        verify(metadata).setPersistent(CitizensCartelNpcs.ROLE, "buyer");
-        verify(npc).setProtected(true);
-        verify(persistent).saveToStore();
-        ArgumentCaptor<String> signature = ArgumentCaptor.forClass(String.class);
-        ArgumentCaptor<String> texture = ArgumentCaptor.forClass(String.class);
-        verify(skin).setSkinPersistent(eq("cartel-default"), signature.capture(), texture.capture());
-        assertFalse(signature.getValue().isBlank());
-        String decoded = new String(Base64.getDecoder().decode(texture.getValue()), StandardCharsets.UTF_8);
-        assertTrue(decoded.contains("textures.minecraft.net/texture/"));
-        verify(skin, never()).setSkinName(anyString());
-    }
 
-    @Test void configuredBuyerNameAppliesOnCreationAndReload() {
-        config.set("npc.name", "Diego");
-        assertNotNull(service.create(location, "buyer"));
-        verify(persistent).createNPC(EntityType.PLAYER, "Diego");
-        when(persistent.iterator()).thenAnswer(call -> List.of(npc).iterator());
-        when(metadata.get(CitizensCartelNpcs.ROLE, "")).thenReturn("buyer");
-        config.set("npc.name", "Miguel");
-        service.reload();
-        verify(npc).setName("Miguel");
-    }
 
-    @Test void reloadRestoresSavedBuyerThatDidNotSpawnDuringStartup() {
-        when(persistent.iterator()).thenAnswer(call -> List.of(npc).iterator());
-        when(metadata.get(CitizensCartelNpcs.ROLE, "")).thenReturn("buyer");
-        when(npc.isSpawned()).thenReturn(false);
-        when(npc.getStoredLocation()).thenReturn(location);
-        service.reload();
-        verify(npc).spawn(location);
-        verify(persistent, never()).createNPC(any(), anyString());
-        verify(npc, never()).destroy();
-    }
 
-    @Test void reloadLeavesBuyersInUnloadedChunksForChunkLoadRecovery() {
-        when(persistent.iterator()).thenAnswer(call -> List.of(npc).iterator());
-        when(metadata.get(CitizensCartelNpcs.ROLE, "")).thenReturn("buyer");
-        when(npc.isSpawned()).thenReturn(false);
-        when(npc.getStoredLocation()).thenReturn(location);
-        when(world.isChunkLoaded(0, 0)).thenReturn(false);
-        service.reload();
-        verify(npc, never()).spawn(any(Location.class));
-        verify(world, never()).getChunkAt(anyInt(), anyInt());
-        verify(npc, never()).destroy();
-    }
 
-    @Test void reloadDoesNotRespawnAnExistingBuyerOrUnrelatedNpc() {
-        when(persistent.iterator()).thenAnswer(call -> List.of(npc).iterator());
-        when(metadata.get(CitizensCartelNpcs.ROLE, "")).thenReturn("buyer");
-        service.reload();
-        when(npc.isSpawned()).thenReturn(false);
-        when(metadata.get(CitizensCartelNpcs.ROLE, "")).thenReturn("");
-        service.reload();
-        verify(npc, never()).spawn(any(Location.class));
-    }
 
-    @Test void chunkLoadRestoresOnlyBuyersStoredInThatChunk() {
-        when(persistent.iterator()).thenAnswer(call -> List.of(npc).iterator());
-        when(metadata.get(CitizensCartelNpcs.ROLE, "")).thenReturn("buyer");
-        when(npc.isSpawned()).thenReturn(false);
-        when(npc.getStoredLocation()).thenReturn(location);
-        Chunk chunk = mock(Chunk.class);
-        when(chunk.getWorld()).thenReturn(world);
-        when(chunk.getEntities()).thenReturn(new Entity[0]);
-        when(chunk.getX()).thenReturn(1);
-        service.onChunkLoad(new org.bukkit.event.world.ChunkLoadEvent(chunk, false));
-        verify(npc, never()).spawn(any(Location.class));
-        when(chunk.getX()).thenReturn(0);
-        service.onChunkLoad(new org.bukkit.event.world.ChunkLoadEvent(chunk, false));
-        verify(npc).spawn(location);
-    }
 
-    @Test void failedRecoveryKeepsSavedBuyerForAnotherAttempt() {
-        when(persistent.iterator()).thenAnswer(call -> List.of(npc).iterator());
-        when(metadata.get(CitizensCartelNpcs.ROLE, "")).thenReturn("buyer");
-        when(npc.isSpawned()).thenReturn(false);
-        when(npc.getStoredLocation()).thenReturn(location);
-        when(npc.spawn(location)).thenReturn(false, true);
-        service.reload();
-        service.reload();
-        verify(npc, times(2)).spawn(location);
-        verify(npc, never()).destroy();
-    }
 
-    @Test void restartRecreatesMissingBuyerFromItsOwnSavedRecord() {
-        assertNotNull(service.create(location, "buyer"));
-        service.shutdown();
-        when(persistent.getByUniqueId(npc.getUniqueId())).thenReturn(null);
-        var restarted = new CitizensCartelNpcs(plugin, dealer);
-        restarted.reload();
-        var restored = org.mockito.ArgumentCaptor.forClass(Location.class);
-        verify(persistent).createNPC(EntityType.PLAYER, npc.getUniqueId(), 7, "Pablo");
-        verify(npc, times(2)).spawn(restored.capture());
-        assertEquals(location, restored.getValue());
-    }
 
-    @Test void savedBuyerDoesNotDuplicateAnExistingCitizensNpc() {
-        assertNotNull(service.create(location, "buyer"));
-        var restarted = new CitizensCartelNpcs(plugin, dealer);
-        restarted.reload();
-        restarted.reload();
-        verify(persistent, never()).createNPC(eq(EntityType.PLAYER), any(UUID.class), anyInt(), anyString());
-    }
 
-    @Test void removedBuyerIsNotResurrectedAfterRestart() {
-        service.create(location, "buyer").destroy();
-        when(persistent.getByUniqueId(npc.getUniqueId())).thenReturn(null);
-        var restarted = new CitizensCartelNpcs(plugin, dealer);
-        restarted.reload();
-        verify(persistent, never()).createNPC(eq(EntityType.PLAYER), any(UUID.class), anyInt(), anyString());
-    }
 
-    @Test void missingBuyerWaitsForItsChunkBeforeRecreation() {
-        service.create(location, "buyer");
-        when(persistent.getByUniqueId(npc.getUniqueId())).thenReturn(null);
-        when(world.isChunkLoaded(0, 0)).thenReturn(false);
-        var restarted = new CitizensCartelNpcs(plugin, dealer);
-        restarted.reload();
-        verify(persistent, never()).createNPC(eq(EntityType.PLAYER), any(UUID.class), anyInt(), anyString());
-        when(world.isChunkLoaded(0, 0)).thenReturn(true);
-        Chunk chunk = mock(Chunk.class);
-        when(chunk.getWorld()).thenReturn(world);
-        when(chunk.getEntities()).thenReturn(new Entity[0]);
-        restarted.onChunkLoad(new org.bukkit.event.world.ChunkLoadEvent(chunk, false));
-        verify(persistent).createNPC(EntityType.PLAYER, npc.getUniqueId(), 7, "Pablo");
-        verify(world, never()).getChunkAt(anyInt(), anyInt());
-    }
 
-    @Test void reusedNumericIdDoesNotOverwriteAnotherCitizensNpc() {
-        service.create(location, "buyer");
-        when(persistent.getByUniqueId(npc.getUniqueId())).thenReturn(null);
-        var unrelated = mock(NPC.class);
-        when(unrelated.getId()).thenReturn(7);
-        when(persistent.getById(7)).thenReturn(unrelated);
-        when(persistent.iterator()).thenAnswer(call -> List.of(unrelated).iterator());
-        when(unrelated.data()).thenReturn(mock(MetadataStore.class));
-        new CitizensCartelNpcs(plugin, dealer).reload();
-        verify(persistent).createNPC(EntityType.PLAYER, npc.getUniqueId(), 8, "Pablo");
-        verify(unrelated, never()).destroy();
-    }
+
+
+
+
+
+
+
+
+
+
+
+
 
     @Test void enforcersUseMemoryOnlyRegistryAndUsernameOverride() {
         config.set("npc.skin-name", "MyCartelSkin");
@@ -264,9 +141,18 @@ class CitizensCartelNpcsTest {
         verify(skin, never()).setSkinPersistent(anyString(), anyString(), anyString());
     }
 
+    @Test void signedEnforcerSkinComesFromCartelConfig() {
+        assertNotNull(service.create(location, "enforcer"));
+        verify(skin).setSkinPersistent(config.getString("npc.skin.name"),
+                config.getString("npc.skin.signature"), config.getString("npc.skin.texture"));
+        String texture = new String(Base64.getDecoder().decode(config.getString("npc.skin.texture")),
+                StandardCharsets.UTF_8);
+        assertTrue(texture.contains("textures.minecraft.net/texture/"));
+    }
+
     @Test void failedSpawnDestroysRegistryEntry() {
         when(npc.spawn(location)).thenReturn(false);
-        assertNull(service.create(location, "buyer"));
+        assertNull(service.create(location, "enforcer"));
         verify(npc).destroy();
     }
 
@@ -323,22 +209,7 @@ class CitizensCartelNpcsTest {
         verify(npc).destroy();
     }
 
-    @Test void legacyBuyersAreReplacedOnlyAfterSuccessfulPlayerSpawn() {
-        World world = mock(World.class);
-        Villager old = mock(Villager.class);
-        PersistentDataContainer data = mock(PersistentDataContainer.class);
-        when(old.getPersistentDataContainer()).thenReturn(data);
-        when(data.has(new NamespacedKey(plugin, "cartel_dealer"), PersistentDataType.BYTE)).thenReturn(true);
-        when(old.getLocation()).thenReturn(location);
-        when(world.getEntitiesByClass(Villager.class)).thenReturn(List.of(old));
-        bukkit.when(Bukkit::getWorlds).thenReturn(List.of(world));
-        when(npc.spawn(location)).thenReturn(false);
-        service.reload();
-        verify(old, never()).remove();
-        when(npc.spawn(location)).thenReturn(true);
-        service.reload();
-        verify(old).remove();
-    }
+
 
     @Test void shutdownDestroysTemporaryRegistryAndKeepsBuyers() {
         service.shutdown();
@@ -357,4 +228,59 @@ class CitizensCartelNpcsTest {
         disabled.reload();
         disabled.shutdown();
     }
+    @Test void linkPersistsRoleWithoutChangingCitizensNpc() {
+        when(persistent.getById(7)).thenReturn(npc);
+        when(metadata.get(CitizensCartelNpcs.ROLE, "")).thenReturn("");
+        assertTrue(service.linkBuyer(7));
+        verify(metadata).setPersistent(CitizensCartelNpcs.ROLE, "buyer");
+        verify(persistent).saveToStore();
+        verify(npc, never()).spawn(any());
+        verify(npc, never()).setName(anyString());
+        verify(npc, never()).setProtected(anyBoolean());
+        verifyNoInteractions(skin);
+    }
+
+    @Test void unlinkRemovesOnlyBuyerRoleAndNeverDeletesNpc() {
+        when(persistent.getById(7)).thenReturn(npc);
+        when(metadata.get(CitizensCartelNpcs.ROLE, "")).thenReturn("buyer");
+        assertTrue(service.unlinkBuyer(7));
+        verify(metadata).remove(CitizensCartelNpcs.ROLE);
+        verify(persistent).saveToStore();
+        verify(npc, never()).destroy();
+    }
+
+    @Test void missingOrOtherRoleCannotBeUnlinkedOrOverwritten() {
+        assertFalse(service.linkBuyer(99));
+        assertFalse(service.unlinkBuyer(99));
+        when(persistent.getById(7)).thenReturn(npc);
+        when(metadata.get(CitizensCartelNpcs.ROLE, "")).thenReturn("enforcer");
+        assertFalse(service.linkBuyer(7));
+        assertFalse(service.unlinkBuyer(7));
+        verify(persistent, never()).saveToStore();
+    }
+
+    @Test void reloadAndShutdownLeaveExistingBuyersAndTheirAppearanceAlone() {
+        when(persistent.iterator()).thenAnswer(call -> List.of(npc).iterator());
+        when(metadata.get(CitizensCartelNpcs.ROLE, "")).thenReturn("buyer");
+        when(npc.isSpawned()).thenReturn(false);
+        service.reload();
+        service.shutdown();
+        verify(npc, never()).spawn(any());
+        verify(npc, never()).destroy();
+        verify(npc, never()).setName(anyString());
+        verifyNoInteractions(skin);
+        verify(persistent, never()).createNPC(any(), anyString());
+    }
+
+    @Test void buyerCreationIsDisabledAndLegacyBuyerHandlesOnlyUnlink() {
+        assertNull(service.create(location, "buyer"));
+        when(persistent.getNPC(entity)).thenReturn(npc);
+        when(persistent.getById(7)).thenReturn(npc);
+        when(metadata.get(CitizensCartelNpcs.ROLE, "")).thenReturn("buyer");
+        service.find(entity, "buyer").destroy();
+        verify(metadata).remove(CitizensCartelNpcs.ROLE);
+        verify(npc, never()).destroy();
+        verify(persistent, never()).createNPC(any(), anyString());
+    }
+
 }

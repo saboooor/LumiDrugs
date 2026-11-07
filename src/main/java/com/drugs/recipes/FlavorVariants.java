@@ -46,7 +46,7 @@ public final class FlavorVariants {
     }
 
     public static void load(File folder) {
-        var yaml = YamlConfiguration.loadConfiguration(new File(folder, "mechanics.yml"));
+        var yaml = YamlConfiguration.loadConfiguration(new File(folder, "config.yml"));
         ConfigurationSection section = yaml.getConfigurationSection("flavors");
         if (section == null) { flavors = defaults(); return; }
         List<Flavor> loaded = new ArrayList<>();

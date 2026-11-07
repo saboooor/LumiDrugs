@@ -15,7 +15,7 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Loads and registers cure items from addiction.yml and recipes.
+ * Loads and registers cure items from drug family files and recipes.
  */
 public class CureRegistry {
 

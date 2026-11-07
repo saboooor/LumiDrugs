@@ -35,15 +35,12 @@ public class SalviaEffectManager implements Listener {
         this.plugin = plugin;
     }
 
-    public void startEffect(Player player) {
+    public void startEffect(Player player, int delayTicksConfigured, int durationTicksConfigured, Material block) {
         UUID uuid = player.getUniqueId();
         cleanupPlayer(uuid);
 
-        int delaySeconds = Math.max(0, plugin.getConfig().getInt("salvia.delay", 3));
-        int durationSeconds = Math.max(1, plugin.getConfig().getInt("salvia.duration", 45));
-
-        long delayTicks = delaySeconds * 20L;
-        long durationTicks = durationSeconds * 20L;
+        long delayTicks = delayTicksConfigured;
+        long durationTicks = durationTicksConfigured;
         int now = Bukkit.getCurrentTick();
         activationTicks.put(uuid, now + (int) delayTicks);
         completionTicks.put(uuid, now + (int) (delayTicks + durationTicks));
@@ -60,7 +57,7 @@ public class SalviaEffectManager implements Listener {
 
             Location startLocation = online.getLocation();
             BlockDisplay blockDisplay = online.getWorld().spawn(startLocation, BlockDisplay.class, display -> {
-                display.setBlock(Material.DIRT.createBlockData());
+                display.setBlock(block.createBlockData());
                 display.setTeleportDuration(1);
             });
 

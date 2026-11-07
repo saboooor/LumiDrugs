@@ -1,0 +1,16 @@
+# Drug sale prices. Missing, zero, or negative prices disable sales.
+# Apply changes with /cartel reload or /drugs reload.
+prices:
+  blunt: 7.0
+  cocaine: 20.0
+  edible: 5.0
+  fent: 10.0
+  glue: 2.0
+  heroin: 20.0
+  joint: 3.0
+  lsd: 15.0
+  meth: 15.0
+  molly: 10.0
+  salvia: 6.0
+  shrooms: 7.0
+strain-prices: {}

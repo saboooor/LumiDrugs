@@ -1,7 +1,6 @@
 package com.drugs.strains;
 
 import com.drugs.DrugsV2;
-import com.drugs.effects.EffectUtils;
 import com.drugs.items.DrugItemMetadata;
 
 import org.bukkit.Bukkit;
@@ -20,19 +19,13 @@ public class StrainConfigLoader {
     private static final Random random = new Random();
 
     public static void load(File dataFolder) {
-        File file = new File(dataFolder, "strains.yml");
-        if (!file.exists()) {
-            DrugsV2.getInstance().saveResource("strains.yml", false);
-        }
+        YamlConfiguration config = com.drugs.config.DrugFamilyConfigs.view(dataFolder, "strains");
 
-        YamlConfiguration config = YamlConfiguration.loadConfiguration(file);
         strains.clear();
 
-        ConfigurationSection root = config.isConfigurationSection("strains")
-                ? config.getConfigurationSection("strains")
-                : config;
+        ConfigurationSection root = config.getConfigurationSection("strains");
         if (root == null) {
-            Bukkit.getLogger().warning("[LumiDrugs] strains.yml is missing a valid root section");
+            Bukkit.getLogger().warning("[LumiDrugs] Drug family files have no strains section");
             return;
         }
 
@@ -92,11 +85,6 @@ public class StrainConfigLoader {
                 effects.add(new PotionEffect(type, Math.max(1, duration), Math.max(0, amplifier)));
             }
             return effects;
-        }
-
-        ConfigurationSection legacyEffects = section.getConfigurationSection("effects");
-        if (legacyEffects != null) {
-            return EffectUtils.parsePotionEffects(legacyEffects);
         }
 
         return effects;

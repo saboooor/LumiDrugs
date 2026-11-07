@@ -8,7 +8,7 @@ softdepend: [PlaceholderAPI, Vault, Essentials, Citizens, BeautyQuests]
 commands:
   cartel:
     description: Manage cartel buyers
-    usage: /cartel <reject|create|remove|reload|enforcer [player drug amount]>
+    usage: /cartel <reject|link <npc-id>|unlink <npc-id>|reload|enforcer [player drug amount]>
   drugs:
     description: Opens the drug selection GUI or runs admin commands
     usage: /drugs [give/help/purge/reload/list/achievements/status]

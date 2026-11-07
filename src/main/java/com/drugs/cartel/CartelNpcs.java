@@ -19,6 +19,9 @@ public interface CartelNpcs {
 
     default String unavailableReason() { return null; }
 
+    default boolean linkBuyer(int npcId) { return false; }
+    default boolean unlinkBuyer(int npcId) { return false; }
+
     Character create(Location location, String role);
     Character find(Entity entity, String role);
     void reload();

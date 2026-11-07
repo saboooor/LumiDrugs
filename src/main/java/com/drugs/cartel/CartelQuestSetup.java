@@ -30,13 +30,6 @@ final class CartelQuestSetup {
                 throw new IOException(destination + " does not contain a Cartel delivery stage. Use a custom quest ID or fix this file.");
             }
             int existingId = id(saved, destination);
-            if (!saved.contains(FOLLOW)) {
-                // Upgrade only the movement option; retain a byte-for-byte backup of admin edits.
-                Path backup = folder.resolve(FILE_NAME + ".pre-follow.backup");
-                if (!Files.exists(backup)) Files.copy(destination, backup);
-                followOptions(saved);
-                Files.writeString(destination, saved.saveToString(), StandardCharsets.UTF_8);
-            }
             return existingId;
         }
 

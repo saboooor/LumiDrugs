@@ -66,7 +66,6 @@ public class DrugsV2 extends JavaPlugin {
 
     private static DrugsV2 instance;
     private FileConfiguration recipesConfig;
-    private File recipesFile;
     private BongListener bongListener;
     private DrugGrowing drugGrowing;
     private FarmManager farmManager;
@@ -120,14 +119,7 @@ public class DrugsV2 extends JavaPlugin {
                 new PluginStartup.Step("default configuration", () -> {
                     saveDefaultConfig();
                     saveRecipesConfig();
-                    saveToleranceConfig();
-                    saveAchievementSettingsConfig();
                     saveAchievementsConfig();
-                    saveOverdoseConfig();
-                    saveAddictionConfig();
-                    saveStrainsConfig();
-                    saveBongConfig();
-                    saveMechanicsConfig();
                 }),
                 new PluginStartup.Step("tolerance configuration", () -> ToleranceConfigLoader.load(getDataFolder())),
                 new PluginStartup.Step("achievement settings", () -> AchievementSettingsLoader.load(getDataFolder())),
@@ -177,7 +169,6 @@ public class DrugsV2 extends JavaPlugin {
 
     private void startGameplay() {
         PerformanceOptimizer.initialize();
-        ToleranceTracker.startDecayTask();
         var manager = getServer().getPluginManager();
         manager.registerEvents(drugGrowing, this);
         manager.registerEvents(new DrugStatusTracker(), this);
@@ -303,106 +294,14 @@ public class DrugsV2 extends JavaPlugin {
     }
 
     public void saveRecipesConfig() {
-        if (recipesFile == null) {
-            recipesFile = new File(getDataFolder(), "recipes.yml");
-        }
-        if (!recipesFile.exists()) {
-            saveResource("recipes.yml", false);
-        }
-        recipesConfig = YamlConfiguration.loadConfiguration(recipesFile);
-        if (recipesConfig.getInt("processing-version", 0) < 1) {
-            for (String id : java.util.List.of("tobacco", "nicotine", "salvia")) {
-                if (recipesConfig.contains(id + ".type")) continue;
-                recipesConfig.set(id + ".type", id.equals("tobacco") ? "smoker" : id.equals("nicotine") ? "furnace" : "campfire");
-                recipesConfig.set(id + ".input-crop", id.equals("salvia") ? "salvia" : "tobacco");
-                recipesConfig.set(id + ".cooking-time", id.equals("tobacco") ? 200 : id.equals("nicotine") ? 400 : 600);
-            }
-            recipesConfig.set("vape.ingredients.S", "SUGAR");
-            recipesConfig.set("processing-version", 1);
-            try { recipesConfig.save(recipesFile); }
-            catch (java.io.IOException exception) { getLogger().warning("Could not save recipe migration: " + exception.getMessage()); }
-        }
-        if (recipesConfig.getInt("processing-version", 0) < 2) {
-            recipesConfig.set("glue.type", "furnace");
-            recipesConfig.set("glue.input-crop", "resin");
-            recipesConfig.set("glue.cooking-time", 200);
-            for (String id : java.util.List.of("edible", "cbd", "cart", "vape", "cigarette", "cigar")) {
-                recipesConfig.set(id + ".type", "production");
-                recipesConfig.set(id + ".shape", null);
-                recipesConfig.set(id + ".ingredients", null);
-            }
-            recipesConfig.set("processing-version", 2);
-            try { recipesConfig.save(recipesFile); }
-            catch (java.io.IOException exception) { getLogger().warning("Could not save production recipe migration: " + exception.getMessage()); }
-        }
-        if (!recipesConfig.contains("caffeine") || !recipesConfig.contains("energy_drink")) {
-            recipesConfig.set("caffeine.type", "furnace");
-            recipesConfig.set("caffeine.input-crop", "coffee");
-            recipesConfig.set("caffeine.cooking-time", 200);
-            recipesConfig.set("caffeine.experience", 0.1);
-            recipesConfig.set("energy_drink.type", "production");
-            try { recipesConfig.save(recipesFile); }
-            catch (java.io.IOException exception) { getLogger().warning("Could not save caffeine recipe migration: " + exception.getMessage()); }
-        }
-
+        com.drugs.config.DrugFamilyConfigs.saveDefaults(this);
+        recipesConfig = com.drugs.config.DrugFamilyConfigs.view(getDataFolder(), "recipes");
     }
 
-    public void saveToleranceConfig() {
-        File file = new File(getDataFolder(), "tolerance.yml");
-        if (!file.exists()) {
-            saveResource("tolerance.yml", false);
-        }
-    }
-    
-    public void saveAchievementSettingsConfig() {
-        File file = new File(getDataFolder(), "achievement_settings.yml");
-        if (!file.exists()) {
-            saveResource("achievement_settings.yml", false);
-        }
-    }
-    
     public void saveAchievementsConfig() {
         File file = new File(getDataFolder(), "achievements.yml");
         if (!file.exists()) {
             saveResource("achievements.yml", false);
-        }
-    }
-
-    /**
-     * Saves the overdose config file
-     */
-    public void saveOverdoseConfig() {
-        File file = new File(getDataFolder(), "overdose.yml");
-        if (!file.exists()) {
-            saveResource("overdose.yml", false);
-        }
-    }
-
-    public void saveAddictionConfig() {
-        File file = new File(getDataFolder(), "addiction.yml");
-        if (!file.exists()) {
-            saveResource("addiction.yml", false);
-        }
-    }
-
-    public void saveStrainsConfig() {
-        File file = new File(getDataFolder(), "strains.yml");
-        if (!file.exists()) {
-            saveResource("strains.yml", false);
-        }
-    }
-
-    public void saveBongConfig() {
-        File file = new File(getDataFolder(), "bong.yml");
-        if (!file.exists()) {
-            saveResource("bong.yml", false);
-        }
-    }
-
-    public void saveMechanicsConfig() {
-        File file = new File(getDataFolder(), "mechanics.yml");
-        if (!file.exists()) {
-            saveResource("mechanics.yml", false);
         }
     }
 
@@ -427,6 +326,10 @@ public class DrugsV2 extends JavaPlugin {
     }
     public FileConfiguration getRecipesConfig() {
         return recipesConfig;
+    }
+
+    public void reloadCartelConfig() {
+        if (cartelDealer != null) cartelDealer.reloadSettings();
     }
 
     public void reloadGrowing() {

@@ -11,15 +11,12 @@ import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.advancement.Advancement;
 import org.bukkit.advancement.AdvancementProgress;
-import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.scheduler.BukkitTask;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.*;
 
 /** Uses Minecraft's advancement registry, UI, notifications and player persistence. */
@@ -213,40 +210,5 @@ public final class NativeAdvancements implements Listener {
     private static void prepare(Player player) {
         if (!AchievementSettingsLoader.isEnabled() || registrationTask != null) return;
         award(player, "root");
-        File file = new File(DrugsV2.getInstance().getDataFolder(),
-                "data/achievements/" + player.getUniqueId() + ".yml");
-        if (!file.isFile()) return;
-        YamlConfiguration legacy = YamlConfiguration.loadConfiguration(file);
-        boolean changed = false;
-        for (String drug : DrugRegistry.getRegisteredDrugNames()) {
-            if (legacy.getBoolean("connoisseur-used-" + drug)
-                    && !legacy.getBoolean("native-migrated.connoisseur-used-" + drug)) {
-                trackDrug(player, drug);
-                // Keep legacy tracking available if the connoisseur advancement is disabled.
-                boolean migrated = CustomAchievementLoader.getAchievementsByTrigger("all_drugs_used").stream()
-                        .anyMatch(a -> a.isEnabled() && Bukkit.getAdvancement(key(a.getId())) != null);
-                if (migrated) {
-                    legacy.set("native-migrated.connoisseur-used-" + drug, true);
-                    changed = true;
-                }
-            }
-        }
-        for (CustomAchievement achievement : CustomAchievementLoader.getAllAchievements()) {
-            String id = achievement.getId();
-            if (achievement.isEnabled() && legacy.getBoolean(id) && !legacy.getBoolean("native-migrated." + id)) {
-                award(player, id);
-                if (has(player, id)) {
-                    legacy.set("native-migrated." + id, true);
-                    changed = true;
-                }
-            }
-        }
-        if (changed) {
-            try {
-                legacy.save(file);
-            } catch (IOException exception) {
-                DrugsV2.getInstance().getLogger().warning("Could not save advancement migration: " + exception.getMessage());
-            }
-        }
     }
 }

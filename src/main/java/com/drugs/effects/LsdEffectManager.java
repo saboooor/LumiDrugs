@@ -25,8 +25,6 @@ import java.util.UUID;
  */
 public class LsdEffectManager implements Listener {
 
-    private static final BlockData PORTAL_BLOCK = Material.NETHER_PORTAL.createBlockData();
-    private static final BlockData AIR_BLOCK = Material.AIR.createBlockData();
 
     private final DrugsV2 plugin;
     private final Map<UUID, BukkitTask> activeTasks = new HashMap<>();
@@ -40,15 +38,13 @@ public class LsdEffectManager implements Listener {
         this.plugin = plugin;
     }
 
-    public void startEffect(Player player) {
+    public void startEffect(Player player, String drugId, int delayTicksConfigured, int durationTicksConfigured, Material block) {
         UUID uuid = player.getUniqueId();
         cleanupPlayer(uuid);
+        BlockData portalBlock = block.createBlockData();
 
-        int delaySeconds = Math.max(0, plugin.getConfig().getInt("lsd.delay", 5));
-        int durationSeconds = Math.max(1, plugin.getConfig().getInt("lsd.duration", 180));
-
-        long delayTicks = delaySeconds * 20L;
-        long durationTicks = durationSeconds * 20L;
+        long delayTicks = delayTicksConfigured;
+        long durationTicks = durationTicksConfigured;
         int now = Bukkit.getCurrentTick();
         activationTicks.put(uuid, now + (int) delayTicks);
         completionTicks.put(uuid, now + (int) (delayTicks + durationTicks));
@@ -61,10 +57,10 @@ public class LsdEffectManager implements Listener {
             }
 
             Location initialLocation = online.getLocation().getBlock().getLocation();
-            online.sendBlockChange(initialLocation, PORTAL_BLOCK);
+            online.sendBlockChange(initialLocation, portalBlock);
             lastKnownLocations.put(uuid, initialLocation);
 
-            DrugStatusTracker.applyEffect(online, "lsd", new PotionEffect(PotionEffectType.NAUSEA, (int) durationTicks, 0, false, true, true));
+            DrugStatusTracker.applyEffect(online, drugId, new PotionEffect(PotionEffectType.NAUSEA, (int) durationTicks, 0, false, true, true));
 
             BukkitTask moveTask = plugin.getServer().getScheduler().runTaskTimer(plugin, () -> {
                 Player current = plugin.getServer().getPlayer(uuid);
@@ -75,11 +71,11 @@ public class LsdEffectManager implements Listener {
 
                 Location previous = lastKnownLocations.get(uuid);
                 if (previous != null) {
-                    current.sendBlockChange(previous, AIR_BLOCK);
+                    current.sendBlockChange(previous, previous.getBlock().getBlockData());
                 }
 
                 Location next = current.getLocation().getBlock().getLocation();
-                current.sendBlockChange(next, PORTAL_BLOCK);
+                current.sendBlockChange(next, portalBlock);
                 lastKnownLocations.put(uuid, next);
             }, 2L, 2L);
             activeTasks.put(uuid, moveTask);
@@ -159,7 +155,7 @@ public class LsdEffectManager implements Listener {
         Location last = lastKnownLocations.remove(uuid);
         if (player != null && player.isOnline()) {
             if (last != null) {
-                player.sendBlockChange(last, AIR_BLOCK);
+                player.sendBlockChange(last, last.getBlock().getBlockData());
             }
             player.removePotionEffect(PotionEffectType.NAUSEA);
         }

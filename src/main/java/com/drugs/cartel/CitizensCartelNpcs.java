@@ -10,17 +10,10 @@ import net.citizensnpcs.api.npc.NPC;
 import net.citizensnpcs.api.npc.NPCRegistry;
 import net.citizensnpcs.trait.SkinTrait;
 import org.bukkit.*;
-import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.world.ChunkLoadEvent;
-import org.bukkit.event.world.WorldLoadEvent;
-import org.bukkit.persistence.PersistentDataType;
 
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
-import java.util.Objects;
 import java.util.UUID;
 
 /** Citizens owns persistent buyers; a separate memory-only registry owns temporary enforcers. */
@@ -30,17 +23,12 @@ final class CitizensCartelNpcs implements CartelNpcs, Listener {
     private final DrugsV2 plugin;
     private final CartelDealer dealer;
     private final NPCRegistry temporary;
-    private final YamlConfiguration bundledSkin;
-    private final CartelBuyerStore buyers;
     private boolean closed;
 
     CitizensCartelNpcs(DrugsV2 plugin, CartelDealer dealer) {
         this.plugin = plugin;
         this.dealer = dealer;
-        buyers = new CartelBuyerStore(plugin);
         temporary = CitizensAPI.createInMemoryNPCRegistry(TEMPORARY_REGISTRY);
-        bundledSkin = YamlConfiguration.loadConfiguration(new InputStreamReader(Objects.requireNonNull(
-                CitizensCartelNpcs.class.getResourceAsStream("/cartel-skin.yml")), StandardCharsets.UTF_8));
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         // Citizens loads saved NPCs during its own startup. Also handle its enable event below.
         plugin.getServer().getScheduler().runTask(plugin, this::reload);
@@ -53,17 +41,12 @@ final class CitizensCartelNpcs implements CartelNpcs, Listener {
     }
 
     @Override public Character create(Location location, String role) {
-        return create(location, role, null, -1);
-    }
-
-    private Character create(Location location, String role, UUID uuid, int id) {
+        if (!role.equals("enforcer")) return null;
         if (unavailableReason() != null) return null;
-        NPCRegistry registry = role.equals("buyer") ? CitizensAPI.getNPCRegistry() : temporary;
+        NPCRegistry registry = temporary;
         NPC npc = null;
         try {
-            String name = role.equals("buyer") ? buyerName() : "Cartel Enforcer";
-            npc = uuid == null ? registry.createNPC(EntityType.PLAYER, name)
-                    : registry.createNPC(EntityType.PLAYER, uuid, id, name);
+            npc = registry.createNPC(EntityType.PLAYER, "Cartel Enforcer");
             npc.data().setPersistent(ROLE, role);
             if (role.equals("enforcer")) {
                 npc.data().setPersistent("activation-range", 64);
@@ -77,10 +60,6 @@ final class CitizensCartelNpcs implements CartelNpcs, Listener {
                 return null;
             }
             if (npc.getEntity() instanceof LivingEntity living) living.setCanPickupItems(false);
-            if (role.equals("buyer")) {
-                registry.saveToStore();
-                buyers.remember(npc.getUniqueId(), npc.getId(), location);
-            }
             return new Citizen(npc);
         } catch (RuntimeException exception) {
             if (npc != null) npc.destroy();
@@ -90,7 +69,7 @@ final class CitizensCartelNpcs implements CartelNpcs, Listener {
     }
 
     @Override public Character find(Entity entity, String role) {
-        if (closed || !(entity instanceof Player)) return null;
+        if (closed || !(entity instanceof LivingEntity)) return null;
         NPC npc = (role.equals("buyer") ? CitizensAPI.getNPCRegistry() : temporary).getNPC(entity);
         return owns(npc, role) ? new Citizen(npc) : null;
     }
@@ -99,9 +78,24 @@ final class CitizensCartelNpcs implements CartelNpcs, Listener {
         return npc != null && role.equals(npc.data().get(ROLE, ""));
     }
 
-    private String buyerName() {
-        String name = dealer.settings().getString("npc.name", "Pablo").trim();
-        return name.isEmpty() ? "Pablo" : name;
+    @Override public boolean linkBuyer(int npcId) {
+        if (unavailableReason() != null) return false;
+        NPC npc = CitizensAPI.getNPCRegistry().getById(npcId);
+        if (npc == null) return false;
+        String role = npc.data().get(ROLE, "");
+        if (!role.isEmpty() && !role.equals("buyer")) return false;
+        npc.data().setPersistent(ROLE, "buyer");
+        CitizensAPI.getNPCRegistry().saveToStore();
+        return true;
+    }
+
+    @Override public boolean unlinkBuyer(int npcId) {
+        if (unavailableReason() != null) return false;
+        NPC npc = CitizensAPI.getNPCRegistry().getById(npcId);
+        if (!owns(npc, "buyer")) return false;
+        npc.data().remove(ROLE);
+        CitizensAPI.getNPCRegistry().saveToStore();
+        return true;
     }
 
     private void applySkin(NPC npc) {
@@ -111,86 +105,15 @@ final class CitizensCartelNpcs implements CartelNpcs, Listener {
         skin.setShouldUpdateSkins(false);
         String username = dealer.settings().getString("npc.skin-name", "").trim();
         if (!username.isEmpty()) skin.setSkinName(username);
-        else skin.setSkinPersistent(bundledSkin.getString("name"), bundledSkin.getString("signature"),
-                bundledSkin.getString("texture"));
+        else skin.setSkinPersistent(dealer.settings().getString("npc.skin.name"), dealer.settings().getString("npc.skin.signature"),
+                dealer.settings().getString("npc.skin.texture"));
     }
 
-    @Override public void reload() {
-        if (closed) return;
-        for (NPC npc : CitizensAPI.getNPCRegistry()) {
-            if (owns(npc, "buyer")) {
-                npc.setName(buyerName());
-                applySkin(npc);
-                buyers.remember(npc.getUniqueId(), npc.getId(), npc.getStoredLocation());
-                if (npc.getEntity() instanceof LivingEntity living) living.setCanPickupItems(false);
-            }
-        }
-        for (var buyer : buyers.all()) recoverBuyer(buyer);
-        for (World world : Bukkit.getWorlds()) {
-            for (Villager villager : world.getEntitiesByClass(Villager.class)) migrate(villager);
-        }
-    }
-
-    private Location savedLocation(CartelBuyerStore.Buyer buyer) {
-        World world = Bukkit.getWorld(buyer.worldId());
-        if (world == null) world = Bukkit.getWorld(buyer.worldName());
-        return world == null ? null : new Location(world, buyer.x(), buyer.y(), buyer.z(), buyer.yaw(), buyer.pitch());
-    }
-
-    private void recoverBuyer(CartelBuyerStore.Buyer buyer) {
-        NPCRegistry registry = CitizensAPI.getNPCRegistry();
-        NPC existing = registry.getByUniqueId(buyer.uuid());
-        if (existing != null) {
-            if (!owns(existing, "buyer")) {
-                existing.data().setPersistent(ROLE, "buyer");
-                existing.setName(buyerName());
-                applySkin(existing);
-            }
-            if (existing.isSpawned()) return;
-        }
-        Location location = savedLocation(buyer);
-        if (location == null || !location.getWorld().isChunkLoaded(location.getBlockX() >> 4, location.getBlockZ() >> 4)) return;
-        if (existing != null) {
-            // The manifest's stable UUID identifies our buyer even if its role tag was lost.
-            existing.data().setPersistent(ROLE, "buyer");
-            restoreBuyer(existing, location);
-            return;
-        }
-        int id = buyer.npcId();
-        if (registry.getById(id) != null) {
-            // Preserve unrelated Citizens NPCs that have since reused the numeric ID.
-            id = 0;
-            for (NPC npc : registry) id = Math.max(id, npc.getId() + 1);
-        }
-        create(location, "buyer", buyer.uuid(), id);
-    }
-
-    private void restoreBuyer(NPC npc, Location fallback) {
-        if (closed || !owns(npc, "buyer") || npc.isSpawned()) return;
-        Location location = npc.getStoredLocation();
-        if (location == null || location.getWorld() == null) location = fallback;
-        if (location == null || location.getWorld() == null) return;
-        // Recovery must not synchronously load or generate chunks during a reload.
-        if (!location.getWorld().isChunkLoaded(location.getBlockX() >> 4, location.getBlockZ() >> 4)) return;
-        if (!npc.spawn(location)) {
-            plugin.getLogger().warning("Could not restore cartel buyer at " + location
-                    + "; will retry when its chunk loads.");
-        } else if (npc.getEntity() instanceof LivingEntity living) {
-            living.setCanPickupItems(false);
-        }
-    }
-
-    private void migrate(Villager villager) {
-        NamespacedKey oldKey = new NamespacedKey(plugin, "cartel_dealer");
-        if (villager.getPersistentDataContainer().has(oldKey, PersistentDataType.BYTE)
-                && create(villager.getLocation(), "buyer") != null) villager.remove();
-    }
+    // Buyer roles persist in Citizens metadata. Citizens alone manages their lifecycle.
+    @Override public void reload() {}
 
     @Override public void shutdown() {
         if (closed) return;
-        for (NPC npc : CitizensAPI.getNPCRegistry()) {
-            if (owns(npc, "buyer")) buyers.remember(npc.getUniqueId(), npc.getId(), npc.getStoredLocation());
-        }
         closed = true;
         temporary.deregisterAll();
         CitizensAPI.removeNamedNPCRegistry(TEMPORARY_REGISTRY);
@@ -217,24 +140,6 @@ final class CitizensCartelNpcs implements CartelNpcs, Listener {
     }
 
     @EventHandler public void onCitizensEnable(CitizensEnableEvent event) { reload(); }
-    @EventHandler public void onWorldLoad(WorldLoadEvent event) {
-        // Let Citizens resolve stored world references before attempting recovery.
-        if (!closed) plugin.getServer().getScheduler().runTask(plugin, this::reload);
-    }
-
-    @EventHandler public void onChunkLoad(ChunkLoadEvent event) {
-        if (closed) return;
-        for (NPC npc : CitizensAPI.getNPCRegistry()) {
-            if (owns(npc, "buyer")) buyers.remember(npc.getUniqueId(), npc.getId(), npc.getStoredLocation());
-        }
-        for (Entity entity : event.getChunk().getEntities()) {
-            if (entity instanceof Villager villager) migrate(villager);
-        }
-        for (var buyer : buyers.all()) {
-            if (buyer.inChunk(event.getWorld().getUID(), event.getChunk().getX(), event.getChunk().getZ())) recoverBuyer(buyer);
-        }
-    }
-
     private final class Citizen implements Character {
         private final NPC npc;
         Citizen(NPC npc) { this.npc = npc; }
@@ -242,10 +147,12 @@ final class CitizensCartelNpcs implements CartelNpcs, Listener {
         public UUID id() { return npc.getUniqueId(); }
         public boolean valid() { return npc.isSpawned() && npc.getEntity() != null && npc.getEntity().isValid(); }
         public void destroy() {
-            NPCRegistry registry = npc.getOwningRegistry();
-            buyers.forget(npc.getUniqueId());
+            if (owns(npc, "buyer")) {
+                unlinkBuyer(npc.getId());
+                return;
+            }
             npc.destroy();
-            registry.saveToStore();
+
         }
     }
 }

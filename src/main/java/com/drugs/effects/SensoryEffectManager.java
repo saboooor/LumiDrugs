@@ -38,18 +38,6 @@ import java.util.concurrent.ThreadLocalRandom;
  */
 public class SensoryEffectManager implements Listener {
 
-    private static final List<Material> PSYCHEDELIC_BLOCKS = List.of(
-            Material.MAGENTA_GLAZED_TERRACOTTA,
-            Material.CYAN_GLAZED_TERRACOTTA,
-            Material.PURPLE_GLAZED_TERRACOTTA,
-            Material.LIME_GLAZED_TERRACOTTA,
-            Material.AMETHYST_BLOCK,
-            Material.SHROOMLIGHT,
-            Material.SEA_LANTERN,
-            Material.CRIMSON_NYLIUM,
-            Material.WARPED_NYLIUM
-    );
-
     private static final List<Material> SCHIZO_GLITCH_BLOCKS = List.of(
             Material.CRYING_OBSIDIAN,
             Material.SCULK,
@@ -133,13 +121,8 @@ public class SensoryEffectManager implements Listener {
         // 2. Drug-specific ongoing sensory effects
         int durationTicks = Math.max(100, (int) Math.round(400 * multiplier));
         switch (id) {
-            case "shrooms", "lsd", "dmt", "salvia" -> {
-                startPsychedelicVisuals(player, id.equals("lsd") ? 1200 : id.equals("dmt") ? 900 : 800);
-                startParanoia(player, durationTicks);
-            }
             case "meth" -> {
                 startHeartRacing(player, durationTicks, 1.6f);
-                startParanoia(player, durationTicks);
             }
             case "cocaine" -> startHeartRacing(player, 200, 1.8f);
             case "caffeine", "energy_drink" -> handleCaffeineUse(player, id, durationTicks);
@@ -164,11 +147,38 @@ public class SensoryEffectManager implements Listener {
             default -> {}
         }
 
-        // High-tolerance paranoia: using any drug near or at the overdose limit can trigger phantom hallucinations
-        int level = ToleranceTracker.getToleranceLevel(player, id);
-        int max = ToleranceConfigLoader.getMaxTolerance(id);
-        if (level >= Math.max(1, max - 1)) {
-            spawnPhantomMobHallucination(player);
+        applyHallucinations(player, id, multiplier);
+
+    }
+
+    private void applyHallucinations(Player player, String drugId, double potency) {
+        List<HallucinationSettings.Effect> definitions = HallucinationSettings.forDrug(drugId);
+        if (definitions.isEmpty()) return;
+        int tolerance = ToleranceTracker.getToleranceLevel(player, drugId);
+        int maximum = ToleranceConfigLoader.getMaxTolerance(drugId);
+        for (var effect : definitions) {
+            if (!effect.matches(ThreadLocalRandom.current().nextDouble(), tolerance, maximum)) continue;
+            Runnable start = () -> {
+                if (!player.isOnline() || player.isDead()) return;
+                int duration = effect.duration(potency);
+                switch (effect.type()) {
+                    case PSYCHEDELIC -> startPsychedelicVisuals(player, duration, effect);
+                    case PARANOIA -> startParanoia(player, duration, effect);
+                    case PHANTOM -> spawnPhantomMobHallucination(player, effect, duration);
+                    case PORTAL -> {
+                        if (plugin.getLsdEffectManager() != null)
+                            plugin.getLsdEffectManager().startEffect(player, drugId, effect.delayTicks(), duration, effect.blocks().getFirst());
+                    }
+                    case BLOCK_DISGUISE -> {
+                        if (plugin.getSalviaEffectManager() != null)
+                            plugin.getSalviaEffectManager().startEffect(player, effect.delayTicks(), duration, effect.blocks().getFirst());
+                    }
+                }
+            };
+            if (effect.delayTicks() == 0 || effect.type() == HallucinationSettings.Type.PORTAL
+                    || effect.type() == HallucinationSettings.Type.BLOCK_DISGUISE) start.run();
+            else scheduleDrugTask(player.getUniqueId(), plugin.getServer().getScheduler()
+                    .runTaskLater(plugin, start, effect.delayTicks()));
         }
     }
 
@@ -180,7 +190,7 @@ public class SensoryEffectManager implements Listener {
         BukkitTask existing = edibleDelayTasks.remove(uuid);
         if (existing != null) existing.cancel();
 
-        int delaySeconds = Math.max(1, plugin.getConfig().getInt("edible.delay", 10));
+        int delaySeconds = Math.max(1, com.drugs.drug.DrugRegistry.setting("edible.delay", 10));
         long delayTicks = delaySeconds * 20L;
         edibleActivationTicks.put(uuid, Bukkit.getCurrentTick() + (int) delayTicks);
 
@@ -252,7 +262,7 @@ public class SensoryEffectManager implements Listener {
         }
     }
 
-    private void startPsychedelicVisuals(Player player, int durationTicks) {
+    private void startPsychedelicVisuals(Player player, int durationTicks, HallucinationSettings.Effect effect) {
         UUID uuid = player.getUniqueId();
         final int[] elapsed = {0};
         BukkitTask task = plugin.getServer().getScheduler().runTaskTimer(plugin, () -> {
@@ -260,7 +270,7 @@ public class SensoryEffectManager implements Listener {
                 resetVisuals(player);
                 return;
             }
-            elapsed[0] += 20;
+            elapsed[0] += effect.intervalTicks();
 
             // Smooth client-side sky time shift
             long shiftedTime = (player.getWorld().getTime() + (elapsed[0] * 180L)) % 24000L;
@@ -273,7 +283,7 @@ public class SensoryEffectManager implements Listener {
                 Block block = base.clone().add(rng.nextInt(-5, 6), rng.nextInt(-2, 3), rng.nextInt(-5, 6)).getBlock();
                 if (block.getType().isSolid() && block.getType() != Material.BEDROCK && block.getType() != Material.BARRIER) {
                     Location loc = block.getLocation();
-                    BlockData fake = PSYCHEDELIC_BLOCKS.get(rng.nextInt(PSYCHEDELIC_BLOCKS.size())).createBlockData();
+                    BlockData fake = effect.blocks().get(rng.nextInt(effect.blocks().size())).createBlockData();
                     player.sendBlockChange(loc, fake);
                     morphedBlocks.computeIfAbsent(uuid, k -> new HashSet<>()).add(loc);
                     scheduleDrugTask(uuid, plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
@@ -284,7 +294,7 @@ public class SensoryEffectManager implements Listener {
                 }
             }
             player.spawnParticle(Particle.END_ROD, player.getEyeLocation(), 6, 2.5, 1.5, 2.5, 0.02);
-        }, 20L, 20L);
+        }, 20L, effect.intervalTicks());
         scheduleDrugTask(uuid, task);
         scheduleDrugTask(uuid, plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
             task.cancel();
@@ -390,20 +400,20 @@ public class SensoryEffectManager implements Listener {
         }
     }
 
-    private void startParanoia(Player player, int durationTicks) {
+    private void startParanoia(Player player, int durationTicks, HallucinationSettings.Effect effect) {
         UUID uuid = player.getUniqueId();
         final int[] elapsed = {0};
         BukkitTask task = plugin.getServer().getScheduler().runTaskTimer(plugin, () -> {
             if (!player.isOnline() || player.isDead() || elapsed[0] >= durationTicks) return;
-            elapsed[0] += 60;
+            elapsed[0] += effect.intervalTicks();
             ThreadLocalRandom rng = ThreadLocalRandom.current();
-            if (rng.nextDouble() < 0.65) {
+            if (rng.nextDouble() < effect.shadowChance()) {
                 spawnShadowFigureBehind(player);
             }
-            if (rng.nextDouble() < 0.55) {
-                spawnPhantomMobHallucination(player);
+            if (rng.nextDouble() < effect.phantomChance()) {
+                spawnPhantomMobHallucination(player, effect, effect.mobLifetimeTicks());
             }
-        }, 40L, 60L);
+        }, 40L, effect.intervalTicks());
         scheduleDrugTask(uuid, task);
         scheduleDrugTask(uuid, plugin.getServer().getScheduler().runTaskLater(plugin, task::cancel, durationTicks + 5L));
     }
@@ -629,6 +639,10 @@ public class SensoryEffectManager implements Listener {
      * and vanishes into smoke and souls when attacked, clicked, or approached.
      */
     public Entity spawnPhantomMobHallucination(Player player) {
+        return spawnPhantomMobHallucination(player, null, 80);
+    }
+
+    private Entity spawnPhantomMobHallucination(Player player, HallucinationSettings.Effect effect, int lifetimeTicks) {
         if (player == null || !player.isOnline() || player.isDead() || player.getWorld() == null) return null;
         UUID uuid = player.getUniqueId();
         Set<Entity> currentSet = activeHallucinations.computeIfAbsent(uuid, k -> new HashSet<>());
@@ -645,7 +659,8 @@ public class SensoryEffectManager implements Listener {
         Vector toPlayer = player.getLocation().toVector().subtract(spawnLoc.toVector()).setY(0);
         if (toPlayer.lengthSquared() > 0.01) spawnLoc.setDirection(toPlayer);
 
-        EntityType type = PHANTOM_MOB_TYPES[rng.nextInt(PHANTOM_MOB_TYPES.length)];
+        EntityType type = effect == null ? PHANTOM_MOB_TYPES[rng.nextInt(PHANTOM_MOB_TYPES.length)]
+                : effect.mobs().get(rng.nextInt(effect.mobs().size()));
         Entity spawned;
         try {
             spawned = player.getWorld().spawnEntity(spawnLoc, type);
@@ -692,7 +707,7 @@ public class SensoryEffectManager implements Listener {
         final BukkitTask[] stalkTask = new BukkitTask[1];
         stalkTask[0] = plugin.getServer().getScheduler().runTaskTimer(plugin, () -> {
             ticks[0] += 4;
-            if (!player.isOnline() || player.isDead() || !spawned.isValid() || ticks[0] >= 80) {
+            if (!player.isOnline() || player.isDead() || !spawned.isValid() || ticks[0] >= lifetimeTicks) {
                 if (stalkTask[0] != null) stalkTask[0].cancel();
                 vanishHallucination(player, spawned, false);
                 return;
@@ -712,7 +727,7 @@ public class SensoryEffectManager implements Listener {
             Vector step = targetLoc.toVector().subtract(mobLoc.toVector());
             if (step.lengthSquared() > 0.01) {
                 Vector dir = step.clone().normalize();
-                Location next = mobLoc.clone().add(dir.clone().multiply(0.32));
+                Location next = mobLoc.clone().add(dir.clone().multiply(effect == null ? 0.32 : effect.speed()));
                 next.setDirection(dir.setY(0));
                 spawned.teleport(next);
             }

@@ -1,0 +1,85 @@
+# Inhalants family. Hallucinations are optional named effects under drugs.<id>.hallucinations.
+# Set enabled: false on an entry, or hallucinations: {} to disable all for a drug.
+drugs:
+  glue:
+    item:
+      material: MILK_BUCKET
+      display-name: '&fGlue'
+      lore:
+      - '&7Ever wanted to sniff glue in Minecraft?'
+      - '&a&oSlow Falling I'
+      - '&c&oNausea II'
+      - '&c&oDarkness I'
+      - '&c&oPoison I'
+      - '&c&oMining Fatigue II'
+      - '&7OD Risk: &4&lHigh'
+      - '&7Abuse Potential: &4&lHigh'
+      effects:
+        SLOW_FALLING:
+          duration: 160
+          amplifier: 0
+        CONFUSION:
+          duration: 400
+          amplifier: 1
+        DARKNESS:
+          duration: 300
+          amplifier: 0
+        POISON:
+          duration: 800
+          amplifier: 0
+        SLOW_DIGGING:
+          duration: 1200
+          amplifier: 1
+    recipe:
+      type: furnace
+      input-crop: resin
+      cooking-time: 200
+      experience: 0.1
+    addiction:
+      addictive: true
+      points_per_use: 1
+      addicted_at_points: 1
+      withdrawal_after_seconds: 180
+      decay:
+        enabled: true
+        points_decay_per_minute: 0.25
+      withdrawal_effects:
+      - type: POISON
+        amplifier: 1
+      - type: CONFUSION
+        amplifier: 0
+      - type: SLOW_DIGGING
+        amplifier: 1
+    overdose:
+      effects:
+      - type: effects
+        potion_effects:
+        - effect: NAUSEA
+          duration: 1200
+          amplifier: 0
+        - effect: BLINDNESS
+          duration: 600
+          amplifier: 0
+        - effect: SLOWNESS
+          duration: 1200
+          amplifier: 1
+      - type: damage
+        amount: 8
+        message: '&cYou feel faint after inhaling too much glue!'
+    hallucinations:
+      high-tolerance:
+        type: phantom
+        near-tolerance-limit: true
+        chance: 1.0
+        duration-seconds: 4
+        mobs:
+        - CREEPER
+        - ENDERMAN
+        - CAVE_SPIDER
+        - PHANTOM
+        - WITHER_SKELETON
+        speed: 0.32
+crops:
+  resin:
+    plant-block: SPRUCE_SAPLING
+    growth-seconds: 600

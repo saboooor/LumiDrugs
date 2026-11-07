@@ -8,6 +8,12 @@
 # IntelliJ
 out/
 
+# Eclipse
+.classpath
+.project
+.settings/
+bin/
+
 # Compiled class file
 *.class
 
@@ -18,7 +24,6 @@ out/
 *.ctxt
 
 # Package Files #
-*.jar
 *.war
 *.nar
 *.ear
@@ -110,12 +115,10 @@ buildNumber.properties
 .flattened-pom.xml
 
 # Common working directory
-run/
+run*/
+build
+.gradle
+/*.jar
 
-# Gradle
-.gradle/
-**/build/
-!gradle/wrapper/gradle-wrapper.jar
-
-# Python resource-pack build cache
-__pycache__/
+# JVM heap dumps
+*.hprof

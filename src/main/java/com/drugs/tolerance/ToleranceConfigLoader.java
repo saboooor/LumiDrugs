@@ -17,13 +17,11 @@ public class ToleranceConfigLoader {
     private static final Map<String, Map<Integer, Double>> scaling = new HashMap<>();
 
     public static void load(File dataFolder) {
-        File file = new File(dataFolder, "tolerance.yml");
-        if (!file.exists()) {
-            DrugsV2.getInstance().saveResource("tolerance.yml", false);
-        }
+        FileConfiguration config = com.drugs.config.DrugFamilyConfigs.view(dataFolder, "tolerance");
 
-        FileConfiguration config = YamlConfiguration.loadConfiguration(file);
-
+        maxTolerance.clear();
+        decayMinutes.clear();
+        scaling.clear();
         for (String drug : config.getKeys(false)) {
             ConfigurationSection section = config.getConfigurationSection(drug);
             if (section == null) continue;

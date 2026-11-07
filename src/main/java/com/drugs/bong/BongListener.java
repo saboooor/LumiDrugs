@@ -223,7 +223,7 @@ public class BongListener implements Listener {
             }
 
             String taggedAnchor = nearby.getPersistentDataContainer().get(getAnchorDataKey(), PersistentDataType.STRING);
-            if (anchorTag.equals(taggedAnchor) || isLegacyEntityAtAnchor(nearby, anchor)) {
+            if (anchorTag.equals(taggedAnchor)) {
                 nearby.remove();
             }
         }
@@ -291,15 +291,6 @@ public class BongListener implements Listener {
 
     private String getAnchorTag(Location anchor) {
         return anchor.getWorld().getUID() + ":" + anchor.getBlockX() + ":" + anchor.getBlockY() + ":" + anchor.getBlockZ();
-    }
-
-    private boolean isLegacyEntityAtAnchor(Entity entity, Location anchor) {
-        Location entityLocation = entity.getLocation();
-        return entityLocation.getWorld() != null
-                && entityLocation.getWorld().getUID().equals(anchor.getWorld().getUID())
-                && entityLocation.getBlockX() == anchor.getBlockX()
-                && entityLocation.getBlockY() == anchor.getBlockY()
-                && entityLocation.getBlockZ() == anchor.getBlockZ();
     }
 
     private Vector3f rotateOffset(Vector3f offset, float yawDegrees) {

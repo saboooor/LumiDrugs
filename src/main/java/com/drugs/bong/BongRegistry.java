@@ -157,13 +157,6 @@ public final class BongRegistry {
                     displays.add(parsed);
                 }
             }
-            if (displays.isEmpty()) {
-                UUID legacyDisplay = parseUuid(yaml.getString(node + ".display"));
-                if (legacyDisplay != null) {
-                    displays.add(legacyDisplay);
-                }
-            }
-
             UUID interaction = parseUuid(yaml.getString(node + ".interaction"));
             int durability = Math.max(0, yaml.getInt(node + ".durability", MechanicsConfig.getBongDurabilityUses()));
 

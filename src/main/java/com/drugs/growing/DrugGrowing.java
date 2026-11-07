@@ -51,7 +51,6 @@ public final class DrugGrowing implements Listener {
     public DrugGrowing(DrugsV2 plugin) {
         this.plugin = plugin;
         file = new File(plugin.getDataFolder(), "ingredient_plants.yml");
-        if (!new File(plugin.getDataFolder(), "growing.yml").exists()) plugin.saveResource("growing.yml", false);
         reloadConfiguration();
         var saved = YamlConfiguration.loadConfiguration(file);
         for (String key : saved.getKeys(false)) {
@@ -63,9 +62,9 @@ public final class DrugGrowing implements Listener {
     }
 
     public void reloadConfiguration() {
-        var config = YamlConfiguration.loadConfiguration(new File(plugin.getDataFolder(), "growing.yml"));
+        var config = com.drugs.config.DrugFamilyConfigs.view(plugin.getDataFolder(), "growing");
         crops.clear();
-        add("cannabis", "Cannabis Buds", Material.FERN, com.drugs.config.MechanicsConfig.getCannabisGrowthSeconds(), config);
+        add("cannabis", "Cannabis Buds", Material.FERN, 600, config);
         add("poppy", "Poppy Pods", Material.POPPY, 600, config);
         add("mushroom", "Cultivated Mushrooms", Material.RED_MUSHROOM, 480, config);
         add("ephedra", "Ephedra Leaves", Material.QUARTZ, 900, config);
@@ -86,7 +85,6 @@ public final class DrugGrowing implements Listener {
         for (String id : crops.keySet()) {
             if (id.equals("cannabis")) { plantBlocks.put(id, Material.FERN); continue; }
             Material chosen = Material.matchMaterial(config.getString(id + ".plant-block", defaults.get(id).name()));
-            if (id.equals("salvia") && chosen == Material.FERN) chosen = Material.LILAC;
             if (chosen == null || !defaults.containsValue(chosen)) {
                 plugin.getLogger().warning("Invalid plant-block for " + id + "; using " + defaults.get(id));
                 chosen = defaults.get(id);
@@ -104,7 +102,7 @@ public final class DrugGrowing implements Listener {
 
     public static int growthSeconds(String crop) {
         Crop definition = crops.get(crop);
-        return definition != null ? definition.seconds() : com.drugs.config.MechanicsConfig.getCannabisGrowthSeconds();
+        return definition != null ? definition.seconds() : 600;
     }
 
     public static Set<String> cropIds() { return Collections.unmodifiableSet(crops.keySet()); }
@@ -299,8 +297,7 @@ public final class DrugGrowing implements Listener {
             return block.getType() == Material.FERN || block.getType() == Material.LARGE_FERN;
 
         return plant != null && crops.containsKey(plant.crop())
-                && (block.getType() == plantBlock(plant.crop()) || block.getType() == Material.WHEAT
-                    || (plant.crop().equals("salvia") && block.getType() == Material.FERN));
+                && block.getType() == plantBlock(plant.crop());
     }
 
     @EventHandler(ignoreCancelled = true)
@@ -495,12 +492,6 @@ public final class DrugGrowing implements Listener {
         if (event.getBlocks().stream().anyMatch(block -> plants.containsKey(key(block)))) event.setCancelled(true);
     }
     private void tick() {
-        // Import legacy strain-only saves, including plants in chunks loaded later.
-        for (var location : CannabisPlantRegistry.getPlantsSnapshot().keySet()) {
-            if (!location.getWorld().isChunkLoaded(location.getBlockX() >> 4, location.getBlockZ() >> 4)) continue;
-            Block block = location.getBlock();
-            if (block.getType() == Material.FERN || block.getType() == Material.LARGE_FERN) trackCannabis(block);
-        }
         var iterator = plants.entrySet().iterator();
         while (iterator.hasNext()) {
             var entry = iterator.next();
