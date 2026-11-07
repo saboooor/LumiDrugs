@@ -15,6 +15,10 @@ manager:
           options:
             lumi-follow:
               enabled: true
+              soliciting: true
+              solicitation-radius: 3.5
+              approach-timeout-seconds: 60
+              status-data: solicitation
               npc-data: npc
               open-doors: true
               climbing: true

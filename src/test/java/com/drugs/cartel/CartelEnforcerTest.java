@@ -117,6 +117,7 @@ class CartelEnforcerTest {
         quest = mock(EnforcerQuests.Session.class);
         when(quests.begin(eq(player), anyString(), anyInt())).thenReturn(quest);
         when(quest.active()).thenReturn(true);
+        when(quest.solicitation()).thenReturn("READY");
         when(quest.complete()).thenReturn(true);
         enforcer = new CartelEnforcer(plugin, dealer, time::get, quests);
     }
@@ -249,7 +250,18 @@ class CartelEnforcerTest {
         }
     }
 
-    @Test void deadlineDoesNotStartUntilTheNpcReachesThePlayer() {
+    @Test void solicitationTimeoutCancelsWithoutPenalizingPlayer() {
+        when(quest.solicitation()).thenReturn("TIMED_OUT");
+        assertTrue(enforcer.spawn(player, "joint", 16, true));
+        enforcer.tick();
+        verify(character).destroy();
+        verify(quest).cancel();
+        assertEquals(0, enforcer.refusalStreak(player));
+        verify(player, never()).sendMessage(contains("within 10s"));
+    }
+
+    @Test void deadlineDoesNotStartUntilLumiFollowReportsReady() {
+        when(quest.solicitation()).thenReturn("APPROACHING");
         when(npc.getLocation()).thenReturn(new Location(world, 10, 64, 0));
         assertTrue(enforcer.spawn(player, "joint", 16, true));
         time.addAndGet(15000);
@@ -257,6 +269,9 @@ class CartelEnforcerTest {
         verify(player, never()).sendMessage(contains("within 10s"));
         verify(player, never()).sendMessage(contains("Watch your back"));
         when(npc.getLocation()).thenReturn(new Location(world, 1, 64, 0));
+        enforcer.tick();
+        verify(player, never()).sendMessage(contains("16 joint within 10s"));
+        when(quest.solicitation()).thenReturn("READY");
         enforcer.tick();
         verify(player).sendMessage(contains("16 joint within 10s"));
         time.addAndGet(9000);

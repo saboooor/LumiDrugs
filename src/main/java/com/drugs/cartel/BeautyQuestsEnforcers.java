@@ -119,6 +119,9 @@ final class BeautyQuestsEnforcers implements EnforcerQuests {
                 public void npc(java.util.UUID entityId) {
                     if (active()) stage.npc(quester, entityId);
                 }
+                public String solicitation() {
+                    return active() ? stage.getController().getData(quester, "solicitation", String.class) : null;
+                }
                 public void progress(int delivered) {
                     if (active()) stage.progress(quester, drug, amount, delivered);
                 }

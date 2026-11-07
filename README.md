@@ -405,13 +405,15 @@ LumiDrugs creates `plugins/BeautyQuests/quests/lumidrugs-cartel.yml` automatical
 BeautyQuests loads its quests. It chooses an unused ID starting at 9000 and reuses that
 file on future starts, preserving edits to its name, prerequisites and rewards. The selected
 ID is printed in the startup log; use `/quests edit <id>` to customize it. A setup error is
-logged clearly and disables encounters until fixed. Existing quest files are left unchanged.
+logged clearly and disables encounters until fixed. The managed quest gains soliciting settings once, with its original saved as
+`lumidrugs-cartel.yml.pre-soliciting.backup`; existing explicit settings are preserved.
 
 For everyday tuning, change the quantity range, spawn chance, cooldown and delivery deadline
 in `cartel.yml`, then use `/cartel reload`. Movement is controlled by the quest stage's
 `options.lumi-follow` section; install the
 standalone LumiFollow plugin for following, climbing and recovery. LumiDrugs only supplies
-the NPC entity UUID as quest data and has no LumiFollow code or plugin dependency. Old
+the NPC entity UUID as quest data and consumes LumiFollow solicitation status. It does
+not bundle LumiFollow; the quest configuration selects the movement and solicitation provider. Old
 `enforcer.wall-climbing` and `enforcer.open-doors` keys in `cartel.yml` are ignored; move any
 custom settings into the quest option. See [LumiFollow setup](https://github.com/saboooor/LumiFollow#readme).
 
@@ -479,7 +481,8 @@ Production code lives in `src/main/java/com/drugs`, grouped by feature: `farm`, 
 
 Cartel enforcer movement is owned by the independent [LumiFollow](https://github.com/saboooor/LumiFollow#readme)
 BeautyQuests option configured in the quest YAML. LumiDrugs manages the delivery objective
-and publishes its NPC entity UUID; it does not bundle or depend on LumiFollow. Install
+and publishes its NPC entity UUID. LumiFollow owns solicitation approach and arrival;
+LumiDrugs consumes `APPROACHING`, `READY`, and `TIMED_OUT` from quest data. It does not bundle LumiFollow. Install
 `LumiFollow.jar` from the [LumiFollow repository](https://github.com/saboooor/LumiFollow) to enable movement for quests using that option.
 LumiFollow depends on Citizens and BeautyQuests and can be used without LumiDrugs.
 
@@ -555,3 +558,12 @@ Configure `cartel.yml` → `supply-contracts.enabled`, `amount` (1–2304), and
 `deadline-hours` (1–168); `/cartel reload` applies changes to new contracts. Accepted
 contracts keep their original amount and deadline. Turning off new contracts does not
 cancel accepted ones.
+
+Cartel delivery quests must enable `options.lumi-follow.soliciting: true` with
+`npc-data: npc` and `status-data: solicitation`. Set `solicitation-radius: 3.5`
+and `approach-timeout-seconds: 60` there to tune the approach. The previous
+`enforcer.approach-timeout-seconds` setting in `cartel.yml` is ignored. The managed
+quest is upgraded automatically; custom quests must add these settings themselves.
+LumiDrugs still owns demand selection, dispatch frequency, delivery deadlines,
+payments, warnings, and refusal consequences. Approach timeout cancels without a
+refusal penalty. Quests configured with the LumiFollow option need its updated JAR and a server restart.

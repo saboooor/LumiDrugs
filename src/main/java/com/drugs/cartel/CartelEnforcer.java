@@ -181,7 +181,7 @@ public final class CartelEnforcer implements Listener {
             return "BeautyQuests could not start the cartel quest. Check its requirements and the server log.";
         }
         quest.npc(npc.entity().getUniqueId());
-        Encounter encounter = new Encounter(npc, drug, amount, now, quest);
+        Encounter encounter = new Encounter(npc, drug, amount, quest);
         encounters.put(player.getUniqueId(), encounter);
         say(player, encounter, "arrival", "&8Someone from the cartel is heading your way.", 0);
         return null;
@@ -245,11 +245,10 @@ public final class CartelEnforcer implements Listener {
                 finish(id);
                 continue;
             }
-            double distance = player.getWorld().equals(encounter.npc.entity().getWorld())
-                    ? player.getLocation().distanceSquared(encounter.npc.entity().getLocation()) : Double.MAX_VALUE;
             if (encounter.deadline == 0) {
-                if (distance <= 12.25 && encounter.npc.entity().hasLineOfSight(player)) beginDemand(player, encounter, now);
-                else if (now - encounter.spawnedAt >= seconds("approach-timeout-seconds", 60, 10, 300) * 1000L) {
+                String solicitation = encounter.quest.solicitation();
+                if ("READY".equals(solicitation)) beginDemand(player, encounter, now);
+                else if ("TIMED_OUT".equals(solicitation)) {
                     finish(id);
                     continue;
                 }
@@ -402,6 +401,7 @@ public final class CartelEnforcer implements Listener {
                 || !encounter.npc.entity().hasLineOfSight(player)) return;
         long now = clock.getAsLong();
         if (encounter.deadline == 0) {
+            if (!"READY".equals(encounter.quest.solicitation())) return;
             beginDemand(player, encounter, now);
             EnforcerGuide.open(plugin, player, encounter.drug);
             return; // First interaction explains the deal before any items are sold.
@@ -560,19 +560,17 @@ public final class CartelEnforcer implements Listener {
         final CartelNpcs.Character npc;
         final String drug;
         final int amount;
-        final long spawnedAt;
         final EnforcerQuests.Session quest;
         Location hideout;
         boolean travelExtended;
         int delivered;
         long deadline;
         long nextWarning;
-        Encounter(CartelNpcs.Character npc, String drug, int amount, long spawnedAt, EnforcerQuests.Session quest) {
+        Encounter(CartelNpcs.Character npc, String drug, int amount, EnforcerQuests.Session quest) {
             this.npc = npc;
             this.quest = quest;
             this.drug = drug;
             this.amount = amount;
-            this.spawnedAt = spawnedAt;
         }
     }
 }

@@ -30,6 +30,16 @@ final class CartelQuestSetup {
                 throw new IOException(destination + " does not contain a Cartel delivery stage. Use a custom quest ID or fix this file.");
             }
             int existingId = id(saved, destination);
+            if (!saved.isSet(FOLLOW + ".soliciting")) {
+                Path backup = folder.resolve(FILE_NAME + ".pre-soliciting.backup");
+                if (!Files.exists(backup)) Files.copy(destination, backup);
+                if (!saved.isSet(FOLLOW + ".enabled")) saved.set(FOLLOW + ".enabled", true);
+                saved.set(FOLLOW + ".soliciting", true);
+                saved.set(FOLLOW + ".solicitation-radius", 3.5);
+                saved.set(FOLLOW + ".approach-timeout-seconds", 60);
+                saved.set(FOLLOW + ".status-data", "solicitation");
+                Files.writeString(destination, saved.saveToString(), StandardCharsets.UTF_8);
+            }
             return existingId;
         }
 
@@ -61,6 +71,10 @@ final class CartelQuestSetup {
 
     private static void followOptions(YamlConfiguration quest) {
         quest.set(FOLLOW + ".enabled", true);
+        quest.set(FOLLOW + ".soliciting", true);
+        quest.set(FOLLOW + ".solicitation-radius", 3.5);
+        quest.set(FOLLOW + ".approach-timeout-seconds", 60);
+        quest.set(FOLLOW + ".status-data", "solicitation");
         quest.set(FOLLOW + ".npc-data", "npc");
         quest.set(FOLLOW + ".open-doors", true);
         quest.set(FOLLOW + ".climbing", true);

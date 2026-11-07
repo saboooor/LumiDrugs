@@ -13,6 +13,8 @@ interface EnforcerQuests {
         boolean active();
         /** Publish the encounter entity as generic quest data for optional stage behaviors. */
         default void npc(java.util.UUID entityId) {}
+        /** LumiFollow solicitation state, or null while the option initializes. */
+        default String solicitation() { return null; }
         void progress(int delivered);
         boolean complete();
         void cancel();

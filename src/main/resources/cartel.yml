@@ -22,7 +22,7 @@ enforcer:
   max-active: 8
   spawn-min-distance: 8
   spawn-max-distance: 12
-  approach-timeout-seconds: 60
+  # Approach radius and timeout belong in the BeautyQuests lumi-follow option (soliciting: true).
   deadline-seconds: 90
   warning-interval-seconds: 15
   direct-delivery:

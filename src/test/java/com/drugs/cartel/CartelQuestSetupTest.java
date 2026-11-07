@@ -43,15 +43,20 @@ class CartelQuestSetupTest {
         try (var files = Files.list(folder)) { assertEquals(1, files.count()); }
     }
 
-    @Test void existingQuestWithoutFollowOptionsIsLeftUnchanged() throws Exception {
+    @Test void existingQuestGetsSolicitationWithOriginalBackedUp() throws Exception {
         Path file = folder.resolve(CartelQuestSetup.FILE_NAME);
         String legacy = "id: 9012\nname: My errands\nrepeatable: true\ncancellable: true\n"
                 + "manager:\n  branches:\n    '0':\n      stages:\n        '0':\n          stageType: lumidrugs-cartel-delivery\n"
                 + "      endingStages: {}\n";
         Files.writeString(file, legacy);
         assertEquals(9012, CartelQuestSetup.prepare(folder));
-        assertEquals(legacy, Files.readString(file));
-        assertFalse(Files.exists(folder.resolve(CartelQuestSetup.FILE_NAME + ".pre-follow.backup")));
+        assertEquals(legacy, Files.readString(folder.resolve(CartelQuestSetup.FILE_NAME + ".pre-soliciting.backup")));
+        var migrated = YamlConfiguration.loadConfiguration(file.toFile());
+        assertTrue(migrated.getBoolean("manager.branches.0.stages.0.options.lumi-follow.soliciting"));
+        assertEquals("My errands", migrated.getString("name"));
+        String once = Files.readString(file);
+        CartelQuestSetup.prepare(folder);
+        assertEquals(once, Files.readString(file));
     }
 
     @Test void preservesExplicitlyDisabledFollowing() throws Exception {

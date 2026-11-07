@@ -93,6 +93,13 @@ class BeautyQuestsEnforcersTest {
 
     @AfterEach void cleanup() { apiMock.close(); }
 
+    @Test void doesNotRequireLumiFollowOrInspectMovementOptions() {
+        assertNull(integration.unavailableReason(player));
+        assertNotNull(integration.begin(player, "joint", 16));
+        verify(plugins, never()).isPluginEnabled("LumiFollow");
+        verify(stage, never()).getOptions();
+    }
+
     @Test void identifiesLoadedQuestAndFailedRepeatableFlag() {
         when(quest.isRepeatable()).thenReturn(false);
         String reason = integration.unavailableReason(player);
