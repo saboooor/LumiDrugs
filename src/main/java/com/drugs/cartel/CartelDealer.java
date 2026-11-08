@@ -164,13 +164,6 @@ public final class CartelDealer implements Listener, CommandExecutor, TabComplet
         String name = config.getString("npc.name", "Pablo").trim();
         if (name.isEmpty()) name = "Pablo";
         player.sendMessage(ChatColor.GREEN + name + ": Throw the goods to me, within two blocks, and I'll pay you.");
-        var journal = plugin.getProductionJournal();
-        if (journal != null && contractsEnabled()) {
-            plugin.showDialog(player, com.drugs.ui.Dialogs.menu(
-                    com.drugs.ui.Dialogs.base("Cartel buyer", "Throw finished drugs near me to sell. You can also choose a voluntary supply contract with time to grow and produce the goods."),
-                    List.of(com.drugs.ui.Dialogs.button("Choose supply contract", "/drugs contracts", false, com.drugs.ui.DialogView.Icon.SHARED),
-                            com.drugs.ui.Dialogs.button("Production journal", "/drugs journal", false, com.drugs.ui.DialogView.Icon.BOOK))));
-        }
         var offer = offer(entity);
         if (offer != null) {
             long minutes = Math.max(1, (offer.changesAt() - System.currentTimeMillis() + 59_999) / 60_000);

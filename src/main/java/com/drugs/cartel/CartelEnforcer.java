@@ -403,15 +403,12 @@ public final class CartelEnforcer implements Listener {
         if (encounter.deadline == 0) {
             if (!"READY".equals(encounter.quest.solicitation())) return;
             beginDemand(player, encounter, now);
-            EnforcerGuide.open(plugin, player, encounter.drug);
-            return; // First interaction explains the deal before any items are sold.
+            return;
         }
         if (now >= encounter.deadline) {
             threaten(player, encounter);
             finish(player.getUniqueId());
-            return;
         }
-        EnforcerGuide.open(plugin, player, encounter.drug);
     }
 
     /** Reject only the caller's current encounter, using the same consequences as expiry. */

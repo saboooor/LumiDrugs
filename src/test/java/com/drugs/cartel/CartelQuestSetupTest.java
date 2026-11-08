@@ -22,6 +22,7 @@ class CartelQuestSetupTest {
         assertTrue(saved.getBoolean("cancellable"));
         assertTrue(saved.getBoolean("manager.branches.0.stages.0.options.lumi-follow.enabled"));
         assertEquals("npc", saved.getString("manager.branches.0.stages.0.options.lumi-follow.npc-data"));
+        assertEquals("cartel-enforcer", saved.getString("manager.branches.0.stages.0.options.lumi-follow.dialog"));
         assertEquals(CartelQuestSetup.STAGE_TYPE, saved.getString("manager.branches.0.stages.0.stageType"));
     }
 
@@ -53,6 +54,7 @@ class CartelQuestSetupTest {
         assertEquals(legacy, Files.readString(folder.resolve(CartelQuestSetup.FILE_NAME + ".pre-soliciting.backup")));
         var migrated = YamlConfiguration.loadConfiguration(file.toFile());
         assertTrue(migrated.getBoolean("manager.branches.0.stages.0.options.lumi-follow.soliciting"));
+        assertEquals("cartel-enforcer", migrated.getString("manager.branches.0.stages.0.options.lumi-follow.dialog"));
         assertEquals("My errands", migrated.getString("name"));
         String once = Files.readString(file);
         CartelQuestSetup.prepare(folder);

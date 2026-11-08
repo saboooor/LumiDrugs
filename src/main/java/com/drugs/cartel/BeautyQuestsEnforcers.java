@@ -180,6 +180,10 @@ final class BeautyQuestsEnforcers implements EnforcerQuests {
         }
 
         void progress(Quester quester, String drug, int amount, int delivered) {
+            updateObjective(quester, "drug", drug);
+            updateObjective(quester, "amount", Integer.toString(amount));
+            updateObjective(quester, "delivered", Integer.toString(delivered));
+            updateObjective(quester, "remaining", Integer.toString(Math.max(0, amount - delivered)));
             updateObjective(quester, "delivery", "Deliver " + drug + " to your enforcer: " + delivered + "/" + amount);
         }
 

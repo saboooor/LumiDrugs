@@ -477,13 +477,13 @@ Farm data saves to `farms.yml` and farm settings are under `config.yml` → `far
 
 Production code lives in `src/main/java/com/drugs`, grouped by feature: `farm`, `growing`, `strains`, `bong`, `cartel`, `drug`, `items`, `recipes`, `addiction`, `tolerance`, `overdose`, `effects`, `achievements`, `status`, `commands`, `ui`, `config`, `integration`, and `bootstrap`. Tests mirror these packages under `src/test/java/com/drugs`. `DrugsV2` remains at the root as the plugin entry point.
 
-## Quest-controlled NPC following
+## Quest-controlled NPC following and dialogs
 
-Cartel enforcer movement is owned by the independent [LumiFollow](https://github.com/saboooor/LumiFollow#readme)
-BeautyQuests option configured in the quest YAML. LumiDrugs manages the delivery objective
-and publishes its NPC entity UUID. LumiFollow owns solicitation approach and arrival;
+Cartel enforcer movement and cartel NPC click dialogs (`Cartel enforcer` and `Cartel buyer`) are owned by the independent [LumiFollow](https://github.com/saboooor/LumiFollow#readme)
+plugin. LumiDrugs manages the delivery objective
+and publishes its NPC entity UUID along with `{drug}`, `{amount}`, `{delivered}`, and `{remaining}` stage data. LumiFollow owns solicitation approach, arrival, and NPC click dialogs (`dialog: cartel-enforcer` on the quest stage option and `cartel-buyer` for linked buyer NPCs);
 LumiDrugs consumes `APPROACHING`, `READY`, and `TIMED_OUT` from quest data. It does not bundle LumiFollow. Install
-`LumiFollow.jar` from the [LumiFollow repository](https://github.com/saboooor/LumiFollow) to enable movement for quests using that option.
+`LumiFollow.jar` from the [LumiFollow repository](https://github.com/saboooor/LumiFollow) to enable movement and NPC dialogs.
 LumiFollow depends on Citizens and BeautyQuests and can be used without LumiDrugs.
 
 

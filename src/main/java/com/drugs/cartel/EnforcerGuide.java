@@ -22,9 +22,9 @@ import org.bukkit.inventory.meta.ItemMeta;
 import java.util.List;
 import java.util.Map;
 
-/** Enforcer dialogue actions and guides; recipes use a read-only inventory preview. */
+/** Enforcer recipe and growing guides; NPC dialogue is owned by LumiFollow. */
 public final class EnforcerGuide implements Listener {
-    public enum Page { DIALOGUE, RECIPE, GROWING }
+    public enum Page { RECIPE, GROWING }
 
     static final class RecipeMenu implements InventoryHolder {
         final String drug;
@@ -45,7 +45,7 @@ public final class EnforcerGuide implements Listener {
     public EnforcerGuide(DrugsV2 plugin) { this.plugin = plugin; }
 
     public static void open(DrugsV2 plugin, Player player, String drug) {
-        openPage(plugin, player, drug, Page.DIALOGUE);
+        openPage(plugin, player, drug, Page.RECIPE);
     }
 
     public static void openPage(DrugsV2 plugin, Player player, String drug, Page page) {
@@ -59,30 +59,9 @@ public final class EnforcerGuide implements Listener {
 
     public static MultiActionDialog createDialog(String drug, Page page) {
         return switch (page) {
-            case DIALOGUE -> dialogueDialog(drug);
             case GROWING -> growingDialog(drug);
             case RECIPE -> throw new IllegalArgumentException("Recipe page uses an inventory GUI");
         };
-    }
-
-    private static MultiActionDialog dialogueDialog(String drug) {
-        String message = "Enforcer: I need " + drug + ".\n"
-                + "Throw the goods near me to deliver them.\n"
-                + "Need help? Choose a guide below.\n"
-                + "Your delivery deadline keeps running. Rejecting counts as a refusal.";
-        DialogBase base = Dialogs.base("Cartel enforcer", message);
-        List<ActionButton> actions = List.of(
-                Dialogs.button("Crafting recipe", "/drugs guide " + drug + " recipe", false, Icon.CRAFTING_TABLE, "View the crafting recipe for " + drug + "."),
-                Dialogs.button("How to grow", "/drugs guide " + drug + " growing", false, Icon.SEEDS, "Learn how to grow the required ingredient."),
-                Dialogs.button("Learn to make this", "/drugs learn " + drug, false, Icon.BOOK,
-                        "Start a learning quest without a deadline. The enforcer's delivery timer keeps running separately."),
-                Dialogs.button("Production journal", "/drugs journal", false, Icon.BOOK),
-                Dialogs.button("Cut out middleman (3x pay)", "/cartel locate", false, Icon.SHARED,
-                        "Locate the cartel's shaded hideout and deliver the goods directly for 3x the money."),
-                Dialogs.button("Reject demand", "/cartel reject", false, Icon.CLOSE,
-                        "End this encounter now. Counts as a refusal, with the same consequences as letting time run out.")
-        );
-        return Dialogs.menu(base, actions, Dialogs.button("Close", "/drugs guide close", false, Icon.CLOSE, "Close this guide."));
     }
 
     private static MultiActionDialog growingDialog(String drug) {
@@ -130,7 +109,7 @@ public final class EnforcerGuide implements Listener {
         DialogBase base = GrowingGuide.formattedBase("Growing ingredients", instructions);
         List<ActionButton> actions = List.of(
                 Dialogs.button("Crafting recipe", "/drugs guide " + drug + " recipe", false, Icon.CRAFTING_TABLE, "View the crafting recipe for " + drug + "."),
-                Dialogs.button("Back to enforcer", "/drugs guide " + drug + " dialogue", false, Icon.ARROW, "Return to cartel enforcer instructions.")
+                Dialogs.button("Back to enforcer", "/lumifollow dialog", false, Icon.ARROW, "Return to cartel enforcer instructions.")
         );
         return Dialogs.menu(base, actions, Dialogs.button("Close", "/drugs guide close", false, Icon.CLOSE, "Close this guide."));
     }
@@ -241,7 +220,7 @@ public final class EnforcerGuide implements Listener {
         if (slot == 45) {
             plugin.getServer().getScheduler().runTask(plugin, () -> {
                 player.closeInventory();
-                openPage(plugin, player, menu.drug, Page.DIALOGUE);
+                plugin.executeUiCommand(player, "/lumifollow dialog");
             });
             return;
         }

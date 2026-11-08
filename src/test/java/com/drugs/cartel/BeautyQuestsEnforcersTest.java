@@ -183,6 +183,7 @@ class BeautyQuestsEnforcersTest {
         assertFalse(session.complete());
         assertTrue(session.active());
     }
+
     @Test void defaultConfigurationCreatesAndSelectsQuestAutomatically() {
         config.set("enforcer.beautyquests-quest-id", -1);
         var beautyQuests = mock(fr.skytasul.quests.api.QuestsPlugin.class);
@@ -212,4 +213,14 @@ class BeautyQuestsEnforcersTest {
         }
     }
 
+    @Test void stageProgressPublishesDrugAmountDeliveredAndRemainingToStageData() {
+        StageController deepController = mock(StageController.class, RETURNS_DEEP_STUBS);
+        when(deepController.getStageType().getOptionsRegistry().getCreators()).thenReturn(List.of());
+        var realStage = new BeautyQuestsEnforcers.DeliveryStage(deepController, integration);
+        realStage.progress(quester, "joint", 16, 6);
+        verify(deepController).updateObjective(quester, "drug", "joint");
+        verify(deepController).updateObjective(quester, "amount", "16");
+        verify(deepController).updateObjective(quester, "delivered", "6");
+        verify(deepController).updateObjective(quester, "remaining", "10");
+    }
 }

@@ -29,7 +29,7 @@ import static org.mockito.Mockito.*;
 class CartelEnforcerTest {
     private MockedStatic<Bukkit> bukkit;
     private MockedStatic<DrugRegistry> registry;
-    private MockedStatic<EnforcerGuide> guide;
+    private DrugsV2 plugin;
     private Player player;
     private Player npc;
     private CartelNpcs npcs;
@@ -44,11 +44,10 @@ class CartelEnforcerTest {
 
     @BeforeEach
     void setup() {
-        guide = mockStatic(EnforcerGuide.class);
         bukkit = mockStatic(Bukkit.class);
         registry = mockStatic(DrugRegistry.class);
         registry.when(() -> DrugRegistry.isDrugRegistered("joint")).thenReturn(true);
-        DrugsV2 plugin = mock(DrugsV2.class);
+        plugin = mock(DrugsV2.class);
         when(plugin.getName()).thenReturn("DrugsV2");
         when(plugin.namespace()).thenReturn("drugsv2");
         Server server = mock(Server.class);
@@ -122,7 +121,7 @@ class CartelEnforcerTest {
         enforcer = new CartelEnforcer(plugin, dealer, time::get, quests);
     }
 
-    @AfterEach void cleanup() { registry.close(); bukkit.close(); guide.close(); }
+    @AfterEach void cleanup() { registry.close(); bukkit.close(); }
 
     private void spawnAndApproach() {
         assertTrue(enforcer.spawn(player, "joint", 16, true));
@@ -331,12 +330,12 @@ class CartelEnforcerTest {
         verify(character, never()).destroy();
     }
 
-    @Test void rightClickOnlyExplainsDropDeliveryAndNeverSellsInventory() {
+    @Test void rightClickStartsDemandAndNeverOpensLumiDrugsDialogOrSellsInventory() {
         assertTrue(enforcer.spawn(player, "joint", 16, true));
         interact(player);
         interact(player);
         verify(player).sendMessage(contains("16 joint within 10s"));
-        guide.verify(() -> EnforcerGuide.open(any(DrugsV2.class), eq(player), eq("joint")), times(2));
+        verify(plugin, never()).showDialog(any(), any());
         verify(dealer, never()).sellDropped(any(), any(), anyInt(), any());
         verify(player, never()).getInventory();
     }

@@ -90,8 +90,12 @@ public class DrugsCommand implements CommandExecutor {
             if (args.length < 2 || args[1].equalsIgnoreCase("close")) {
                 return true;
             }
+            if (args.length >= 3 && args[2].equalsIgnoreCase("dialogue")) {
+                DrugsV2.getInstance().executeUiCommand(player, "/lumifollow dialog");
+                return true;
+            }
             String drug = args[1];
-            EnforcerGuide.Page page = EnforcerGuide.Page.DIALOGUE;
+            EnforcerGuide.Page page = EnforcerGuide.Page.RECIPE;
             if (args.length >= 3) {
                 try {
                     page = EnforcerGuide.Page.valueOf(args[2].toUpperCase(java.util.Locale.ROOT));

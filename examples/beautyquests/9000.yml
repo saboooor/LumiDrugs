@@ -19,6 +19,7 @@ manager:
               solicitation-radius: 3.5
               approach-timeout-seconds: 60
               status-data: solicitation
+              dialog: cartel-enforcer
               npc-data: npc
               open-doors: true
               climbing: true

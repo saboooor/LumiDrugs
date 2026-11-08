@@ -90,7 +90,7 @@ class EnforcerGuideTest {
     }
 
     @Test
-    void dialogueOpensRecipeGridAndGrowingPage() {
+    void recipeGridAndGrowingPageNavigateAndReturnToLumiFollowDialog() {
         ShapedRecipe recipe = mock(ShapedRecipe.class);
         ItemStack paper = mock(ItemStack.class);
         when(paper.getType()).thenReturn(Material.PAPER);
@@ -103,39 +103,29 @@ class EnforcerGuideTest {
         when(recipe.getChoiceMap()).thenReturn(Map.of('P', choice));
         bukkit.when(() -> Bukkit.getRecipe(new NamespacedKey(plugin, "joint"))).thenReturn(recipe);
 
-        // 1. Dialogue opens as Paper Dialog
+        // 1. Default open shows the Recipe Inventory GUI with native items
         EnforcerGuide.open(plugin, player, "joint");
-        ArgumentCaptor<MultiActionDialog> captor = ArgumentCaptor.forClass(MultiActionDialog.class);
-        verify(plugin).showDialog(eq(player), captor.capture());
-
-        MultiActionDialog dialogue = captor.getValue();
-        assertEquals("Cartel enforcer", dialogue.getBase().title().toPlainText());
-        assertTrue(dialogue.getBase().body().getFirst().contents().toPlainText().contains("Enforcer: I need joint"));
-        assertEquals("/drugs guide joint recipe", dialogue.actions().get(0).action().command());
-        assertEquals("/drugs guide joint growing", dialogue.actions().get(1).action().command());
-
-        // 2. Recipe page opens as an Inventory GUI with native items
-        EnforcerGuide.openPage(plugin, player, "joint", EnforcerGuide.Page.RECIPE);
         assertEquals(1, inventories.size());
         Inventory recipeGui = inventories.getFirst();
         verify(recipeGui).setItem(11, paper);
         verify(recipeGui).setItem(24, result);
         verify(player).openInventory(recipeGui);
 
-        // 3. Clicking "How to grow" (slot 49) in recipe GUI transitions to GROWING dialog
+        // 2. Clicking "How to grow" (slot 49) in recipe GUI transitions to GROWING dialog
         click(recipeGui, 49);
         verify(player).closeInventory();
         ArgumentCaptor<MultiActionDialog> growingCaptor = ArgumentCaptor.forClass(MultiActionDialog.class);
-        verify(plugin, times(2)).showDialog(eq(player), growingCaptor.capture());
+        verify(plugin).showDialog(eq(player), growingCaptor.capture());
         MultiActionDialog growingDialog = growingCaptor.getValue();
         assertEquals("Growing ingredients", growingDialog.getBase().title().toPlainText());
         assertTrue(growingDialog.getBase().body().getFirst().contents().toPlainText().contains("using shears"));
+        assertEquals("/lumifollow dialog", growingDialog.actions().get(1).action().command());
 
-        // 4. Clicking "Back to enforcer" (slot 45) transitions to DIALOGUE dialog
+        // 3. Clicking "Back to enforcer" (slot 45) delegates back to LumiFollow's NPC dialog
         click(recipeGui, 45);
-        verify(plugin, times(3)).showDialog(eq(player), any(MultiActionDialog.class));
+        verify(plugin).executeUiCommand(player, "/lumifollow dialog");
 
-        // 5. Clicking close (slot 53) closes inventory
+        // 4. Clicking close (slot 53) closes inventory
         click(recipeGui, 53);
     }
 
@@ -154,10 +144,11 @@ class EnforcerGuideTest {
 
     @Test
     void dialogPropertiesAndPaperConversion() {
-        MultiActionDialog dialogue = EnforcerGuide.createDialog("joint", EnforcerGuide.Page.DIALOGUE);
-        assertTrue(dialogue.getBase().canCloseWithEscape());
-        assertEquals(1, dialogue.columns());
-        assertEquals(300, dialogue.actions().getFirst().width());
+        MultiActionDialog growing = EnforcerGuide.createDialog("joint", EnforcerGuide.Page.GROWING);
+        assertTrue(growing.getBase().canCloseWithEscape());
+        assertEquals(1, growing.columns());
+        assertEquals(300, growing.actions().getFirst().width());
+        assertEquals("/drugs guide close", growing.exit().action().command());
 
         var provider = mock(DialogInstancesProvider.class);
         var baseBuilder = mock(io.papermc.paper.registry.data.dialog.DialogBase.Builder.class, RETURNS_SELF);
@@ -167,23 +158,13 @@ class EnforcerGuideTest {
 
         try (var factory = mockStatic(DialogInstancesProvider.class)) {
             factory.when(DialogInstancesProvider::instance).thenReturn(provider);
-            DialogView.paperBase(dialogue);
-            DialogView.button(dialogue.actions().getFirst());
-            verify(provider).dialogBaseBuilder(Component.text("Cartel enforcer"));
+            DialogView.paperBase(growing);
+            DialogView.button(growing.actions().getFirst());
+            verify(provider).dialogBaseBuilder(growing.getBase().title().paperText());
             verify(baseBuilder).canCloseWithEscape(true);
             verify(provider).staticAction(ClickEvent.runCommand("/drugs guide joint recipe"));
             verify(buttonBuilder).width(300);
         }
-    }
-
-    @Test
-    void dialogueOffersExplicitRejectionAndCloseRemainsHarmless() {
-        MultiActionDialog dialog = EnforcerGuide.createDialog("joint", EnforcerGuide.Page.DIALOGUE);
-        var reject = dialog.actions().stream().filter(button -> button.label().toPlainText().equals("Reject demand"))
-                .findFirst().orElseThrow();
-        assertEquals("/cartel reject", reject.action().command());
-        assertTrue(reject.lore().contains("Counts as a refusal"));
-        assertEquals("/drugs guide close", dialog.exit().action().command());
     }
 
     @Test
@@ -208,5 +189,7 @@ class EnforcerGuideTest {
         verify(plugin).showDialog(eq(player), any(MultiActionDialog.class));
         assertTrue(command.onCommand(player, mock(org.bukkit.command.Command.class), "drugs", new String[]{"guide", "joint", "recipe"}));
         assertEquals(1, inventories.size());
+        assertTrue(command.onCommand(player, mock(org.bukkit.command.Command.class), "drugs", new String[]{"guide", "joint", "dialogue"}));
+        verify(plugin).executeUiCommand(player, "/lumifollow dialog");
     }
 }
