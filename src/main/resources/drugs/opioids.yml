@@ -201,14 +201,13 @@ cures:
     material: BLUE_EGG
     display-name: '&eSuboxone'
     lore:
-    - '&7Treats opiod withdrawal.'
+    - '&7Relieves opioid withdrawal (heroin/fentanyl).'
     cures:
     - heroin
     - fent
-    - glue
-    clears_points: true
-    reduce_points: 0
-    block_withdrawal_seconds: 1
+    clears_points: false
+    reduce_points: 1
+    block_withdrawal_seconds: 300
   sleep:
     enabled: true
     item_enabled: false

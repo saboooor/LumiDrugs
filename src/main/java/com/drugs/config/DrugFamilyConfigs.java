@@ -22,6 +22,7 @@ public final class DrugFamilyConfigs {
         if (!folder.exists()) {
             for (String family : DEFAULT_FAMILIES) plugin.saveResource("drugs/" + family + ".yml", false);
         }
+        WithdrawalTreatmentMigration.apply(plugin);
     }
 
     public static YamlConfiguration view(File folder, String kind) {

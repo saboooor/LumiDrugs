@@ -13,7 +13,7 @@ Compared to a basic consumable-effects plugin, this version includes:
 
 - Persistent, drug-specific tolerance and addiction tracking.
 - Configurable overdose behavior (global, per-drug, staged, and random modes).
-- Recovery systems (Suboxone, CBD, sleep-based cure logic, enchanted golden apple).
+- Recovery treatments (opioid-only Suboxone).
 - Cannabis-focused systems:
   - Large strain registry with rarity and mutation weighting.
   - Plant growth timing controls.
@@ -59,7 +59,7 @@ Plugin enable initializes one phase per server tick; commands show an initializi
 3. Repeated use increases tolerance; potency drops over time.
 4. Continued use can cause addiction.
 5. If addicted, withdrawal effects begin after the configured delay.
-6. Recover with the matching cure, sleep (for configured stimulants), or golden apple reset.
+6. Manage opioid withdrawal with Suboxone; other withdrawal resolves through configured abstinence/point decay.
 7. Track your status with `/tolerance`.
 8. Browse cannabis strain info with `/strains`.
 9. Automate drug crop farms with Farm Controllers and worker villagers.
@@ -199,10 +199,18 @@ Defaults preserve psychedelic visuals and paranoia for shrooms, LSD, and Salvia;
 
 Defined under `cures` and `recipes` in the relevant drug family file:
 
-- **Suboxone**: cures configured opioid-related addictions.
-- **CBD**: cannabis-focused cure behavior.
-- **Sleep**: configured as cure logic for selected drugs.
-- **Enchanted Golden Apple**: full addiction reset behavior.
+- **Suboxone**: heroin/fentanyl withdrawal only.
+- Nicotine products keep their existing recovery mechanics; there are no nicotine patch or varenicline items.
+- Suboxone reduces addiction by one game point and suppresses withdrawal for five minutes; it does not instantly erase dependence. These are fictional game recipes and timings, not medical regimens.
+- **CBD**: reduces cannabis addiction points by 2 and blocks withdrawal for 30 seconds.
+- **Sleep**: clears cocaine, meth, MDMA, caffeine, and energy-drink addiction points.
+- **Enchanted Golden Apple**: eating one clears all addiction points and active withdrawal across every drug. Regular golden apples do not reset addiction; normal enchanted-apple buffs are retained.
+- CBD, sleep, and enchanted golden apple resets are fictional gameplay recovery mechanics.
+- Glue has no medication cure item; recovery follows its configured point decay.
+
+Suboxone’s opioid-only targets follow [SAMHSA's opioid treatment guidance](https://www.samhsa.gov/substance-use/treatment/options/buprenorphine). This is a simplified game mechanic; absence of a cure item does not mean real-world treatment is unavailable.
+
+Existing family files receive a targeted treatment upgrade on startup: opioid-only Suboxone, restoration of the original sleep/CBD gameplay effects, and removal of nicotine treatment entries. Changed files are backed up beside the originals as `*.before-treatments.bak`; unrelated family settings and deleted files are preserved.
 
 Withdrawal behavior (effect types, timings, point decay) is per-drug and configurable.
 

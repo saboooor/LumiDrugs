@@ -256,6 +256,18 @@ public class AddictionManager {
         return affected;
     }
 
+    /** Enchanted golden apple recovery: reset every saved drug, including retired profiles. */
+    public static boolean resetAllAddictions(Player player) {
+        var states = addictionData.remove(player.getUniqueId());
+        if (states == null || states.isEmpty()) return false;
+        for (var entry : states.entrySet()) {
+            var profile = AddictionConfigLoader.getDrugProfile(entry.getKey());
+            if (profile != null && (entry.getValue().getPoints() > 0 || entry.getValue().isWithdrawalActive()))
+                clearWithdrawalEffects(player, profile);
+        }
+        return true;
+    }
+
     public static void handleMilkConsumed(Player player) {
         AddictionSettings settings = AddictionConfigLoader.getSettings();
         if (!settings.isEnabled() || settings.isMilkClearsWithdrawal()) return;

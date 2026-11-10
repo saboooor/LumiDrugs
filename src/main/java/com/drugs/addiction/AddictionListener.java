@@ -4,6 +4,7 @@ import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerBedEnterEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -57,5 +58,14 @@ public class AddictionListener implements Listener {
     public void onMilkConsume(PlayerItemConsumeEvent event) {
         if (event.getItem().getType() != Material.MILK_BUCKET) return;
         AddictionManager.handleMilkConsumed(event.getPlayer());
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onEnchantedGoldenAppleConsume(PlayerItemConsumeEvent event) {
+        if (event.isCancelled() || event.getItem().getType() != Material.ENCHANTED_GOLDEN_APPLE) return;
+        if (AddictionManager.resetAllAddictions(event.getPlayer())) {
+            event.getPlayer().sendMessage("§aAll addiction and withdrawal cleared.");
+            com.drugs.achievements.AchievementManager.processTrigger(event.getPlayer(), "use_cure");
+        }
     }
 }
