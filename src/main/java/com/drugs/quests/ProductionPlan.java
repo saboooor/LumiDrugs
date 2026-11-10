@@ -30,6 +30,7 @@ public final class ProductionPlan {
             case "vape", "vape_liquid" -> add(steps, "Process leaves into Nicotine", "nicotine");
             case "cigarette", "cigar" -> add(steps, "Smoke leaves into Tobacco", "tobacco");
             case "energy_drink" -> add(steps, "Roast beans into Pure Caffeine", "caffeine");
+            case "glue" -> add(steps, "Process resin clumps at a cauldron", "processed_resin");
             case "edible" -> add(steps, "Craft Infused Dough", "infused_dough");
             case "cart" -> add(steps, "Brew Cannabis Extract", "cannabis_extract");
             default -> {}

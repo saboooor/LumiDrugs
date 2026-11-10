@@ -4,9 +4,9 @@ Declares support for Minecraft Java 1.21.9–26.3 (resource formats 69–97.1). 
 
 Install `LumiDrugs-resourcepack.zip` from the repository root in the client's `resourcepacks` directory, or host the ZIP for your server resource pack. Enable it alongside the updated plugin. No OptiFine is required.
 
-The pack contains 183 `lumidrugs:` item definitions, generated models and textures: drugs, cures, bong, production ingredients, crop harvests and seeds. Items sharing a material (such as cocaine and nicotine) have separate models and `custom_model_data` IDs (`1001`–`1183`). Original joint, cart, bong and cannabis plant artwork is retained in `tools/artwork/` and applied via item models and `custom_model_data` without replacing any vanilla textures.
+The pack contains 184 `lumidrugs:` item definitions, generated models and textures: drugs, cures, bong, production ingredients, crop harvests and seeds. Items sharing a material (such as cocaine and nicotine) have separate models and `custom_model_data` IDs (`1001`–`1184`). Original joint, cart, bong and cannabis plant artwork is retained in `tools/artwork/` and applied via item models and `custom_model_data` without replacing any vanilla textures.
 
-Newly created plugin items receive both the matching `minecraft:custom_model_data` (`1001`–`1183`) and `minecraft:item_model` components. Existing items keep their previous metadata; obtain fresh items through the normal commands, recipes or harvests to get the new models. The pack must be enabled to render these custom models. All crop blocks and vanilla items retain their vanilla appearance.
+Newly created plugin items receive both the matching `minecraft:custom_model_data` (`1001`–`1184`) and `minecraft:item_model` components. Existing items keep their previous metadata; obtain fresh items through the normal commands, recipes or harvests to get the new models. The pack must be enabled to render these custom models. All crop blocks and vanilla items retain their vanilla appearance.
 
 To rebuild the assets and installable ZIP with Python 3 and Pillow:
 
@@ -41,3 +41,5 @@ existing designs.
 GitHub Actions rebuilds and verifies the pack and uploads a separate
 **LumiDrugs-resourcepack** artifact alongside the plugin JAR. The artifact contains
 `LumiDrugs-resourcepack.zip`, ready for the client resourcepacks folder or server hosting.
+
+Processed Resin uses an amber pixel texture (ID 1184), with source artwork in `tools/artwork/processed_resin.png`. Its sugar base remains compatible with the brewing stand ingredient slot. Existing model IDs remain unchanged.

@@ -51,7 +51,7 @@ public final class DrugItemMetadata {
         // Append variants so existing item model numbers remain stable.
         for (String product : FLAVOR_PRODUCTS)
             for (String flavor : FLAVOR_IDS) types.add(product + "_flavor_" + flavor);
-        types.addAll(List.of("farm_controller", "farm_area_wand", "farm_work_contract"));
+        types.addAll(List.of("farm_controller", "farm_area_wand", "farm_work_contract", "processed_resin"));
         return List.copyOf(types);
     }
 

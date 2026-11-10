@@ -16,6 +16,13 @@
           "type": "minecraft:model",
           "model": "lumidrugs:item/nicotine"
         }
+      },
+      {
+        "threshold": 1184,
+        "model": {
+          "type": "minecraft:model",
+          "model": "lumidrugs:item/processed_resin"
+        }
       }
     ],
     "fallback": {

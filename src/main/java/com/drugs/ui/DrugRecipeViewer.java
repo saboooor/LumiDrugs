@@ -92,6 +92,20 @@ public class DrugRecipeViewer {
             player.openInventory(gui);
             return;
         }
+        if (drugId.equals("processed_resin")) {
+            Inventory gui = Bukkit.createInventory(null, 27, "Recipe: Processed Resin");
+            gui.setItem(10, new ItemStack(org.bukkit.Material.RESIN_CLUMP));
+            ItemStack station = new ItemStack(org.bukkit.Material.CAULDRON);
+            var meta = station.getItemMeta();
+            meta.setLore(java.util.List.of("§7Hold resin clumps in your main hand.",
+                    "§7Right-click an empty or water cauldron.",
+                    "§7One resin clump makes one Processed Resin."));
+            station.setItemMeta(meta);
+            gui.setItem(13, station);
+            gui.setItem(15, com.drugs.recipes.ProductionRecipes.intermediate("processed_resin", null));
+            player.openInventory(gui);
+            return;
+        }
         var brewing = com.drugs.recipes.ProductionRecipes.brewingPreview(drugId);
         if (brewing != null) {
             Inventory gui = Bukkit.createInventory(null, 27, "Recipe: " + drugId);

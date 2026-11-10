@@ -337,7 +337,7 @@ crops:
 
 ## Growing crafting ingredients
 
-Glue is brewed from a water bottle and a vanilla resin clump in a brewing stand (with blaze powder fuel). Resin is no longer a custom crop.
+Right-click an empty or water cauldron with vanilla resin clumps in your main hand to turn one clump into one Processed Resin. Brew Processed Resin with water bottles in a brewing stand (with blaze powder fuel) to make Glue. Ordinary sugar and raw resin clumps cannot substitute for Processed Resin. Resin is no longer a custom crop.
 
 Crop-based drug recipes require custom harvested ingredients. Ordinary flowers, minerals, vines,
 ferns, and planting stock cannot substitute for a harvest, including in automatic crafters.

@@ -30,6 +30,7 @@ class FlavorResourcePackTest {
         assertEquals(ids, DrugItemMetadata.resourcePackTypes());
         assertEquals(1001, DrugItemMetadata.customModelData("heroin"));
         assertEquals(1050, DrugItemMetadata.customModelData("harvest_coffee"));
+        assertEquals(1184, DrugItemMetadata.customModelData("processed_resin"));
         for (int i = 0; i < ids.size(); i++) {
             String id = ids.get(i);
             assertEquals(1001 + i, DrugItemMetadata.customModelData(id));

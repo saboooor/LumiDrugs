@@ -15,7 +15,7 @@ import java.util.*;
 /** Registers the assembly and brewing chains after all drug profiles have loaded. */
 public final class ProductionRecipes {
     private static final Set<String> MANAGED = Set.of("glue", "edible", "cbd", "cart", "vape", "cigarette", "cigar", "energy_drink");
-    private static final List<String> INTERMEDIATES = List.of("infused_dough", "cannabis_extract", "vape_liquid");
+    private static final List<String> INTERMEDIATES = List.of("infused_dough", "cannabis_extract", "vape_liquid", "processed_resin");
     private static final Set<NamespacedKey> recipeKeys = new HashSet<>();
     private static final Set<NamespacedKey> mixKeys = new HashSet<>();
     public record Brew(ItemStack base, ItemStack ingredient, ItemStack result) {}
@@ -28,11 +28,16 @@ public final class ProductionRecipes {
     public static List<String> intermediates() { return INTERMEDIATES; }
     public static Brew brewingPreview(String id) { return previews.get(id); }
     public static ItemStack intermediate(String id, String strain) {
-        Material material = id.equals("infused_dough") ? Material.WHEAT : Material.POTION;
+        Material material = switch (id) {
+            case "infused_dough" -> Material.WHEAT;
+            case "processed_resin" -> Material.SUGAR;
+            default -> Material.POTION;
+        };
         ItemStack item = new ItemStack(material);
         var meta = item.getItemMeta();
         DrugItemMetadata.setItemType(meta, id);
         meta.setDisplayName("§a" + switch (id) {
+            case "processed_resin" -> "Processed Resin";
             case "infused_dough" -> "Infused Dough";
             case "cannabis_extract" -> "Cannabis Extract";
             case "vape_liquid" -> "Nicotine Vape Liquid";
@@ -40,6 +45,8 @@ public final class ProductionRecipes {
         });
         meta.setLore(List.of("§7Processed ingredient — use in production recipes."));
         if (meta instanceof PotionMeta potion) potion.setBasePotionType(PotionType.WATER);
+        if (id.equals("processed_resin")) meta.setLore(List.of("§7Brew with water bottles to make Glue.",
+                "§7Made by right-clicking resin clumps on an empty or water cauldron."));
         if (strain != null) {
             DrugItemMetadata.setStrainId(meta, strain);
             DrugItemMetadata.applyStrainLore(meta, StrainConfigLoader.getStrain(strain));
@@ -70,7 +77,7 @@ public final class ProductionRecipes {
     public static String ingredientRecipe(ItemStack item) {
         if (item == null || !item.hasItemMeta()) return null;
         String type = DrugItemMetadata.getItemType(item.getItemMeta());
-        if (Set.of("infused_dough", "cannabis_extract", "vape_liquid").contains(Objects.requireNonNullElse(type, ""))) return type;
+        if (Set.of("infused_dough", "cannabis_extract", "vape_liquid", "processed_resin").contains(Objects.requireNonNullElse(type, ""))) return type;
         if (drug(item, "vape")) return "vape";
         if (drug(item, "cart")) return "cart";
         if (drug(item, "tobacco")) return "tobacco";
@@ -82,6 +89,9 @@ public final class ProductionRecipes {
         return item != null && item.getType() == Material.RESIN_CLUMP
                 && (!item.hasItemMeta() || (DrugItemMetadata.getItemType(item.getItemMeta()) == null
                 && !DrugItemMetadata.hasDrugId(item.getItemMeta())));
+    }
+    static boolean acceptsProcessedResin(ItemStack item) {
+        return item != null && item.getType() == Material.SUGAR && tagged(item, "processed_resin");
     }
     public static boolean plainPotion(ItemStack item, PotionType type) {
         return item != null && item.getType() == Material.POTION
@@ -145,8 +155,8 @@ public final class ProductionRecipes {
         clear();
         for (String id : MANAGED) RecipeUpdates.remove(key(id));
         ItemStack glue = DrugRegistry.getDrugItem("glue", 1);
-        if (glue != null) brew("glue", potion(PotionType.WATER), new ItemStack(Material.RESIN_CLUMP),
-                glue, ProductionRecipes::acceptsResin);
+        if (glue != null) brew("glue", potion(PotionType.WATER), intermediate("processed_resin", null),
+                glue, ProductionRecipes::acceptsProcessedResin);
         ItemStack tobacco = DrugRegistry.getDrugItem("tobacco", 1);
         for (String id : List.of("cigarette", "cigar")) {
             ItemStack result = DrugRegistry.getDrugItem(id, 1);

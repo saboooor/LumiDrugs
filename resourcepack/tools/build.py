@@ -187,7 +187,7 @@ for index, item in enumerate(IDS):
     texture = base / f'textures/item/{item}.png'
     texture.parent.mkdir(parents=True, exist_ok=True)
     # Retain custom artwork without replacing any vanilla textures.
-    artwork = {'cannabis_plant': 'fern', 'joint': 'joint', 'cart': 'cart', 'bong': 'bong'}.get(item)
+    artwork = {'cannabis_plant': 'fern', 'joint': 'joint', 'cart': 'cart', 'bong': 'bong', 'processed_resin': 'processed_resin'}.get(item)
     if item in VARIANTS:
         flavor_icon(*VARIANTS[item], icon).save(texture)
     elif artwork:
