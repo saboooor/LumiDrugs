@@ -50,6 +50,33 @@ class ProductionRecipesTest {
             assertTrue(ProductionRecipes.acceptsBuds(item(Material.FERN, "harvest_cannabis", null, false), "reggie"));
         }
     }
+    @Test void glueBrewsFromVanillaResinAndWaterOnly() {
+        assertTrue(ProductionRecipes.manages("glue"));
+        ItemStack resin = item(Material.RESIN_CLUMP, null, null, false);
+        assertTrue(ProductionRecipes.acceptsResin(resin));
+        assertFalse(ProductionRecipes.acceptsResin(item(Material.BONE_MEAL, "harvest_resin", null, false)));
+        assertFalse(ProductionRecipes.acceptsResin(item(Material.RESIN_CLUMP, "harvest_resin", null, false)));
+        assertFalse(ProductionRecipes.acceptsResin(null));
+        ItemStack water = item(Material.POTION, null, null, true);
+        when(((PotionMeta) water.getItemMeta()).getBasePotionType()).thenReturn(PotionType.WATER);
+        ItemStack awkward = item(Material.POTION, null, null, true);
+        when(((PotionMeta) awkward.getItemMeta()).getBasePotionType()).thenReturn(PotionType.AWKWARD);
+        ItemStack glue = mock(ItemStack.class);
+        when(glue.clone()).thenReturn(glue);
+        try (var brewing = mockStatic(BrewingRecipes.class);
+             var updates = mockStatic(RecipeUpdates.class);
+             var flavors = mockStatic(FlavorVariants.class)) {
+            try {
+                ProductionRecipes.brew("glue", water, resin, glue, ProductionRecipes::acceptsResin);
+                assertSame(glue, ProductionRecipes.brewingResult(water, resin));
+                assertNull(ProductionRecipes.brewingResult(awkward, resin));
+                assertNull(ProductionRecipes.brewingResult(water,
+                        item(Material.BONE_MEAL, "harvest_resin", null, false)));
+                assertSame(resin, ProductionRecipes.brewingPreview("glue").ingredient());
+            } finally { ProductionRecipes.clear(); }
+        }
+    }
+
     @Test void brewedLiquidsCannotBeReusedAsPlainWaterToDuplicateProducts() {
         ItemStack water = item(Material.POTION, null, null, true);
         when(((PotionMeta) water.getItemMeta()).getBasePotionType()).thenReturn(PotionType.WATER);

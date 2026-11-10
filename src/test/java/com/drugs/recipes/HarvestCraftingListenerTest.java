@@ -129,10 +129,11 @@ class HarvestCraftingListenerTest {
         new HarvestCraftingListener().autoCraft(event);
         verify(event).setCancelled(true);
     }
-    @Test void everyConfiguredDrugHasGrowingRequirement() {
+    @Test void cropBasedDrugsHaveGrowingRequirements() {
         var config = com.drugs.config.DrugFamilyConfigs.view(new java.io.File("src/main/resources"), "items");
+        assertNull(DrugGrowing.requirement("glue"));
         for (String drug : config.getKeys(false)) {
-            if (drug.equals("bong")) continue;
+            if (drug.equals("bong") || drug.equals("glue")) continue;
             if (!drug.equals("vape")) assertNotNull(DrugGrowing.requirement(drug), drug);
         }
     }

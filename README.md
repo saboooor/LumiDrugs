@@ -226,7 +226,7 @@ Automated drug crop farming is available through Farm Controllers:
 - Start/Stop the farm from the controller dialog.
 - Purchase work contracts with emeralds and assign up to **5 villagers** by holding a contract in your main hand and right-clicking a villager. Each contract is already linked to its farm; you do not need to look at the controller.
 - Assigned villagers are set to **Farmer** profession and must be reachable to contribute output.
-- Workers harvest mature cannabis, poppy, mushroom, ephedra, coca, sassafras, ergot, salvia, and resin crops. Plant the initial crops yourself; workers reuse harvested seeds within each cycle. All crops, including cannabis, need hydrated farmland and light level 9+ to grow. Use **Set Output Chest** in the controller dialog, then right-click a chest, to store harvests and unused seeds (double chests supported). **Clear Output Chest** restores drops at the controller. Overflow or output for a missing/unloaded chest drops at the controller. Players can toggle **Drop Chest Overflow: ON/OFF** in each farm controller menu. OFF discards chest overflow instead of dropping it; the choice survives restarts and moving the controller; missing/unloaded chests still drop output at the controller. The chest link survives restarts and remains at the same location when moving the controller. Vanilla wheat is left untouched.
+- Workers harvest mature cannabis, poppy, mushroom, ephedra, coca, sassafras, ergot, salvia, tobacco, and coffee crops. Plant the initial crops yourself; workers reuse harvested seeds within each cycle. All crops, including cannabis, need hydrated farmland and light level 9+ to grow. Use **Set Output Chest** in the controller dialog, then right-click a chest, to store harvests and unused seeds (double chests supported). **Clear Output Chest** restores drops at the controller. Overflow or output for a missing/unloaded chest drops at the controller. Players can toggle **Drop Chest Overflow: ON/OFF** in each farm controller menu. OFF discards chest overflow instead of dropping it; the choice survives restarts and moving the controller; missing/unloaded chests still drop output at the controller. The chest link survives restarts and remains at the same location when moving the controller. Vanilla wheat is left untouched.
 - New controllers are barrels; existing composter controllers remain usable. Breaking a controller drops a barrel item containing its farm ID, area, worker links, and start/stop setting. Workers that cannot be found as living, valid villagers when the controller is placed again are removed (including workers in unloaded chunks). The farm pauses until placed again; its area moves by the same offset as the controller. Contracts remain valid while packed. Packed farms survive server restarts. Contracts for genuinely missing farms are exchanged for one emerald each when the player joins or an invalid contract is used.
 - Dead/invalid villagers are removed from farm assignment data automatically.
 
@@ -280,7 +280,7 @@ If PlaceholderAPI is installed, this plugin registers `%drugs_...%` placeholders
 | `drugs/stimulants.yml` | Meth, cocaine, molly, caffeine, energy drinks, and their crops |
 | `drugs/psychedelics.yml` | Shrooms, LSD, salvia, mushrooms, and ergot |
 | `drugs/nicotine.yml` | Tobacco, nicotine, cigarettes, cigars, chewing tobacco, vapes, and tobacco crops |
-| `drugs/inhalants.yml` | Glue and resin crops |
+| `drugs/inhalants.yml` | Glue |
 | `config.yml` | Shared farm, bong, purity, flavor, HUD, chat, addiction, tolerance, and overdose policy; shared item recipes |
 | `prices.yml` | Drug sale prices and strain price overrides |
 | `cartel.yml` | Citizens integration, enforcer encounters, and supply contracts |
@@ -337,7 +337,9 @@ crops:
 
 ## Growing crafting ingredients
 
-Drug recipes require custom harvested ingredients. Ordinary flowers, minerals, vines,
+Glue is brewed from a water bottle and a vanilla resin clump in a brewing stand (with blaze powder fuel). Resin is no longer a custom crop.
+
+Crop-based drug recipes require custom harvested ingredients. Ordinary flowers, minerals, vines,
 ferns, and planting stock cannot substitute for a harvest, including in automatic crafters.
 Each drug’s family `recipe` section must include its required harvested crop.
 Use `/drugs growing` to open the crop guide dialog, or `/drugs growing <crop>` for a specific crop. Click a drug in `/drugs` to view its current recipe, then click a harvested ingredient to open its growing dialog. The guide includes a Back to recipe button.
@@ -358,7 +360,6 @@ planting fern. This applies to player harvests and farm workers; immature plants
 | Sassafras | Magenta dye | Molly | 15 minutes |
 | Ergot | Spore blossom | LSD | 20 minutes |
 | Salvia | Lilac | Salvia | 10 minutes |
-| Resin | Bone meal | Glue | 10 minutes |
 
 Craft a cannabis plant with 1 wheat seeds + 1 fern (shapeless), then plant it on
 hydrated farmland. Ordinary ferns cannot be planted directly as cannabis. Wait for it to mature into a large fern and harvest with shears. Mature plants

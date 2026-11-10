@@ -14,7 +14,7 @@ import java.util.*;
 
 /** Registers the assembly and brewing chains after all drug profiles have loaded. */
 public final class ProductionRecipes {
-    private static final Set<String> MANAGED = Set.of("edible", "cbd", "cart", "vape", "cigarette", "cigar", "energy_drink");
+    private static final Set<String> MANAGED = Set.of("glue", "edible", "cbd", "cart", "vape", "cigarette", "cigar", "energy_drink");
     private static final List<String> INTERMEDIATES = List.of("infused_dough", "cannabis_extract", "vape_liquid");
     private static final Set<NamespacedKey> recipeKeys = new HashSet<>();
     private static final Set<NamespacedKey> mixKeys = new HashSet<>();
@@ -78,6 +78,11 @@ public final class ProductionRecipes {
         if (drug(item, "caffeine")) return "caffeine";
         return null;
     }
+    static boolean acceptsResin(ItemStack item) {
+        return item != null && item.getType() == Material.RESIN_CLUMP
+                && (!item.hasItemMeta() || (DrugItemMetadata.getItemType(item.getItemMeta()) == null
+                && !DrugItemMetadata.hasDrugId(item.getItemMeta())));
+    }
     public static boolean plainPotion(ItemStack item, PotionType type) {
         return item != null && item.getType() == Material.POTION
                 && item.getItemMeta() instanceof PotionMeta potion && potion.getBasePotionType() == type
@@ -139,6 +144,9 @@ public final class ProductionRecipes {
     private static void registerAll() {
         clear();
         for (String id : MANAGED) RecipeUpdates.remove(key(id));
+        ItemStack glue = DrugRegistry.getDrugItem("glue", 1);
+        if (glue != null) brew("glue", potion(PotionType.WATER), new ItemStack(Material.RESIN_CLUMP),
+                glue, ProductionRecipes::acceptsResin);
         ItemStack tobacco = DrugRegistry.getDrugItem("tobacco", 1);
         for (String id : List.of("cigarette", "cigar")) {
             ItemStack result = DrugRegistry.getDrugItem(id, 1);

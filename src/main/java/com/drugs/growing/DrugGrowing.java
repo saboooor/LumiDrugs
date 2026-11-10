@@ -34,7 +34,7 @@ public final class DrugGrowing implements Listener {
         Map.entry("shrooms", "mushroom"), Map.entry("meth", "ephedra"),
         Map.entry("cocaine", "coca"), Map.entry("molly", "sassafras"),
         Map.entry("lsd", "ergot"), Map.entry("salvia", "salvia"),
-        Map.entry("glue", "resin"), Map.entry("joint", "cannabis"),
+        Map.entry("joint", "cannabis"),
         Map.entry("blunt", "cannabis"), Map.entry("cart", "cannabis"),
         Map.entry("edible", "cannabis"), Map.entry("cbd", "cannabis"),
         Map.entry("tobacco", "tobacco"), Map.entry("nicotine", "tobacco"),
@@ -72,14 +72,13 @@ public final class DrugGrowing implements Listener {
         add("sassafras", "Sassafras Leaves", Material.MAGENTA_DYE, 900, config);
         add("ergot", "Ergot Culture", Material.SPORE_BLOSSOM, 1200, config);
         add("salvia", "Salvia Leaves", Material.LILAC, 600, config);
-        add("resin", "Harvested Resin", Material.BONE_MEAL, 600, config);
         add("tobacco", "Tobacco Leaves", Material.DRIED_KELP, 600, config);
         add("coffee", "Coffee Beans", Material.COCOA_BEANS, 480, config);
         Map<String, Material> defaults = Map.ofEntries(
                 Map.entry("poppy", Material.POPPY), Map.entry("mushroom", Material.RED_MUSHROOM),
                 Map.entry("ephedra", Material.DEAD_BUSH), Map.entry("coca", Material.AZALEA),
                 Map.entry("sassafras", Material.OAK_SAPLING), Map.entry("ergot", Material.WHEAT),
-                Map.entry("salvia", Material.LILAC), Map.entry("resin", Material.SPRUCE_SAPLING),
+                Map.entry("salvia", Material.LILAC),
                 Map.entry("tobacco", Material.AZALEA), Map.entry("coffee", Material.OAK_SAPLING));
         plantBlocks.clear();
         for (String id : crops.keySet()) {
@@ -91,6 +90,7 @@ public final class DrugGrowing implements Listener {
             }
             plantBlocks.put(id, chosen);
         }
+        if (plants.entrySet().removeIf(entry -> !crops.containsKey(entry.getValue().crop()))) dirty = true;
         registerSeeds();
     }
 
@@ -236,6 +236,7 @@ public final class DrugGrowing implements Listener {
         return item;
     }
     private void registerSeeds() {
+        RecipeUpdates.remove(new NamespacedKey(plugin, "seed_resin"));
         for (Crop crop : crops.values()) {
             NamespacedKey key = new NamespacedKey(plugin, "seed_" + crop.id());
             var recipe = new ShapelessRecipe(key, seed(crop.id()));

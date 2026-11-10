@@ -13,7 +13,7 @@
     ],
     "fallback": {
       "type": "minecraft:model",
-      "model": "minecraft:item/barrel"
+      "model": "minecraft:block/barrel"
     }
   }
 }

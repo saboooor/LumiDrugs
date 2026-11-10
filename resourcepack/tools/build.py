@@ -76,6 +76,11 @@ MATERIALS = {
 
 MATERIALS.update(EXTRA_ITEMS)
 
+# Some vanilla item definitions use block models directly.
+VANILLA_MODEL_OVERRIDES = {
+    'barrel': 'minecraft:block/barrel',
+}
+
 TINTED_FALLBACKS = {
     'fern': [{'type': 'minecraft:constant', 'value': -12012264}],
     'large_fern': [{'type': 'minecraft:constant', 'value': -12012264}],
@@ -195,7 +200,8 @@ for index, item in enumerate(IDS):
     by_material[MATERIALS[VARIANTS[item][0] if item in VARIANTS else item]].append((cmd, item))
 
 for material, entries in sorted(by_material.items()):
-    fallback = {'type': 'minecraft:model', 'model': f'minecraft:item/{material}'}
+    fallback = {'type': 'minecraft:model',
+                'model': VANILLA_MODEL_OVERRIDES.get(material, f'minecraft:item/{material}')}
     if material in TINTED_FALLBACKS:
         fallback['tints'] = TINTED_FALLBACKS[material]
     write_json(ROOT / f'assets/minecraft/items/{material}.json', {

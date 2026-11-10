@@ -31,10 +31,7 @@ drugs:
           duration: 1200
           amplifier: 1
     recipe:
-      type: furnace
-      input-crop: resin
-      cooking-time: 200
-      experience: 0.1
+      type: production
     addiction:
       addictive: true
       points_per_use: 1
@@ -79,7 +76,3 @@ drugs:
         - PHANTOM
         - WITHER_SKELETON
         speed: 0.32
-crops:
-  resin:
-    plant-block: SPRUCE_SAPLING
-    growth-seconds: 600
